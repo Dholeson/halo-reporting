@@ -25,9 +25,9 @@ export async function loadData() {
   // Versioned URL: the CDN can't hand back an older copy right after an update.
   const res = await fetch(`data/data.json?v=${encodeURIComponent(VERSION)}`, { cache: "no-cache" });
   if (!res.ok) throw new Error(`data.json: HTTP ${res.status}`);
-  cache.clear();
-  shardCache.clear();
-  return decode(await res.json());
+  const raw = await res.json();
+  shardCache.clear(); // after the body: a render during the download can't refill it with old data
+  return decode(raw);
 }
 
 function decode(raw) {
@@ -97,10 +97,13 @@ function decode(raw) {
 }
 
 // ---------- identity ----------
-const cache = new Map();
+// Cached per dataset: rows computed from an old dataset can never be served for a new one.
+const caches = new WeakMap();
 
 /** Rows for an identity ("me" = all [me] accounts merged, else one xuid), annotated. */
 export function rowsFor(db, who) {
+  let cache = caches.get(db);
+  if (!cache) caches.set(db, (cache = new Map()));
   if (cache.has(who)) return cache.get(who);
   const ids = who === "me" ? new Set(db.me.map((p) => p.i)) : new Set(db.players.filter((p) => p.xuid === who).map((p) => p.i));
   const rows = db.rows.filter((r) => ids.has(r.p)).map((r) => ({ ...r }));

@@ -1,0 +1,40 @@
+name: Deploy site
+# Code changes publish on their own: no Halo sign-in, no token rotation, and never in the
+# ingest queue (where it could cancel a scout or sync that's waiting).
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "halo/report.py", "halo/players.py", "pyproject.toml", "uv.lock", ".github/workflows/deploy.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages     # shared with the ingest workflow's publish job
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync
+      - name: Build report
+        run: uv run python -m halo.report
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -5,28 +5,37 @@ import { $, esc, fmt, icon, initials, ago, toast, accountColor, cssVar } from ".
 import * as gh from "../gh.js";
 import { agg } from "../stats.js";
 
-const VALID_KEY = /^(?:[A-Za-z0-9 ]{1,16}(?:#\d{1,5})?|(?:xuid\()?\d{10,20}\)?)$/;
+const VALID_KEY = /^(?:[A-Za-z0-9 ]{1,16}(?:#\d{1,5})?|(?:xuid\()?\d{16}\)?)$/;
 const label = (job) => (job.kind === "sync" ? "Sync" : `${job.kind === "full" ? "Full history" : "Scout"}: ${job.players.map((p) => p.label || p.key).join(", ")}`);
 
 // ---------- modal ----------
+let current = null; // the open modal: {owner, onClose[], prevScrim}
 export function modal(html, { wide = false } = {}) {
+  closeModal();
   const m = $("#modal"), scrim = $("#scrim");
+  const owner = Symbol("modal");
+  current = { owner, onClose: [], prevScrim: scrim.onclick, prevScrimHidden: scrim.hidden };
   m.innerHTML = `<div class="modal-card${wide ? " wide" : ""}" role="dialog" aria-modal="true">${html}</div>`;
   m.hidden = false;
   scrim.hidden = false;
-  const close = () => { m.hidden = true; scrim.hidden = !$("#drawer").hidden ? false : true; m.innerHTML = ""; };
+  const close = () => { if (current?.owner === owner) closeModal(); };
   m.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
   m.onclick = (e) => { if (e.target === m) close(); };
   scrim.onclick = close;
   setTimeout(() => m.querySelector("input, button")?.focus(), 30);
-  return { el: m, close };
+  return { el: m, close, isOpen: () => current?.owner === owner, onClose: (fn) => current?.owner === owner && current.onClose.push(fn) };
 }
 export function closeModal() {
   const m = $("#modal");
-  if (!m || m.hidden) return false;
+  if (!m || m.hidden || !current) return false;
+  const c = current;
+  current = null;
   m.hidden = true;
   m.innerHTML = "";
-  if ($("#drawer").hidden) $("#scrim").hidden = true;
+  const scrim = $("#scrim");
+  scrim.onclick = c.prevScrim; // e.g. the match drawer's "click outside to close"
+  scrim.hidden = $("#drawer").hidden ? true : c.prevScrimHidden;
+  for (const fn of c.onClose) { try { fn(); } catch { /* ignore */ } }
   return true;
 }
 
@@ -44,7 +53,8 @@ export function openConnect(ctx, { then } = {}) {
     </ol>
     ${r ? "" : `<label class="field"><span>Repository (owner/name)</span><input id="repo-in" placeholder="owner/halo-reporting" autocomplete="off"></label>`}
     <label class="field"><span>Token</span><input id="tok-in" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false"></label>
-    <p class="note">Stored only in this browser on this device. Anyone else who opens the site stays read-only. Disconnect any time from the updates panel.</p>
+    <label class="check"><input type="checkbox" id="tok-remember"> <span>Keep me connected on this device</span></label>
+    <p class="note">By default the token is forgotten when you close this tab. If you keep it, note that every GitHub Pages site you publish under ${esc(r ? `${r.owner}.github.io` : "your github.io address")} shares this browser storage, so only do it if you don't publish other Pages sites there. Visitors without a token stay read-only.</p>
     <p class="error" id="tok-err" hidden></p>
     <div class="mc-actions"><button class="btn" data-close>Cancel</button><button class="btn primary" id="tok-go">Connect</button></div>`);
   const go = async () => {
@@ -56,8 +66,8 @@ export function openConnect(ctx, { then } = {}) {
     btn.disabled = true;
     btn.textContent = "Checking…";
     try {
-      const override = repoIn && repoIn.includes("/") ? { owner: repoIn.split("/")[0], name: repoIn.split("/")[1] } : null;
-      await gh.connect(tok, override);
+      const override = repoIn && repoIn.includes("/") ? { owner: repoIn.split("/")[0].trim(), name: repoIn.split("/")[1].trim() } : null;
+      await gh.connect(tok, { repoOverride: override, remember: el.querySelector("#tok-remember").checked });
       close();
       toast("Connected. Updates are enabled on this device.");
       then?.();
@@ -88,7 +98,8 @@ export async function startJob(ctx, kind, players) {
 }
 
 export function scout(ctx, person) {
-  const key = person.xuid || person.key;
+  const raw = String(person.xuid || person.key).trim();
+  const key = /^\d{16}$/.test(gh.normKey(raw)) ? gh.normKey(raw) : raw; // xuid(…) → bare digits; gamertags keep their case
   const job = startJob(ctx, "scout", [{ key, label: person.name || person.label || key }]);
   Promise.resolve(job).then((j) => j && ctx.setFilter({ who: `scout:${key}` }));
 }
@@ -128,24 +139,25 @@ export function openActivity(ctx) {
         ${j.url ? `<a class="note" href="${esc(j.url)}" target="_blank" rel="noopener">View run on GitHub</a>` : ""}
       </div>`).join("")}</div>` : '<p class="note">No updates yet.</p>'}
     <div class="mc-foot">
-      ${gh.connected() ? `<span class="note">${icon("check")} Connected to ${esc(r.owner)}/${esc(r.name)} on this device</span><button class="link-btn" id="disc">Disconnect</button>` : `<span class="note">Not connected: updates can't be started from this device.</span><button class="link-btn" id="conn">Connect GitHub</button>`}
-      ${list.some((j) => !["held", "dispatched", "queued", "in_progress", "publishing"].includes(j.state)) ? '<button class="link-btn" id="clear">Clear finished</button>' : ""}
+      ${gh.connected() ? `<span class="note">${icon("check")} Connected to ${esc(r.owner)}/${esc(r.name)} ${gh.remembered() ? "on this device" : "in this tab"}</span><button class="link-btn" id="disc">Disconnect</button>` : `<span class="note">Not connected: updates can't be started from this device.</span><button class="link-btn" id="conn">Connect GitHub</button>`}
+      ${list.some((j) => !gh.isActive(j)) ? '<button class="link-btn" id="clear">Clear finished</button>' : ""}
     </div>`;
   };
-  const { el, close } = modal(render());
+  const m = modal(render());
+  const { el, close } = m;
+  const redraw = () => { if (!m.isOpen()) return; el.querySelector(".modal-card").innerHTML = render(); wire(); };
   const wire = () => {
-    el.querySelector("#sync-now")?.addEventListener("click", async () => { await startJob(ctx, "sync", []); el.querySelector(".modal-card").innerHTML = render(); wire(); });
-    el.querySelector("#disc")?.addEventListener("click", () => { gh.disconnect(); el.querySelector(".modal-card").innerHTML = render(); wire(); ctx.refreshChrome(); });
+    el.querySelector("#sync-now")?.addEventListener("click", () => {
+      if (!gh.connected()) { close(); startJob(ctx, "sync", []); return; } // the connect dialog takes over
+      startJob(ctx, "sync", []).then(redraw);
+    });
+    el.querySelector("#disc")?.addEventListener("click", () => { gh.disconnect(); redraw(); ctx.refreshChrome(); });
     el.querySelector("#conn")?.addEventListener("click", () => { close(); openConnect(ctx); });
-    el.querySelector("#clear")?.addEventListener("click", () => { gh.clearFinished(); el.querySelector(".modal-card").innerHTML = render(); wire(); });
+    el.querySelector("#clear")?.addEventListener("click", () => { gh.clearFinished(); redraw(); });
     el.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
   };
   wire();
-  const off = gh.onChange(() => {
-    if ($("#modal").hidden) return off();
-    el.querySelector(".modal-card").innerHTML = render();
-    wire();
-  });
+  m.onClose(gh.onChange(redraw));
 }
 
 // ---------- people search ----------
@@ -222,12 +234,12 @@ export function openPerson(ctx, { xuid, name }) {
   const W = agg(withR), V = agg(vsR);
   const display = name || person?.gt || tracked?.gamertag || `Player ··${String(xuid).slice(-6)}`;
   const job = gh.jobFor([xuid, display]);
-  const pending = job && ["held", "dispatched", "queued", "in_progress", "publishing"].includes(job.state);
+  const pending = gh.isActive(job);
   const { el, close } = modal(`
     <div class="mc-head"><div style="display:flex;gap:12px;align-items:center"><span class="avatar" style="width:44px;height:44px;--c1:var(--tie);--c2:var(--tie)">${esc(initials(display))}</span><div><h2>${esc(display)}</h2><div class="note">XUID ${esc(xuid)}</div></div></div><button class="icon-btn" data-close aria-label="Close">${icon("close")}</button></div>
     <div class="split">
-      <div class="mini-stat"><div class="l">On your team</div><div class="v">${withR.length ? `${W.w}–${W.decided - W.w}` : "–"}</div><div class="note">${withR.length ? `${fmt.int(withR.length)} games · ${fmt.pct(W.wr)}` : "Never"}</div></div>
-      <div class="mini-stat"><div class="l">Against you (team modes)</div><div class="v">${vsR.length ? `${V.w}–${V.decided - V.w}` : "–"}</div><div class="note">${vsR.length ? `your record in ${fmt.int(vsR.length)} games` : "Never"}</div></div>
+      <div class="mini-stat"><div class="l">On your team</div><div class="v">${withR.length ? `${W.w}–${W.decided - W.w}` : "–"}</div><div class="note">${withR.length ? `${fmt.int(withR.length)} games · ${fmt.pct(W.wr)}` : person ? "Never" : "Under 2 shared games"}</div></div>
+      <div class="mini-stat"><div class="l">Against you (team modes)</div><div class="v">${vsR.length ? `${V.w}–${V.decided - V.w}` : "–"}</div><div class="note">${vsR.length ? `your record in ${fmt.int(vsR.length)} games` : person ? "Never" : "Under 2 shared games"}</div></div>
     </div>
     ${tracked ? `<p class="text-2">${esc(display)} is tracked. ${esc(historyLine(tracked) || "")}</p>` : pending ? `<div class="callout"><b>Scouting in progress.</b> ${esc(job.stage || "")}${stepper(job)}</div>` : `<p class="text-2">Scouting pulls their newest 300 games now (about 3 minutes) and the rest of their history in the background. They'll appear under Scouted players.</p>`}
     <div class="mc-actions">
@@ -267,7 +279,7 @@ export function partialBanner(ctx) {
   if (!inc.length) return "";
   const stored = ps.reduce((s, p) => s + p.stored, 0), total = ps.reduce((s, p) => s + Math.max(p.history || 0, p.stored), 0);
   const job = gh.jobFor(inc.map((p) => p.xuid));
-  const running = job && job.kind === "full" && ["held", "dispatched", "queued", "in_progress", "publishing"].includes(job.state);
+  const running = job && job.kind === "full" && gh.isActive(job);
   return `<div class="loading-banner" role="status">
     <span class="spin" aria-hidden="true"></span>
     <div><b>Showing ${fmt.int(stored)} of ~${fmt.int(total)} games.</b> ${running ? `Loading the rest now: ${esc(job.stage || "")}.` : "Older games load in the background every 6 hours, so trends will sharpen as they arrive."}</div>
@@ -291,8 +303,12 @@ export function pendingView(ctx, key) {
     ctx.el.querySelector("#pv-scout").addEventListener("click", () => scout(ctx, { key, name }));
     return;
   }
+  if (job.state === "done" && (ctx.reloading() || (job.version && Date.parse(ctx.db.generated) < Date.parse(job.version)))) {
+    ctx.el.innerHTML = `<section class="card pending-card"><div class="eyebrow">Scouting</div><h1>${esc(name)}</h1><p class="text-2">Done. Loading their dossier…</p>${stepper(job)}</section>`;
+    return;
+  }
   if (job.state === "done") {
-    // The run finished but the player isn't in the data: not found, or nothing public to fetch.
+    // The run finished and the new data is loaded, but the player isn't in it: not found.
     ctx.el.innerHTML = `<div class="card empty">${icon("alert")}<h3>Couldn't find ${esc(name)}</h3>
       <p>The update finished, but Halo didn't return a player called “${esc(name)}”. Check the spelling (newer gamertags may need their #1234 suffix), or their match history may be private.</p>
       <div class="mc-actions" style="justify-content:center"><button class="btn primary" id="pv-search">${icon("search")}Search again</button><button class="btn" id="pv-back">Back to me</button></div></div>`;

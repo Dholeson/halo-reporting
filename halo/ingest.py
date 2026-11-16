@@ -22,7 +22,7 @@ Env:
   ONLY_ME           "1" = only poll accounts marked [me] (the frequent polls use this)
   TRACK_SELF        "1" = also track the account that signed in
   RATE              requests per second per Halo service (default 3)
-  TOPUP             "1" = also backfill scouted players whose stored history is incomplete
+  TOPUP             "1" = also backfill players (yours and scouted) whose stored history is incomplete
   TOPUP_MAX         cap on top-up matches per run (default 600)
   SKILL_MAX         max matches to enrich with skill data per run (default 600)
   GAMERTAG_MIN      resolve names for co-players seen at least this often (default 3)
@@ -40,6 +40,7 @@ from aiohttp import ClientSession
 from spnkr import HaloInfiniteClient
 
 from halo.auth import app_from_env, save_refresh_token, sign_in
+from halo.players import TAG_RE, XUID_RE, entry_xuid, tracked_entries
 
 DATA = Path("data")
 MATCHES = DATA / "matches"
@@ -100,24 +101,7 @@ async def call(make, what: str, tries: int = 6):
             await asyncio.sleep(wait)
 
 
-XUID_RE = re.compile(r"^(?:xuid\()?(\d{10,20})\)?$", re.IGNORECASE)
-TAG_RE = re.compile(r"\s*\[([^\]]*)\]\s*$")
-
-
-def tracked_entries() -> list[tuple[str, bool]]:
-    """players.txt lines as (gamertag-or-xuid, is_me). "Gamertag [me]" marks your own accounts."""
-    path = Path("players.txt")
-    if not path.exists():
-        return []
-    out = []
-    for line in (l.strip() for l in path.read_text().splitlines()):
-        if not line or line.startswith("#"):
-            continue
-        m = TAG_RE.search(line)
-        out.append((TAG_RE.sub("", line).strip(), bool(m and m.group(1).strip().lower() == "me")))
-    return out
-
-
+# players.txt parsing lives in halo/players.py (shared with the report).
 def tracked_gamertags() -> list[str]:
     return [e for e, _ in tracked_entries()]
 
@@ -256,19 +240,25 @@ def _end_ts(m: dict) -> int:
     return int(start + secs(info.get("Duration")))
 
 
-def update_last_seen(fetched: list[dict]) -> None:
-    """Record when the most recent tracked game ended. The workflow's gate job reads
-    this to decide between 5-minute ("you're mid-session") and 15-minute polling.
-    Only rewritten when it changes, so quiet polls produce no commit."""
+def update_markers(fetched: list[dict], me: set[str], full_run: bool) -> None:
+    """data/last.json drives the workflow's gate:
+    - last_game_end: when one of YOUR games last ended (hot 5-minute polling for 3 hours after).
+      Scouted players' games don't count, or scouting an active player would keep polling hot.
+    - last_full: when everyone (scouted players too) was last refreshed; the gate upgrades the
+      next poll to a full refresh once this is 6 hours old.
+    Only rewritten when something changes, so quiet polls produce no commit."""
     path = DATA / "last.json"
     cur = load_json(path)
-    pool = fetched if cur else list(iter_matches())  # first run: derive from history
-    ends = [_end_ts(m) for m in pool]
-    if not ends:
-        return
-    last = max([cur.get("last_game_end", 0), *ends])
-    if last != cur.get("last_game_end"):
-        dump_json(path, {"last_game_end": last})
+    mine = {f"xuid({x})" for x in me}
+    pool = fetched if "me_only" in cur else list(iter_matches())  # first run under this format: full scan
+    ends = [_end_ts(m) for m in pool if any(p["PlayerId"] in mine for p in m["Players"])]
+    new = dict(cur)
+    new["me_only"] = True
+    new["last_game_end"] = max([cur.get("last_game_end", 0) if "me_only" in cur else 0, *ends])
+    if full_run:
+        new["last_full"] = int(time.time())
+    if new != cur:
+        dump_json(path, new)
 
 
 def slug(s: str) -> str:
@@ -410,20 +400,23 @@ async def main() -> None:
         not_found: set[str] = set()
         aliases: dict[str, str] = {}  # entry as typed (lowercased) -> xuid, for ONLY_PLAYERS matching
         for entry, is_me in entries:
-            if m := XUID_RE.match(entry):
-                xuid = m.group(1)
+            if x := entry_xuid(entry):
+                xuid = x
                 gt = known.get(xuid)
                 if not gt:
                     try:
                         gt = (await call(lambda: client.profile.get_user_by_id(xuid), "profile"))["gamertag"]
                     except Exception as e:
                         print(f"::warning::Couldn't look up XUID {xuid}: {why(e)}")
+                        if not is_me and (getattr(e, "status", None) == 404 or type(e).__name__ == "InvalidXuidError"):
+                            not_found.add(entry)
                         continue
             elif entry.lower() in by_gt:
                 xuid, gt = by_gt[entry.lower()], known.get(by_gt[entry.lower()], entry)
             else:
                 try:
-                    user = await call(lambda: client.profile.get_user_by_gamertag(entry), "profile")
+                    # "Name#1234": a raw '#' starts a URL fragment and the lookup would ask for "Name".
+                    user = await call(lambda: client.profile.get_user_by_gamertag(entry.replace("#", "%23")), "profile")
                 except Exception as e:
                     print(f"::warning::Couldn't find gamertag {entry!r}: {why(e)}")
                     if getattr(e, "status", None) == 404 and not is_me:
@@ -439,7 +432,7 @@ async def main() -> None:
             path = Path("players.txt")
             keep = [l for l in path.read_text().splitlines() if TAG_RE.sub("", l).strip() not in not_found]
             path.write_text("\n".join(keep) + "\n")
-            print(f"Removed unknown gamertags from players.txt: {', '.join(sorted(not_found))}")
+            print(f"Removed unknown players from players.txt: {', '.join(sorted(not_found))}")
 
         only = {aliases.get(g.strip().lower(), g.strip().lower()) for g in os.environ.get("ONLY_PLAYERS", "").split(",") if g.strip()}
         only = {aliases.get(m.group(1), m.group(1)) if (m := XUID_RE.match(o)) else o for o in only}
@@ -476,7 +469,7 @@ async def main() -> None:
             have = stored_counts(players)
             for xuid, gt in players.items():
                 hist = (meta.get(xuid) or {}).get("history") or 0
-                if budget <= 0 or xuid in me_xuids or not hist or have.get(xuid, 0) >= hist * 0.97:
+                if budget <= 0 or not hist or have.get(xuid, 0) >= hist * 0.97:
                     continue
                 try:
                     ids = await new_match_ids(client, xuid, seen | set(todo), budget, True, match_type)
@@ -509,7 +502,7 @@ async def main() -> None:
                 dump_json(DATA / "assets.json", assets)
 
         dump_json(DATA / "assets.json", assets)
-        update_last_seen(fetched)
+        update_markers(fetched, me_xuids or set(players), full_run=not only and not only_me)
         print(f"Stored {stored} new matches.")
 
         # Enrichment is best-effort: never let it fail the run.

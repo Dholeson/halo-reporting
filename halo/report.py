@@ -14,6 +14,8 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
+from halo.players import me_xuids
+
 DATA = Path("data")
 SITE = Path("site")
 WEB = Path("web")
@@ -84,18 +86,6 @@ def medal_names() -> dict[int, str]:
         return {}
 
 
-def me_gamertags(players: dict[str, str]) -> set[str]:
-    """Accounts marked `[me]` in players.txt are "you". If none are marked, all are."""
-    path = Path("players.txt")
-    marked = set()
-    if path.exists():
-        for line in path.read_text().splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and line.lower().endswith("[me]"):
-                marked.add(line[:-4].strip().lower())
-    return marked or {g.lower() for g in players.values()}
-
-
 def core(p) -> dict:
     """Sum CoreStats across teams (a player can switch teams mid-match)."""
     out: dict = {}
@@ -148,7 +138,7 @@ def main() -> None:
     gamertags = load(DATA / "gamertags.json", {})
     tracked = {f"xuid({x})": i for i, x in enumerate(players)}
     names = medal_names()
-    me = me_gamertags(players)
+    me = me_xuids(players)  # same parsing as the ingest (halo/players.py)
 
     skill: dict[str, dict] = {}
     for s in jsonl(DATA / "skill"):
@@ -277,7 +267,7 @@ def main() -> None:
     SITE.joinpath("data").mkdir(exist_ok=True)
     payload = {
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "players": [{"xuid": x, "gamertag": g, "me": g.lower() in me,
+        "players": [{"xuid": x, "gamertag": g, "me": x in me,
                      "stored": stored_by.get(i, 0), "history": (meta.get(x) or {}).get("history")}
                     for i, (x, g) in enumerate(players.items())],
         "maps": maps.items, "mapVariants": mapvs.items, "modes": modes.items, "playlists": playlists.items,

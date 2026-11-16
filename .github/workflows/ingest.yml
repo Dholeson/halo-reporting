@@ -1,15 +1,11 @@
 name: Ingest & report
-# Shown in the Actions list; the app matches its own requests by the [id] suffix.
+# Shown in the Actions list; the app finds its own requests by the [id] suffix.
 run-name: ${{ inputs.request_id && format('{0} [{1}]', inputs.gamertags && format('Scout {0}', inputs.gamertags) || 'Sync', inputs.request_id) || format('Ingest ({0})', github.event_name) }}
 
 on:
   schedule:
-    - cron: "*/5 * * * *"          # hot: only proceeds if one of your games ended in the last 3 hours
-    - cron: "7,22,37,52 * * * *"   # cool: every 15 minutes, your accounts only
-    - cron: "41 */6 * * *"         # full: every 6 hours, everyone including scouted players
-  push:
-    branches: [main]
-    paths: ["web/**", "halo/**", "pyproject.toml", "uv.lock", ".github/workflows/ingest.yml"]
+    - cron: "*/5 * * * *"          # hot: only proceeds if one of YOUR games ended in the last 3 hours
+    - cron: "7,22,37,52 * * * *"   # cool: every 15 minutes; becomes a full refresh when the last one is 6 h old
   workflow_dispatch:
     inputs:
       gamertags:
@@ -49,6 +45,7 @@ jobs:
     outputs:
       run: ${{ steps.decide.outputs.run }}
       scope: ${{ steps.decide.outputs.scope }}
+      topup: ${{ steps.decide.outputs.topup }}
     steps:
       - id: decide
         env:
@@ -56,25 +53,24 @@ jobs:
           EVENT: ${{ github.event_name }}
           SCHEDULE: ${{ github.event.schedule }}
         run: |
-          out() { echo "run=$1" >> "$GITHUB_OUTPUT"; echo "scope=$2" >> "$GITHUB_OUTPUT"; echo "run=$1 scope=$2"; }
-          case "$EVENT" in
-            workflow_dispatch) out true all; exit 0 ;;
-            push) out true me; exit 0 ;;
-          esac
+          out() { printf 'run=%s\nscope=%s\ntopup=%s\n' "$1" "$2" "${3:-false}" | tee -a "$GITHUB_OUTPUT"; }
+          if [ "$EVENT" = "workflow_dispatch" ]; then out true all; exit 0; fi
           # GitHub keeps only one pending run per concurrency group and cancels the older one,
           # so a poll must never queue behind other work (it could cancel a scout you asked for).
           busy=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ingest.yml/runs?per_page=20" \
             --jq "[.workflow_runs[] | select(.status != \"completed\" and .id != $GITHUB_RUN_ID)] | length" 2>/dev/null || echo 0)
           if [ "${busy:-0}" -gt 0 ]; then echo "Another ingest run is active or queued; skipping this poll."; out false me; exit 0; fi
-          case "$SCHEDULE" in
-            "41 */6 * * *") out true all ;;
-            "7,22,37,52 * * * *") out true me ;;
-            *)
-              last=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/last.json" --jq .content 2>/dev/null | base64 -d 2>/dev/null | jq -r '.last_game_end // 0' 2>/dev/null || true)
-              age=$(( $(date +%s) - ${last:-0} ))
-              echo "Last tracked game ended $(( age / 60 )) min ago"
-              if [ "$age" -lt 10800 ]; then out true me; else out false me; fi ;;
-          esac
+          marks=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/last.json" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)
+          last_game=$(echo "${marks:-{\}}" | jq -r '.last_game_end // 0' 2>/dev/null || echo 0)
+          last_full=$(echo "${marks:-{\}}" | jq -r '.last_full // 0' 2>/dev/null || echo 0)
+          now=$(date +%s)
+          age=$(( now - ${last_game:-0} ))
+          echo "Your last game ended $(( age / 60 )) min ago; last full refresh $(( (now - ${last_full:-0}) / 60 )) min ago"
+          scope=me; topup=false
+          # Everyone (scouted players too) is refreshed when the last full refresh is 6 hours old.
+          if [ $(( now - ${last_full:-0} )) -ge 21600 ]; then scope=all; topup=true; fi
+          if [ "$SCHEDULE" = "*/5 * * * *" ] && [ "$age" -ge 10800 ]; then out false "$scope"; exit 0; fi
+          out true "$scope" "$topup"
 
   ingest:
     needs: gate
@@ -83,13 +79,16 @@ jobs:
     concurrency:
       group: ingest    # shared with the sign-in workflow: one token rotation, one data commit at a time
       cancel-in-progress: false
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
     env:
       HAS_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN != '' }}
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      # The current head of main, not the commit this run was triggered at: a run that waited in
+      # the queue must see the data the previous run just committed.
       - uses: actions/checkout@v5
+        with:
+          ref: main
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
@@ -98,18 +97,17 @@ jobs:
       - name: Run settings
         env:
           SCOPE: ${{ needs.gate.outputs.scope }}
+          TOPUP_GATE: ${{ needs.gate.outputs.topup }}
           PHASE: ${{ inputs.phase }}
           BACKFILL_BOX: ${{ inputs.backfill }}
-          SCHEDULE: ${{ github.event.schedule }}
         run: |
           {
             [ "$SCOPE" = "me" ] && echo "ONLY_ME=1"
+            [ "$TOPUP_GATE" = "true" ] && echo "TOPUP=1"
             [ "$BACKFILL_BOX" = "true" ] && echo "BACKFILL=1"
             # scout: newest 300 games and no CSR yet, so a first dossier is up in a few minutes
             [ "$PHASE" = "scout" ] && printf 'MAX_NEW_MATCHES=300\nSKILL_MAX=0\n'
             [ "$PHASE" = "full" ] && printf 'MAX_NEW_MATCHES=1500\nSKILL_MAX=1500\n'
-            # the 6-hourly run also tops up scouted players whose history is still partial
-            [ "$SCHEDULE" = "41 */6 * * *" ] && echo "TOPUP=1"
             true
           } >> "$GITHUB_ENV"
 
@@ -119,13 +117,20 @@ jobs:
           GAMERTAGS: ${{ inputs.gamertags }}
         run: |
           python3 - <<'PY'
-          import os, re
+          import json, os, re
           path = "players.txt"
           lines = open(path).read().splitlines()
           bare = lambda l: re.sub(r"\s*\[[^\]]*\]\s*$", "", l).strip()
-          norm = lambda s: (m.group(1) if (m := re.match(r"^(?:xuid\()?(\d{10,20})\)?$", s, re.I)) else s).lower()
+          xuid = lambda s: (m.group(1) if (m := re.match(r"^(?:xuid\()?(\d{16})\)?$", s.strip(), re.I)) else None)
+          norm = lambda s: xuid(s) or s.strip().lower()
           have = {norm(bare(l)) for l in lines if l.strip() and not l.startswith("#")}
-          valid = re.compile(r"^(?:[A-Za-z0-9 ]{1,16}(?:#\d{1,5})?|(?:xuid\()?\d{10,20}\)?)$")
+          # tracked players also count by XUID, so "load full history" for them adds nothing
+          try:
+              known = json.load(open("data/players.json"))
+          except FileNotFoundError:
+              known = {}
+          have |= {x for x, g in known.items() if g.lower() in have}
+          valid = re.compile(r"^(?:[A-Za-z0-9 ]{1,16}(?:#\d{1,5})?|(?:xuid\()?\d{16}\)?)$")
           wanted = [g.strip() for g in os.environ["GAMERTAGS"].split(",") if g.strip()]
           bad = [g for g in wanted if not valid.match(g)]
           for g in bad:
@@ -138,7 +143,7 @@ jobs:
               f.writelines(g + "\n" for g in added)
           print("Added:", ", ".join(added) or "(already tracked)")
           with open(os.environ["GITHUB_ENV"], "a") as f:
-              f.write("ONLY_PLAYERS=" + ",".join(new) + "\nBACKFILL=1\nONLY_ME=0\n")
+              f.write("ONLY_PLAYERS=" + ",".join(new) + "\nBACKFILL=1\nONLY_ME=0\nTOPUP=0\n")
           PY
 
       - name: Pull new matches
@@ -152,7 +157,7 @@ jobs:
           MAX_NEW_MATCHES_INPUT: ${{ inputs.max_new_matches }}
           SKILL_MAX_INPUT: ${{ inputs.skill_max }}
         run: |
-          # explicit inputs win unless the quick phase already set a cap
+          # explicit inputs win unless a phase already set a cap
           export MAX_NEW_MATCHES="${MAX_NEW_MATCHES:-${MAX_NEW_MATCHES_INPUT:-100}}"
           export SKILL_MAX="${SKILL_MAX:-${SKILL_MAX_INPUT:-600}}"
           uv run python -m halo.ingest
@@ -180,21 +185,34 @@ jobs:
           git add data players.txt
           if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "Nothing new."; exit 0; fi
           git commit -m "data: ingest $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull --rebase -q origin main
+          git pull --rebase -q origin main   # safety net for a code push that landed mid-run
           git push
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-      # Quiet scheduled polls stop here: no rebuild, no deploy.
+  # Quiet polls stop before this job: no build, no Pages deployment record.
+  publish:
+    needs: ingest
+    if: needs.ingest.outputs.changed == 'true' || github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages     # shared with deploy.yml: one Pages deployment at a time, newest wins
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync
       - name: Build report
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         run: uv run python -m halo.report
       - uses: actions/configure-pages@v5
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
       - uses: actions/upload-pages-artifact@v3
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         with:
           path: site
       - id: deploy
-        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         uses: actions/deploy-pages@v4
-

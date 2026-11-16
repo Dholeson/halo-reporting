@@ -1,35 +1,56 @@
 // GitHub connection + job tracker.
-// The site is static, so to start an ingest it calls the GitHub API with a
-// fine-grained token the owner pastes in once (this repo only, Actions read/write).
-// The token lives only in this browser. Without it, everything stays read-only.
-
-import { store } from "./util.js";
+// The site is static, so starting an ingest means calling the GitHub API with a fine-grained
+// token (this repo only, Actions read/write). By default the token lives in this tab only
+// (sessionStorage): every Pages site under <owner>.github.io shares one origin, so anything
+// stored for good is readable by the owner's other Pages sites. "Remember" is an explicit opt-in.
+//
+// GitHub keeps ONE pending run per concurrency group and cancels the older one, so requests
+// are held here until GitHub is idle, released one dispatch at a time, and held scouts are
+// batched into a single run.
 
 const API = "https://api.github.com";
 const WORKFLOW = "ingest.yml";
 const ACTIVE = new Set(["held", "dispatched", "queued", "in_progress", "publishing"]);
+const TAB = Math.random().toString(36).slice(2);
 const listeners = new Set();
+const newDataHandlers = new Set();
 let timer = null;
 let busy = false;
+let memRepo = null;
 
+// ---------- storage (namespaced per repo) ----------
+const safe = (fn, d) => { try { return fn(); } catch { return d; } };
 export function repo() {
-  const saved = store.get("repo", null);
+  if (memRepo) return memRepo;
+  const saved = safe(() => JSON.parse(localStorage.getItem("debrief.repo")), null);
   if (saved?.owner && saved?.name) return saved;
   if (location.hostname.endsWith("github.io")) {
-    return { owner: location.hostname.split(".")[0], name: location.pathname.split("/").filter(Boolean)[0] || `${location.hostname}` };
+    const name = location.pathname.split("/").filter(Boolean)[0];
+    if (name) return { owner: location.hostname.split(".")[0], name };
   }
   return null;
 }
-export const token = () => store.get("ghToken", null);
+const ns = (k) => { const r = repo(); return `debrief:${r ? `${r.owner}/${r.name}` : "_"}:${k}`; };
+const lsGet = (k, d) => safe(() => { const v = localStorage.getItem(ns(k)); return v === null ? d : JSON.parse(v); }, d);
+const lsSet = (k, v) => safe(() => (v === null ? localStorage.removeItem(ns(k)) : localStorage.setItem(ns(k), JSON.stringify(v))));
+const ssGet = (k, d) => safe(() => { const v = sessionStorage.getItem(ns(k)); return v === null ? d : JSON.parse(v); }, d);
+const ssSet = (k, v) => safe(() => (v === null ? sessionStorage.removeItem(ns(k)) : sessionStorage.setItem(ns(k), JSON.stringify(v))));
+
+export const token = () => ssGet("token", null) || lsGet("token", null);
+export const remembered = () => !!lsGet("token", null);
 export const connected = () => !!(token() && repo());
-export const jobs = () => store.get("jobs", []);
-const saveJobs = (list) => { store.set("jobs", list.slice(-30)); emit(); };
+export const jobs = () => lsGet("jobs", []);
+const saveJobs = (list) => { lsSet("jobs", list.slice(-30)); emit(); };
 export const activeJobs = () => jobs().filter((j) => ACTIVE.has(j.state));
+export const isActive = (j) => !!j && ACTIVE.has(j.state);
 export const onChange = (fn) => (listeners.add(fn), () => listeners.delete(fn));
+export const onNewData = (fn) => (newDataHandlers.add(fn), () => newDataHandlers.delete(fn));
 function emit() { for (const fn of listeners) { try { fn(); } catch (e) { console.warn(e); } } }
 
-async function api(path, { method = "GET", body, tok = token() } = {}) {
-  const r = repo();
+/** "xuid(123)", "123", "Name" → comparable key */
+export const normKey = (k) => { const s = String(k ?? "").trim().toLowerCase(); const m = s.match(/^(?:xuid\()?(\d{16})\)?$/); return m ? m[1] : s; };
+
+async function api(path, { method = "GET", body, tok = token(), r = repo() } = {}) {
   const url = path.startsWith("http") ? path : `${API}/repos/${r.owner}/${r.name}${path}`;
   const res = await fetch(url, {
     method,
@@ -47,133 +68,181 @@ async function api(path, { method = "GET", body, tok = token() } = {}) {
   return res.status === 204 ? null : res.json();
 }
 
-/** Validate and store a token. Throws a readable error if it can't do the job. */
-export async function connect(tok, repoOverride) {
-  if (repoOverride) store.set("repo", repoOverride);
-  if (!repo()) throw new Error("Couldn't tell which repository this site belongs to. Enter owner/repo.");
+/** Validate first, then store. Throws a readable error if the token can't do the job. */
+export async function connect(tok, { repoOverride = null, remember = false } = {}) {
+  const r = repoOverride || repo();
+  if (!r) throw new Error("Couldn't tell which repository this site belongs to. Enter owner/repo.");
   try {
-    await api("", { tok });
+    await api("", { tok, r });
   } catch (e) {
     throw new Error(e.status === 401 ? "GitHub rejected that token (expired or mistyped)." : e.status === 404 ? "That token can't see this repository. Give it access to this repo." : `GitHub said: ${e.message}`);
   }
   try {
-    await api(`/actions/workflows/${WORKFLOW}`, { tok });
+    await api(`/actions/workflows/${WORKFLOW}`, { tok, r });
   } catch (e) {
     throw new Error(e.status === 403 || e.status === 404 ? "The token needs the Actions permission (Read and write)." : `GitHub said: ${e.message}`);
   }
-  store.set("ghToken", tok);
+  if (repoOverride) { memRepo = repoOverride; safe(() => localStorage.setItem("debrief.repo", JSON.stringify(repoOverride))); }
+  ssSet("token", remember ? null : tok);
+  lsSet("token", remember ? tok : null);
   emit();
 }
-export function disconnect() { store.set("ghToken", null); emit(); }
+export function disconnect() { ssSet("token", null); lsSet("token", null); emit(); }
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 
 /**
- * Ask the ingest workflow to run.
- * kind: "sync" (everyone, newest games) | "scout" (fast first look at new players) | "full" (whole history)
+ * kind: "sync" (everyone, newest games) | "scout" (first look at new players) | "full" (whole history)
  * players: [{key: gamertag or xuid, label: display name}]
  */
 export async function request(kind, players = []) {
   if (!connected()) throw new Error("not-connected");
   const list = jobs();
-  const keyOf = (p) => String(p.key).toLowerCase();
-  // De-duplicate: the same request already in flight just keeps running.
-  const dup = list.find((j) => ACTIVE.has(j.state) && j.kind === kind && j.players.map(keyOf).join() === players.map(keyOf).join());
+  const sig = (ps) => ps.map((p) => normKey(p.key)).sort().join();
+  const dup = list.find((j) => isActive(j) && j.kind === kind && sig(j.players) === sig(players));
   if (dup) return dup;
-  const job = { id: rid(), kind, players, createdAt: new Date().toISOString(), state: "held", stage: "Waiting to start", log: [] };
+  const job = { id: rid(), kind, players, createdAt: new Date().toISOString(), state: "held", stage: "Starting…", stageIndex: 0, errors: 0 };
   saveJobs([...list, job]);
   tick();
   return job;
 }
 
-const newDataHandlers = new Set();
-export const onNewData = (fn) => (newDataHandlers.add(fn), () => newDataHandlers.delete(fn));
-
-function patch(id, changes) {
+function patch(ids, changes) {
+  const set = new Set([].concat(ids));
   const list = jobs();
-  const j = list.find((x) => x.id === id);
-  if (!j) return null;
-  Object.assign(j, changes, { updatedAt: new Date().toISOString() });
-  saveJobs(list);
-  return j;
+  let hit = false;
+  for (const j of list) if (set.has(j.id)) { Object.assign(j, changes, { updatedAt: new Date().toISOString() }); hit = true; }
+  if (hit) saveJobs(list);
 }
 
-// Map the workflow's step names to a few stages people care about.
-const STAGES = [
-  { label: "Waiting for a runner", match: () => false },
-  { label: "Setting up", match: (n) => /set up job|checkout|setup-uv|uv sync|run settings|add looked-up/i.test(n) },
-  { label: "Pulling games from Halo", match: (n) => /pull new matches|rotate refresh/i.test(n) },
-  { label: "Saving", match: (n) => /commit new data/i.test(n) },
-  { label: "Building and publishing", match: (n) => /build report|configure-pages|upload-pages|deploy-pages/i.test(n) },
-];
-export const STAGE_LABELS = [...STAGES.map((s) => s.label), "Going live"];
+// Workflow steps → the few stages people care about. Post/cleanup steps count as the last stage.
+export const STAGE_LABELS = ["Waiting for a runner", "Setting up", "Pulling games from Halo", "Saving", "Building and publishing", "Going live"];
+function stageOf(job, step) {
+  const n = `${job} ${step}`.toLowerCase();
+  if (job === "publish") return 4;
+  if (/post |complete job/.test(n)) return 3;
+  if (/commit new data/.test(n)) return 3;
+  if (/pull new matches|rotate refresh/.test(n)) return 2;
+  return 1;
+}
 
-async function step(job) {
-  if (job.state === "held") {
-    // GitHub keeps one pending run and cancels older pending ones, so never stack requests.
-    const runs = await api(`/actions/workflows/${WORKFLOW}/runs?per_page=20`);
-    const waiting = runs.workflow_runs.filter((r) => ["queued", "pending", "waiting", "requested"].includes(r.status));
-    if (waiting.length) return patch(job.id, { stage: "Queued behind another update" });
-    const inputs = { request_id: job.id, gamertags: job.players.map((p) => p.key).join(", ") };
-    if (job.kind === "scout") inputs.phase = "scout";
-    if (job.kind === "full") inputs.phase = "full";
-    if (job.kind === "sync") { inputs.max_new_matches = "200"; inputs.skill_max = "600"; }
-    await api(`/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: { ref: "main", inputs } });
-    return patch(job.id, { state: "dispatched", dispatchedAt: new Date().toISOString(), stage: "Waiting for a runner", stageIndex: 0 });
+// ---------- tab coordination: one tab talks to GitHub, the others watch ----------
+function lead() {
+  const now = Date.now();
+  const l = lsGet("lease", null);
+  if (l && l.tab !== TAB && l.until > now) return false;
+  lsSet("lease", { tab: TAB, until: now + 15000 });
+  return lsGet("lease", null)?.tab === TAB;
+}
+const seenStates = new Map(jobs().map((j) => [j.id, j.state]));
+addEventListener("storage", (e) => {
+  if (!e.key || !e.key.endsWith(":jobs")) return;
+  // Another tab finished a job: load the new data here too.
+  for (const j of jobs()) {
+    if (j.state === "done" && seenStates.get(j.id) !== "done") runHandlers(j);
+    seenStates.set(j.id, j.state);
   }
-  if (!job.runId) {
-    const runs = await api(`/actions/workflows/${WORKFLOW}/runs?event=workflow_dispatch&per_page=15`);
-    const run = runs.workflow_runs.find((r) => (r.display_title || r.name || "").includes(`[${job.id}]`));
+  emit();
+});
+
+async function runHandlers(job, version) {
+  seenStates.set(job.id, "done");
+  for (const fn of newDataHandlers) {
+    try { await fn(job, version); } catch (e) { console.warn("reload after update failed", e); }
+  }
+}
+
+async function releaseHeld() {
+  const held = activeJobs().filter((j) => j.state === "held");
+  if (!held.length) return;
+  const runs = await api(`/actions/workflows/${WORKFLOW}/runs?per_page=20`);
+  const busyRun = runs.workflow_runs.some((r) => r.status !== "completed");
+  const inFlight = jobs().some((j) => j.state === "dispatched"); // dispatched, run not visible yet
+  if (busyRun || inFlight) {
+    const stage = busyRun ? "Queued behind another update" : "Starting…";
+    const stale = held.filter((j) => j.stage !== stage).map((j) => j.id);
+    if (stale.length) patch(stale, { stage });
+    return;
+  }
+  // One dispatch per tick. Held scouts (or full-history requests) ride in a single run.
+  const first = held[0];
+  const batch = first.kind === "sync" ? [first] : held.filter((j) => j.kind === first.kind);
+  const players = [];
+  for (const p of batch.flatMap((j) => j.players)) if (!players.some((q) => normKey(q.key) === normKey(p.key))) players.push(p);
+  const id = rid();
+  const inputs = { request_id: id, gamertags: players.map((p) => p.key).join(", ") };
+  if (first.kind === "scout") inputs.phase = "scout";
+  if (first.kind === "full") inputs.phase = "full";
+  if (first.kind === "sync") { inputs.max_new_matches = "200"; inputs.skill_max = "600"; }
+  await api(`/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: { ref: "main", inputs } });
+  patch(batch.map((j) => j.id), { state: "dispatched", rid: id, dispatchedAt: new Date().toISOString(), stage: "Waiting for a runner", stageIndex: 0, errors: 0 });
+}
+
+async function follow(group) {
+  const j = group[0], ids = group.map((x) => x.id);
+  let runId = j.runId;
+  if (!runId) {
+    const runs = await api(`/actions/workflows/${WORKFLOW}/runs?event=workflow_dispatch&per_page=20`);
+    const run = runs.workflow_runs.find((r) => (r.display_title || r.name || "").includes(`[${j.rid}]`));
     if (!run) {
-      if (Date.now() - Date.parse(job.dispatchedAt) > 3 * 60 * 1000) return patch(job.id, { state: "failed", error: "GitHub accepted the request but the run never appeared. Check the Actions tab." });
-      return null;
+      if (Date.now() - Date.parse(j.dispatchedAt) > 3 * 60 * 1000) patch(ids, { state: "failed", error: "GitHub accepted the request but the run never appeared. Check the Actions tab." });
+      return;
     }
-    patch(job.id, { runId: run.id, url: run.html_url, runStartedAt: run.run_started_at || run.created_at });
-    job = jobs().find((j) => j.id === job.id);
+    runId = run.id;
+    patch(ids, { runId, url: run.html_url, runStartedAt: run.run_started_at || run.created_at, state: "queued" });
   }
-  if (job.state === "publishing") {
-    // The run is done; wait until Pages actually serves the new build.
+  const cur = jobs().find((x) => x.id === j.id) || j;
+  if (cur.state === "publishing") {
+    // The run is done; wait until Pages actually serves a build from after it started.
     const v = await fetch(`data/version.json?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    // Both timestamps come from GitHub's side, so device clock skew can't confuse this.
-    if (v && Date.parse(v.generated) >= Date.parse(job.runStartedAt || job.createdAt)) {
-      patch(job.id, { state: "done", stage: "Done", stageIndex: STAGE_LABELS.length, finishedAt: new Date().toISOString() });
-      for (const fn of newDataHandlers) fn(job, v);
-      return null;
+    const live = v && Date.parse(v.generated) >= Date.parse(cur.runStartedAt || cur.createdAt);
+    const giveUp = Date.now() - Date.parse(cur.completedAt) > 10 * 60 * 1000;
+    if (live || giveUp) {
+      await runHandlers(cur, v);  // load the new data BEFORE the job counts as done
+      patch(ids, { state: "done", stage: live ? "Done" : "Done (the site may take a minute to catch up)", stageIndex: STAGE_LABELS.length, version: v?.generated, finishedAt: new Date().toISOString() });
     }
-    if (Date.now() - Date.parse(job.completedAt) > 6 * 60 * 1000) return patch(job.id, { state: "done", stage: "Done (the site may take a minute to refresh)", stageIndex: STAGE_LABELS.length });
-    return null;
+    return;
   }
-  const run = await api(`/actions/runs/${job.runId}`);
+  const run = await api(`/actions/runs/${runId}`);
+  let steps = null;
+  try { steps = await api(`/actions/runs/${runId}/jobs`); } catch { /* progress detail is optional */ }
   if (run.status === "completed") {
-    if (run.conclusion === "success") return patch(job.id, { state: "publishing", stage: "Going live", stageIndex: STAGE_LABELS.length - 1, completedAt: new Date().toISOString() });
-    return patch(job.id, { state: "failed", error: run.conclusion === "cancelled" ? "The run was cancelled." : "The run failed. Open it on GitHub for details." });
+    const ingestJob = steps?.jobs?.find((x) => x.name === "ingest");
+    // A publish superseded by a newer deploy still means the data landed; that deploy shows it.
+    if (run.conclusion === "success" || ingestJob?.conclusion === "success") {
+      patch(ids, { state: "publishing", stage: "Going live", stageIndex: STAGE_LABELS.length - 1, completedAt: new Date().toISOString() });
+    } else {
+      patch(ids, { state: "failed", error: run.conclusion === "cancelled" ? "The run was cancelled." : "The run failed. Open it on GitHub for details." });
+    }
+    return;
   }
-  // Which step is it on?
-  let stageIndex = 0, detail = "";
-  try {
-    const js = await api(`/actions/runs/${job.runId}/jobs`);
-    const ingest = js.jobs.find((j) => j.name === "ingest");
-    const cur = ingest?.steps?.find((s) => s.status === "in_progress") || [...(ingest?.steps || [])].reverse().find((s) => s.status === "completed");
-    if (cur) {
-      const idx = STAGES.findIndex((s) => s.match(cur.name));
-      stageIndex = idx >= 0 ? idx : 1;
-      detail = cur.name;
-    } else if (js.jobs.find((j) => j.name === "gate")?.status === "in_progress") stageIndex = 0;
-  } catch { /* stage detail is nice-to-have */ }
-  return patch(job.id, { state: run.status === "queued" ? "queued" : "in_progress", stage: STAGES[stageIndex].label, stageIndex, detail });
+  let stageIndex = cur.stageIndex ?? 0, detail = cur.detail || "";
+  const active = steps?.jobs?.filter((x) => x.status === "in_progress") || [];
+  for (const job of active) {
+    const s = job.steps?.find((x) => x.status === "in_progress") || [...(job.steps || [])].reverse().find((x) => x.status === "completed");
+    if (s) { stageIndex = Math.max(stageIndex, stageOf(job.name, s.name)); detail = s.name; }
+  }
+  patch(ids, { state: run.status === "queued" ? "queued" : "in_progress", stage: STAGE_LABELS[stageIndex], stageIndex, detail, errors: 0 });
 }
 
 async function tick() {
   if (busy) return;
   busy = true;
   try {
-    for (const job of activeJobs()) {
+    if (activeJobs().length && connected() && lead()) {
       try {
-        await step(job);
+        await releaseHeld();
       } catch (e) {
-        if (e.status === 401) { patch(job.id, { state: "failed", error: "Your GitHub token expired or was revoked. Reconnect in settings." }); continue; }
-        if (e.status === 403 && /rate limit/i.test(e.message)) continue; // try again next tick
-        patch(job.id, { state: "failed", error: `GitHub: ${e.message}` });
+        handleError(activeJobs().filter((j) => j.state === "held"), e);
+      }
+      const groups = new Map();
+      for (const j of activeJobs()) if (j.state !== "held" && j.rid) groups.set(j.rid, [...(groups.get(j.rid) || []), j]);
+      for (const group of groups.values()) {
+        try {
+          await follow(group);
+        } catch (e) {
+          handleError(group, e);
+        }
       }
     }
   } finally {
@@ -181,6 +250,17 @@ async function tick() {
   }
   clearTimeout(timer);
   if (activeJobs().length) timer = setTimeout(tick, document.visibilityState === "visible" ? 4000 : 15000);
+}
+
+function handleError(group, e) {
+  if (!group.length) return;
+  const ids = group.map((j) => j.id);
+  if (e.status === 401) return patch(ids, { state: "failed", error: "Your GitHub token expired or was revoked. Reconnect from the Updates panel." });
+  if (e.status === 404 && group[0].runId) return patch(ids, { state: "failed", error: "That run no longer exists on GitHub." });
+  // Network drops, 5xx and rate limits are usually momentary: keep going, give up only if it persists.
+  const errors = (group[0].errors || 0) + 1;
+  if (errors >= 8) return patch(ids, { state: "failed", error: `Lost contact with GitHub (${e.message}).` });
+  patch(ids, { errors });
 }
 
 export function resume() {
@@ -192,8 +272,8 @@ export function clearFinished() {
   saveJobs(jobs().filter((j) => ACTIVE.has(j.state)));
 }
 
-/** Most relevant job for a player key (gamertag or xuid), newest first. */
+/** Most recent job that involves any of these players (gamertag or xuid, any form). */
 export function jobFor(keys) {
-  const ks = keys.filter(Boolean).map((k) => String(k).toLowerCase());
-  return [...jobs()].reverse().find((j) => j.players.some((p) => ks.includes(String(p.key).toLowerCase()) || ks.includes(String(p.label || "").toLowerCase())));
+  const ks = new Set(keys.filter(Boolean).map(normKey));
+  return [...jobs()].reverse().find((j) => j.players.some((p) => ks.has(normKey(p.key)) || ks.has(normKey(p.label))));
 }

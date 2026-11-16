@@ -13,6 +13,7 @@ import { openMatch, closeMatch } from "./views/drawer.js";
 import { initArt } from "./art.js";
 import * as gh from "./gh.js";
 import { openSearch, openActivity, activityButtonHtml, pendingView, partialBanner, wirePartialBanner, closeModal } from "./views/people.js";
+let reloading = false;
 
 const VIEWS = [
   { id: "overview", label: "Overview", icon: "overview", mod: overview },
@@ -56,9 +57,10 @@ function go(view, params = {}) {
   else location.hash = next;
   scrollTo({ top: 0 });
 }
+const persistable = (f) => (f.who.startsWith("scout:") ? { ...f, who: store.get("filters", {}).who || "me" } : f);
 function setFilter(patch) {
   state.f = { ...state.f, ...patch };
-  store.set("filters", state.f);
+  store.set("filters", persistable(state.f));
   history.replaceState(null, "", hashFor(state.view, state.f, state.params));
   render();
 }
@@ -165,15 +167,16 @@ function renderFilterBar() {
   const isBrief = view === "briefing";
   const who = f.who === "me" ? null : db.players.find((p) => p.xuid === f.who);
   const scoutJob = scouting ? gh.jobFor([f.who.slice(6)]) : null;
-  const whoName = scouting ? scoutJob?.players[0]?.label || f.who.slice(6) : who ? who.gamertag : db.me.length > 1 ? "Me" : db.me[0]?.gamertag || "Me";
-  const whoSub = scouting ? "scouting…" : who ? (who.me ? "one of your accounts" : "scouted player") : db.me.length > 1 ? `${db.me.length} accounts merged` : "your account";
+  const scoutLive = gh.isActive(scoutJob);
+  const whoName = scouting ? scoutJob?.players.find((p) => gh.normKey(p.key) === gh.normKey(f.who.slice(6)))?.label || f.who.slice(6) : who ? who.gamertag : db.me.length > 1 ? "Me" : db.me[0]?.gamertag || "Me";
+  const whoSub = scouting ? (scoutLive ? "scouting…" : scoutJob?.state === "failed" ? "scout failed" : "not found") : who ? (who.me ? "one of your accounts" : "scouted player") : db.me.length > 1 ? `${db.me.length} accounts merged` : "your account";
   const meIdx = who ? db.me.indexOf(who) : -1;
   const avColor = who ? (meIdx >= 0 ? accountColor(meIdx) : cssVar("--tie")) : null;
   const nonDefault = F_KEYS.some((k) => k !== "who" && f[k] !== DEFAULT_F[k]);
 
   $("#filterbar").innerHTML = `<div class="filters">
     <button class="who" id="who-btn" type="button" title="Switch player or search" aria-haspopup="dialog">
-      <span class="avatar" style="${avColor ? `--c1:${avColor};--c2:${avColor}` : "--c1:var(--s1);--c2:var(--accent)"}">${scouting ? '<span class="spin" style="width:14px;height:14px;border-width:2px"></span>' : esc(initials(whoName))}</span>
+      <span class="avatar" style="${avColor ? `--c1:${avColor};--c2:${avColor}` : "--c1:var(--s1);--c2:var(--accent)"}">${scouting && scoutLive ? '<span class="spin" style="width:14px;height:14px;border-width:2px"></span>' : scouting ? icon("alert") : esc(initials(whoName))}</span>
       <span style="text-align:left"><span class="who-name">${esc(whoName)}</span><br><span class="who-sub">${esc(whoSub)}</span></span>
       ${icon("search", "chev")}
     </button>
@@ -225,7 +228,7 @@ function render() {
   let { view, f, params } = state;
   // "scout:<gamertag or xuid>" = a player whose first games are still being fetched
   if (f.who.startsWith("scout:")) {
-    const key = f.who.slice(6).toLowerCase();
+    const key = gh.normKey(f.who.slice(6));
     const hit = db.players.find((p) => p.xuid === key || p.gamertag.toLowerCase() === key);
     if (hit) {
       setFilterSilently({ who: hit.xuid });
@@ -238,7 +241,7 @@ function render() {
   const all = scouting ? [] : rowsFor(db, f.who);
   const rows = applyFilters(all, f);
   const prev = f.range !== "all" ? applyFilters(all, f, { prev: true }) : null;
-  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me") };
+  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), reloading: () => reloading };
   ctx.openMatch = (r) => openMatch(r, ctx);
   lastCtx = ctx;
   renderTabs();
@@ -270,7 +273,7 @@ function render() {
 
 function setFilterSilently(patch) {
   state.f = { ...state.f, ...patch };
-  store.set("filters", state.f);
+  store.set("filters", persistable(state.f));
   history.replaceState(null, "", hashFor(state.view, state.f, state.params));
 }
 
@@ -284,11 +287,24 @@ function refreshChrome() {
 /** Reload data in place (after an update finishes or when newer data is live). */
 async function reload() {
   const before = db.rows.length;
-  db = await loadData();
-  initArt(db.art);
-  $("#fresh").hidden = true;
-  render();
-  return db.rows.length - before;
+  reloading = true;
+  try {
+    const next = await loadData();
+    db = next;
+    initArt(db.art);
+    $("#fresh").hidden = true;
+    closeMatch(lastCtx); // its context belongs to the old data
+    return db.rows.length - before;
+  } catch (e) {
+    const el = $("#fresh");
+    el.innerHTML = `<span>Couldn't load the new data (${esc(e.message)})</span><button class="btn primary" type="button" id="fresh-go">Try again</button>`;
+    el.hidden = false;
+    $("#fresh-go").onclick = () => reload().then(render);
+    return 0;
+  } finally {
+    reloading = false;
+    render();
+  }
 }
 
 function watchFreshness() {
@@ -324,15 +340,32 @@ async function boot() {
   state = parseHash();
   gh.onChange(() => {
     refreshChrome();
-    if (state.f.who.startsWith("scout:")) render();
+    if (!lastCtx) return;
+    if (state.f.who.startsWith("scout:")) {
+      // Only the scouting card changes; the filter bar, menus and selects stay put.
+      renderFilterBar();
+      pendingView(lastCtx, state.f.who.slice(6));
+      return;
+    }
+    const old = $("#view .loading-banner");
+    if (old) {
+      const html = partialBanner(lastCtx);
+      if (html) { old.outerHTML = html; wirePartialBanner($("#view"), lastCtx); } else old.remove();
+    }
   });
   gh.onNewData(async (job) => {
     const added = await reload();
     if (job.kind === "scout") {
-      const keys = job.players.map((p) => String(p.key).toLowerCase());
-      const hit = db.players.find((p) => keys.includes(p.xuid) || keys.includes(p.gamertag.toLowerCase()));
-      if (hit && state.f.who.startsWith("scout:")) setFilter({ who: hit.xuid });
-      toast(hit ? `${hit.gamertag}'s dossier is ready` : "Scouting finished, but that player wasn't found (private history or typo?)");
+      const keys = new Set(job.players.map((p) => gh.normKey(p.key)));
+      const found = db.players.filter((p) => keys.has(p.xuid) || keys.has(p.gamertag.toLowerCase()));
+      const watching = state.f.who.startsWith("scout:") ? gh.normKey(state.f.who.slice(6)) : null;
+      // Switch only if you're on THIS scout's page, not someone else's.
+      const target = found.find((p) => watching && (p.xuid === watching || p.gamertag.toLowerCase() === watching));
+      if (target) setFilter({ who: target.xuid });
+      const empty = found.filter((p) => !p.stored);
+      if (!found.length) toast("Scouting finished, but that player wasn't found (typo, or private history?)");
+      else if (empty.length) toast(`Found ${empty.map((p) => p.gamertag).join(", ")}, but no public matchmaking games`);
+      else toast(`${found.map((p) => p.gamertag).join(", ")}: dossier ready`);
     } else toast(added > 0 ? `Updated: ${added} new game${added === 1 ? "" : "s"}` : "Up to date: no new games");
   });
   gh.resume();
@@ -340,7 +373,7 @@ async function boot() {
   addEventListener("hashchange", () => {
     const prevView = state.view;
     state = parseHash();
-    store.set("filters", state.f);
+    store.set("filters", persistable(state.f));
     if (!state.params.match) closeMatch();
     render();
     if (prevView !== state.view) $("#view").focus({ preventScroll: true });

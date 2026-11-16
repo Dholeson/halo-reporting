@@ -85,6 +85,9 @@ export function emptyState(title, body, iconName = "overview") {
 }
 
 export function noGames(ctx) {
+  const p = ctx.db.players.find((x) => x.xuid === ctx.f.who);
+  if (p && !p.stored)
+    return emptyState(`No public games for ${esc(p.gamertag)}`, "They're tracked, but Halo returned no matchmaking games. Their match history may be private, or they haven't played matchmaking.", "people");
   return emptyState(
     "No games match these filters",
     `Nothing for ${esc(whoLabel(ctx))} in the current filters. Widen the time range or clear the map and mode filters.`,

@@ -760,3 +760,5 @@ button.who:hover { border-color: var(--border-strong); }
 .fresh { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 94; display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--border-strong); box-shadow: var(--shadow); border-radius: 12px; padding: 8px 8px 8px 14px; font-weight: 650; font-size: 13.5px; }
 .fresh[hidden] { display: none; }
 .person-item .badge, .person-item .avatar { flex: none; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--text-2); }
+.check input { width: 16px; height: 16px; accent-color: var(--accent); }
