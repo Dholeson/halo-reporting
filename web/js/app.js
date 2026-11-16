@@ -14,6 +14,7 @@ import { initArt } from "./art.js";
 import * as gh from "./gh.js";
 import { openSearch, openActivity, activityButtonHtml, pendingView, partialBanner, wirePartialBanner, closeModal } from "./views/people.js";
 let reloading = false;
+let reloadFailed = false;
 
 const VIEWS = [
   { id: "overview", label: "Overview", icon: "overview", mod: overview },
@@ -63,21 +64,25 @@ const persistable = (f) => {
   const prev = store.get("filters", {}).who;
   return { ...f, who: prev && !String(prev).startsWith("scout:") ? prev : "me" };
 };
-/** Which tracked player a typed key means: XUID, exact gamertag, an alias the ingest recorded, or a
- *  modern "Name#1234" whose profile name is just "Name". */
+/** Which tracked player a typed key means: XUID, exact gamertag, or the alias the ingest recorded for
+ *  it (e.g. "Name#1234", which Halo's profile returns as just "Name"). Exact matches only: stripping a
+ *  suffix could land on a different player who shares the base name. */
 function resolveKey(key) {
   const k = gh.normKey(key);
   const x = db.aliases?.[k] || k;
-  return db.players.find((p) => p.xuid === x || p.gamertag.toLowerCase() === k) || (/#\d+$/.test(k) ? db.players.find((p) => p.gamertag.toLowerCase() === k.replace(/#\d+$/, "")) : null);
+  return db.players.find((p) => p.xuid === x || p.gamertag.toLowerCase() === k) || null;
 }
+const olderThan = (iso) => !!iso && Date.parse(db.generated) < Date.parse(iso);
 /** What the identity button should say while a scouting placeholder is showing. */
 function scoutState(key) {
   const job = gh.jobFor([key]);
   if (!job) return { spin: false, sub: "not tracked" };
-  if (gh.isActive(job)) return { spin: true, sub: gh.pausedJobs().some((x) => x.id === job.id) ? "paused" : "scouting…" };
+  if (gh.pausedJobs().some((x) => x.id === job.id)) return { spin: false, sub: "paused" };
+  if (gh.isActive(job)) return { spin: true, sub: "scouting…" };
   if (job.state === "failed") return { spin: false, sub: "scout failed" };
-  if (job.live === false) return { spin: false, sub: "saved, publishing" };
-  if (reloading || (job.version && Date.parse(db.generated) < Date.parse(job.version))) return { spin: true, sub: "loading…" };
+  if (job.live === false && olderThan(job.liveAfter || job.completedAt)) return { spin: false, sub: "saved, publishing" };
+  if (reloading) return { spin: true, sub: "loading…" };
+  if (olderThan(job.version)) return reloadFailed ? { spin: false, sub: "couldn't load" } : { spin: true, sub: "loading…" };
   return { spin: false, sub: "not found" };
 }
 function setFilter(patch) {
@@ -264,7 +269,7 @@ function render() {
   const all = scouting ? [] : rowsFor(db, f.who);
   const rows = applyFilters(all, f);
   const prev = f.range !== "all" ? applyFilters(all, f, { prev: true }) : null;
-  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), reloading: () => reloading };
+  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), reloading: () => reloading, reloadFailed: () => reloadFailed, reload: () => reload() };
   ctx.openMatch = (r) => openMatch(r, ctx);
   lastCtx = ctx;
   renderTabs();
@@ -314,11 +319,13 @@ async function reload() {
   try {
     const next = await loadData();
     db = next;
+    reloadFailed = false;
     initArt(db.art);
     $("#fresh").hidden = true;
     closeMatch(lastCtx); // its context belongs to the old data
     return db.rows.length - before;
   } catch (e) {
+    reloadFailed = true;
     const el = $("#fresh");
     el.innerHTML = `<span>Couldn't load the new data (${esc(e.message)})</span><button class="btn primary" type="button" id="fresh-go">Try again</button>`;
     el.hidden = false;

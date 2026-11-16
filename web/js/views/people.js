@@ -132,7 +132,7 @@ export function openActivity(ctx) {
       <div><b>Sync now</b><p class="note">Pulls new games for everyone you track. New games also arrive automatically: every 5 min while you're playing, every 15 min otherwise.</p></div>
       <button class="btn primary" id="sync-now">${icon("reset")}Sync now</button>
     </div>
-    ${gh.pausedJobs().length ? `<div class="callout">${icon("clock")} <b>${gh.pausedJobs().length} update${gh.pausedJobs().length === 1 ? " is" : "s are"} paused.</b> They were started in another tab or session; connect here to keep following them.</div>` : ""}
+    ${gh.pausedJobs().length ? `<div class="callout">${icon("clock")} <b>${gh.pausedJobs().length} update${gh.pausedJobs().length === 1 ? " is" : "s are"} paused.</b> ${gh.droppedReason() ? esc(gh.droppedReason()) + " Reconnect" : "They were started in another tab or session. Connect here"} to keep following them.</div>` : ""}
     ${list.length ? `<div class="jobs">${list.map((j) => `
       <div class="job ${esc(j.state)}">
         <div class="job-top"><b>${esc(label(j))}</b><span class="note">${esc(ago(Date.parse(j.createdAt) / 1000))}</span></div>
@@ -298,20 +298,36 @@ export function wirePartialBanner(root, ctx) {
 /** The page shown while a scouted player's first games are still being fetched. */
 export function pendingView(ctx, key) {
   const job = gh.jobFor([key]);
+  const newer = (iso) => !!iso && Date.parse(ctx.db.generated) < Date.parse(iso);
   const name = job?.players.find((p) => String(p.key).toLowerCase() === key.toLowerCase())?.label || key;
   if (!job) {
     ctx.el.innerHTML = `<div class="card empty">${icon("people")}<h3>${esc(name)} isn't tracked yet</h3><p>Scout them to pull their match history.</p><button class="btn primary" id="pv-scout">Scout ${esc(name)}</button></div>`;
     ctx.el.querySelector("#pv-scout").addEventListener("click", () => scout(ctx, { key, name }));
     return;
   }
-  if (job.state === "done" && job.live === false) {
+  if (gh.pausedJobs().some((x) => x.id === job.id)) {
+    const why = gh.droppedReason();
+    ctx.el.innerHTML = `<section class="card pending-card"><div class="eyebrow">Scouting paused</div><h1>${esc(name)}</h1>
+      <p class="text-2">${why ? esc(why) + " " : ""}This tab isn't connected to GitHub, so it can't follow the update. Connect to pick it back up.</p>
+      <div class="mc-actions" style="justify-content:flex-start"><button class="btn primary" id="pv-connect">Connect GitHub</button></div></section>`;
+    ctx.el.querySelector("#pv-connect").addEventListener("click", () => openConnect(ctx));
+    return;
+  }
+  if (job.state === "done" && job.live === false && newer(job.liveAfter || job.completedAt)) {
     ctx.el.innerHTML = `<section class="card pending-card"><div class="eyebrow">Scouting</div><h1>${esc(name)}</h1>
       <p class="text-2">Their games were saved, but the site hasn't published them yet. They'll appear with the next update, usually within a few minutes.</p>
       <div class="mc-actions" style="justify-content:flex-start"><button class="btn primary" id="pv-reload">Check again</button></div></section>`;
     ctx.el.querySelector("#pv-reload").addEventListener("click", () => location.reload());
     return;
   }
-  if (job.state === "done" && (ctx.reloading() || (job.version && Date.parse(ctx.db.generated) < Date.parse(job.version)))) {
+  if (job.state === "done" && !ctx.reloading() && ctx.reloadFailed() && newer(job.version)) {
+    ctx.el.innerHTML = `<section class="card pending-card"><div class="eyebrow">Scouting</div><h1>${esc(name)}</h1>
+      <p class="text-2">Done, but loading the new data failed.</p>
+      <div class="mc-actions" style="justify-content:flex-start"><button class="btn primary" id="pv-retry-load">Try again</button></div></section>`;
+    ctx.el.querySelector("#pv-retry-load").addEventListener("click", () => ctx.reload());
+    return;
+  }
+  if (job.state === "done" && (ctx.reloading() || newer(job.version))) {
     ctx.el.innerHTML = `<section class="card pending-card"><div class="eyebrow">Scouting</div><h1>${esc(name)}</h1><p class="text-2">Done. Loading their dossier…</p>${stepper(job)}</section>`;
     return;
   }

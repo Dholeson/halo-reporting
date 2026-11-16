@@ -90,11 +90,16 @@ export async function connect(tok, { repoOverride = null, remember = false } = {
   if (repoOverride) { memRepo = repoOverride; safe(() => localStorage.setItem("debrief.repo", JSON.stringify(repoOverride))); }
   ssSet("token", remember ? null : tok);
   lsSet("token", remember ? tok : null);
+  ssSet("dropped", null);
   emit();
+  resume(); // jobs that were paused for lack of a token carry on now
 }
-export function disconnect() {
+/** Why this tab lost its connection, if GitHub rejected the token. */
+export const droppedReason = () => ssGet("dropped", null);
+export function disconnect(reason = null) {
   ssSet("token", null);
   lsSet("token", null);
+  ssSet("dropped", reason);
   safe(() => localStorage.removeItem("debrief.ghToken"));
   emit();
 }
@@ -152,6 +157,7 @@ function lead() {
 }
 const seenStates = new Map(jobs().map((j) => [j.id, j.state]));
 addEventListener("storage", (e) => {
+  if (e.key && e.key.endsWith(":token")) { emit(); resume(); return; } // a remembered token appeared or was dropped
   if (!e.key || !e.key.endsWith(":jobs")) return;
   // Another tab finished a job: load the new data here too, once per batch.
   const finished = new Map();
@@ -203,9 +209,13 @@ async function releaseHeld() {
     await api(`/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: { ref: "main", inputs } });
     patch(ids, { state: "dispatched", errors: 0 });
   } catch (e) {
-    // A definite "no" means nothing was created: back in the queue. Anything else may have landed.
-    if ([401, 403, 404, 422].includes(e.status)) patch(ids, { state: "held", rid: null });
-    throw e;
+    if (e.status === 401) { patch(ids, { state: "held", rid: null }); throw e; } // token: pause, don't fail
+    if ([403, 404, 422].includes(e.status)) {
+      // A definite refusal: retrying won't help, and a stuck request would block everything behind it.
+      patch(ids, { state: "failed", error: e.status === 403 ? "GitHub refused to start the update. The token needs Actions: Read and write on this repository." : `GitHub refused to start the update (${e.message}).` });
+      return;
+    }
+    throw e; // network or 5xx: the POST may have landed; follow() looks for the run before retrying
   }
 }
 
@@ -218,7 +228,11 @@ async function follow(group) {
     if (!run) {
       const age = Date.now() - Date.parse(j.dispatchedAt);
       // A claimed dispatch whose POST never landed: put it back in the queue after a grace period.
-      if (j.state === "dispatching" && age > 90 * 1000) patch(ids, { state: "held", rid: null, stage: "Retrying…" });
+      if (j.state === "dispatching" && age > 90 * 1000) {
+        const tries = (j.dispatchTries || 0) + 1;
+        if (tries >= 3) patch(ids, { state: "failed", error: "GitHub didn't accept the update after several tries. Try again in a few minutes." });
+        else patch(ids, { state: "held", rid: null, stage: "Retrying…", dispatchTries: tries });
+      }
       else if (age > 3 * 60 * 1000) patch(ids, { state: "failed", error: "GitHub accepted the request but the run never appeared. Check the Actions tab." });
       return;
     }
@@ -269,9 +283,10 @@ async function follow(group) {
 
 /** Hold leadership for the whole tick: Web Locks are atomic across tabs; the lease is the fallback. */
 function withLeadership(fn) {
+  if (!lead()) return null; // one tab polls GitHub; the others follow through storage events
   const r = repo();
   if (navigator.locks?.request) return navigator.locks.request(`debrief:${r?.owner}/${r?.name}:tick`, { ifAvailable: true }, (lock) => (lock ? fn() : null));
-  return lead() ? fn() : null;
+  return fn();
 }
 
 async function tick() {
@@ -307,7 +322,7 @@ function handleError(group, e) {
   if (!group.length) return;
   const ids = group.map((j) => j.id);
   if (e.status === 401) {
-    disconnect(); // this tab's token is dead: the jobs pause until a valid token picks them up
+    disconnect("GitHub rejected the token (expired or revoked)."); // jobs pause until a valid token picks them up
     return;
   }
   if (e.status === 404 && group[0].runId) return patch(ids, { state: "failed", error: "That run no longer exists on GitHub." });

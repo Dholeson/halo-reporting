@@ -8,7 +8,8 @@ Layout:
   data/gamertags.json          {xuid: gamertag} for people you play with often
   data/art/                    official map / mode art (resized) and the medal sprite sheet
   data/last.json               when the latest tracked game ended (drives hot/cool polling)
-  data/players_meta.json       {xuid: {history, checked}}: total games Halo reports, for "N of M loaded"
+  data/players_meta.json       {xuid: {history}}: total games Halo reports, for "N of M loaded"
+  data/checked.json            {xuid: when that count was last fetched} (a marker: never triggers a rebuild)
 
 Raw JSON on purpose: if Halo adds fields, nothing breaks, and the report can
 start using them later without re-fetching.
@@ -444,6 +445,10 @@ async def main() -> None:
         only = {aliases.get(m.group(1), m.group(1)) if (m := XUID_RE.match(o)) else o for o in only}
         only_me = os.environ.get("ONLY_ME") == "1" and bool(me_xuids)
         meta = load_json(DATA / "players_meta.json")
+        meta_before = json.dumps(meta, sort_keys=True)
+        # "when did we last ask" lives in a marker file; the old format kept it inside players_meta
+        checked = load_json(DATA / "checked.json") or {x: m.get("checked", 0) for x, m in meta.items() if isinstance(m, dict)}
+        meta = {x: {"history": m.get("history")} for x, m in meta.items() if isinstance(m, dict)}
         seen = known_match_ids()
         todo: list[str] = []
         now = int(time.time())
@@ -460,14 +465,17 @@ async def main() -> None:
             print(f"{gt} (xuid {xuid}): {len(ids)} new {match_type} matches")
             todo += ids
             # How many games Halo says exist, so the report can show "N of M loaded".
-            if backfill or now - meta.get(xuid, {}).get("checked", 0) > 86400:
+            if backfill or now - checked.get(xuid, 0) > 86400:
                 try:
                     c = await call(lambda: client.stats.get_match_count(xuid), "count")
                     key = {"matchmaking": "MatchmadeMatchesPlayedCount", "custom": "CustomMatchesPlayedCount", "local": "LocalMatchesPlayedCount"}.get(match_type, "MatchesPlayedCount")
-                    meta[xuid] = {"history": c.get(key), "checked": now}
+                    meta[xuid] = {"history": c.get(key)}
+                    checked[xuid] = now
                 except Exception as e:
                     print(f"  couldn't read match count for {gt}: {why(e)}")
-        dump_json(DATA / "players_meta.json", meta)
+        if json.dumps(meta, sort_keys=True) != meta_before:  # only a changed count is worth a rebuild
+            dump_json(DATA / "players_meta.json", meta)
+        dump_json(DATA / "checked.json", checked)
 
         # Scouted players start with their newest games; fill in the rest a slice at a time.
         if os.environ.get("TOPUP") == "1":
