@@ -62,6 +62,30 @@ def why(e: Exception) -> str:
     return f"{type(e).__name__} {status or ''} {msg}".strip()[:200]
 
 
+async def call(make, what: str, tries: int = 6):
+    """Run a spnkr request and parse JSON, retrying 429s and 5xx with backoff.
+
+    Honors Retry-After when Halo sends it. GitHub runners share IPs, so
+    throttling can hit us even on the first request.
+    """
+    for attempt in range(tries):
+        try:
+            return await (await make()).json()
+        except Exception as e:
+            status = getattr(e, "status", None)
+            if status != 429 and not (status and status >= 500) or attempt == tries - 1:
+                raise
+            headers = getattr(e, "headers", None) or {}
+            try:
+                wait = float(headers.get("Retry-After", ""))
+            except ValueError:
+                wait = 0
+            wait = min(max(wait, 2 ** (attempt + 1)), 120)
+            print(f"  {what}: HTTP {status}, retry {attempt + 1}/{tries - 1} in {wait:.0f}s"
+                  f" (Retry-After={headers.get('Retry-After', 'none')})")
+            await asyncio.sleep(wait)
+
+
 def tracked_gamertags() -> list[str]:
     path = Path("players.txt")
     if not path.exists():
@@ -74,7 +98,7 @@ async def new_match_ids(client, xuid: str, seen: set[str], cap: int, backfill: b
     found: list[str] = []
     start = 0
     while len(found) < cap:
-        page = await (await client.stats.get_match_history(xuid, start, PAGE, match_type)).json()
+        page = await call(lambda: client.stats.get_match_history(xuid, start, PAGE, match_type), "history")
         results = page.get("Results", [])
         if not results:
             break
@@ -103,7 +127,7 @@ async def asset_name(client, cache: dict, kind: str, asset: dict | None) -> None
         "playlist": client.discovery_ugc.get_playlist,
     }[kind]
     try:
-        cache[key] = (await (await fetch(asset["AssetId"], asset["VersionId"])).json())["PublicName"]
+        cache[key] = (await call(lambda: fetch(asset["AssetId"], asset["VersionId"]), kind))["PublicName"]
     except Exception as e:  # deleted/private UGC assets 404; don't fail the run over a name
         print(f"  couldn't resolve {kind} {key}: {type(e).__name__}")
         cache[key] = None
@@ -121,7 +145,7 @@ async def main() -> None:
         save_refresh_token(me.new_refresh_token)
         print(f"Signed in as {me.gamertag}")
 
-        client = HaloInfiniteClient(http, me.spartan_token, me.clearance_token, requests_per_second=3)
+        client = HaloInfiniteClient(http, me.spartan_token, me.clearance_token, requests_per_second=2)
 
         # players.txt is the source of truth; players.json just caches gamertag -> xuid.
         cache = {v.lower(): bare_xuid(k) for k, v in load_json(DATA / "players.json").items()}
@@ -136,7 +160,7 @@ async def main() -> None:
                 players[cache[gt.lower()]] = gt
                 continue
             try:
-                user = await (await client.profile.get_user_by_gamertag(gt)).json()
+                user = await call(lambda: client.profile.get_user_by_gamertag(gt), "profile")
             except Exception as e:
                 print(f"::warning::Couldn't find gamertag {gt!r}: {why(e)}")
                 continue
@@ -161,7 +185,7 @@ async def main() -> None:
         stored = 0
         for i, mid in enumerate(todo, 1):
             try:
-                match = await (await client.stats.get_match_stats(mid)).json()
+                match = await call(lambda: client.stats.get_match_stats(mid), "match")
             except Exception as e:
                 print(f"  skipped match {mid}: {why(e)}")
                 continue
