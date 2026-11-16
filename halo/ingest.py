@@ -361,17 +361,25 @@ async def fetch_art(http, client, players: dict[str, str], assets: dict, min_gam
             dump_json(ART / "manifest.json", manifest)
 
     if not manifest.get("medals"):
+        stage = "metadata"
         try:
             meta = await call(lambda: client.gamecms_hacs.get_medal_metadata(), "medals")
-            sheet = meta["sprites"]["small"]
+            sprites = meta.get("sprites") or meta.get("Sprites") or {}
+            stage = f"sprite sheet (keys: {sorted(sprites)[:6]})"
+            sheet = sprites.get("small") or sprites.get("medium") or next(iter(sprites.values()))
+            stage = f"image {sheet.get('path')}"
             png = await (await client.gamecms_hacs.get_image(sheet["path"])).read()
             (ART / "medals.png").write_bytes(png)
+            medals = meta.get("medals") or meta.get("Medals") or []
             manifest["medals"] = {
                 "sheet": "art/medals.png", "columns": sheet["columns"], "size": sheet["size"],
-                "sprite": {str(md["nameId"]): md["spriteIndex"] for md in meta.get("medals", [])},
+                "sprite": {str(md.get("nameId", md.get("NameId"))): md.get("spriteIndex", md.get("SpriteIndex")) for md in medals},
             }
+            manifest.pop("medals_error", None)
         except Exception as e:
-            print(f"  medal art skipped: {why(e)}")
+            # Recorded in the committed manifest: Actions logs aren't always easy to get at.
+            manifest["medals_error"] = f"{stage}: {why(e)}"
+            print(f"  medal art skipped at {stage}: {why(e)}")
     dump_json(ART / "manifest.json", manifest)
 
 
