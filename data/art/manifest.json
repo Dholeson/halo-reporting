@@ -422,6 +422,7 @@
       "thumb": "art/maps/yosai-thumb.jpg"
     }
   },
+  "medals_error": "image medals/images/medal_sheet_sm.png: ClientResponseError 403 Forbidden",
   "modes": {
     "Assault": {
       "hero": "art/modes/assault.jpg",
