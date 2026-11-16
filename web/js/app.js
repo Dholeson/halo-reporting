@@ -340,7 +340,7 @@ async function reload() {
 function watchFreshness() {
   // An open tab (or your phone coming back to it) notices new games without a manual refresh.
   const check = async () => {
-    if (document.visibilityState !== "visible" || gh.activeJobs().length) return;
+    if (document.visibilityState !== "visible" || gh.runningJobs().length) return; // that update reloads by itself
     const v = await latestVersion();
     if (!v || v.generated === db.generated) return;
     const diff = v.games - db.rows.length;

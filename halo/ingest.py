@@ -78,15 +78,16 @@ def why(e: Exception) -> str:
     return f"{type(e).__name__} {status or ''} {msg}".strip()[:200]
 
 
-async def call(make, what: str, tries: int = 6):
-    """Run a spnkr request and parse JSON, retrying 429s and 5xx with backoff.
+async def call(make, what: str, tries: int = 6, raw: bool = False):
+    """Run a spnkr request and parse JSON (or return the bytes when raw), retrying 429s and 5xx.
 
     Honors Retry-After when Halo sends it. GitHub runners share IPs, so
     throttling can hit us even on the first request.
     """
     for attempt in range(tries):
         try:
-            return await (await make()).json()
+            resp = await make()
+            return await (resp.read() if raw else resp.json())
         except Exception as e:
             status = getattr(e, "status", None)
             if status != 429 and not (status and status >= 500) or attempt == tries - 1:
@@ -293,6 +294,32 @@ async def _download(http, url: str) -> bytes:
         return await resp.read()
 
 
+WAYPOINT_FILES = "https://gamecms-hacs.svc.halowaypoint.com/hi/Waypoint/file/"
+
+
+async def medal_sheet(client, path: str) -> bytes:
+    """The medal sprite sheet as PNG bytes.
+
+    Its path is relative to Waypoint/file/, beside medals/metadata.json. spnkr's
+    get_image looks under images/file/, which answers 403 for it, so that's only the fallback.
+    """
+    rel = path.lstrip("/")
+    tried = []
+    for where, make in (
+        ("Waypoint/file", lambda: client.gamecms_hacs._get(WAYPOINT_FILES + rel)),
+        ("images/file", lambda: client.gamecms_hacs.get_image(rel)),
+    ):
+        try:
+            png = await call(make, f"medal sheet ({where})", raw=True)
+        except Exception as e:
+            tried.append(f"{where}: {why(e)}")
+            continue
+        if png[:8] == b"\x89PNG\r\n\x1a\n":
+            return png
+        tried.append(f"{where}: not a PNG ({len(png)} bytes)")
+    raise RuntimeError("; ".join(tried))
+
+
 async def fetch_art(http, client, players: dict[str, str], assets: dict, min_games: int = 2) -> None:
     """Official artwork for the maps and modes you play, plus the medal sprite sheet.
 
@@ -359,13 +386,15 @@ async def fetch_art(http, client, players: dict[str, str], assets: dict, min_gam
             stage = f"sprite sheet (keys: {sorted(sprites)[:6]})"
             sheet = sprites.get("small") or sprites.get("medium") or next(iter(sprites.values()))
             stage = f"image {sheet.get('path')}"
-            png = await (await client.gamecms_hacs.get_image(sheet["path"])).read()
-            (ART / "medals.png").write_bytes(png)
+            png = await medal_sheet(client, sheet["path"])
+            stage = f"sheet layout (keys: {sorted(sheet)})"
             medals = meta.get("medals") or meta.get("Medals") or []
-            manifest["medals"] = {
+            layout = {
                 "sheet": "art/medals.png", "columns": sheet["columns"], "size": sheet["size"],
                 "sprite": {str(md.get("nameId", md.get("NameId"))): md.get("spriteIndex", md.get("SpriteIndex")) for md in medals},
             }
+            (ART / "medals.png").write_bytes(png)  # sheet first, then the manifest that points at it
+            manifest["medals"] = layout
             manifest.pop("medals_error", None)
         except Exception as e:
             # Recorded in the committed manifest: Actions logs aren't always easy to get at.

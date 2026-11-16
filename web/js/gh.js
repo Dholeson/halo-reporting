@@ -44,9 +44,14 @@ export const connected = () => !!(token() && repo());
 export const jobs = () => lsGet("jobs", []);
 const saveJobs = (list) => { lsSet("jobs", list.slice(-30)); emit(); };
 const liveJobs = () => jobs().filter((j) => ACTIVE.has(j.state));
-/** Jobs being driven to completion. Without a token in this tab nothing can drive them: see pausedJobs(). */
+/** Another tab holds the polling lease: it is driving the jobs and this tab follows via storage events. */
+const drivenElsewhere = () => { const l = lsGet("lease", null); return !!l && l.tab !== TAB && l.until > Date.now(); };
+/** Jobs this tab can drive (it has a token). */
 export const activeJobs = () => (connected() ? liveJobs() : []);
-export const pausedJobs = () => (connected() ? [] : liveJobs());
+/** Jobs in motion, driven by this tab or another one. What the UI should show as running. */
+export const runningJobs = () => (connected() || drivenElsewhere() ? liveJobs() : []);
+/** Jobs nobody is driving: this tab has no token and no other tab is polling. */
+export const pausedJobs = () => (connected() || drivenElsewhere() ? [] : liveJobs());
 export const isActive = (j) => !!j && ACTIVE.has(j.state);
 export const onChange = (fn) => (listeners.add(fn), () => listeners.delete(fn));
 export const onNewData = (fn) => (newDataHandlers.add(fn), () => newDataHandlers.delete(fn));
@@ -56,6 +61,7 @@ function emit() { for (const fn of listeners) { try { fn(); } catch (e) { consol
 export const normKey = (k) => { const s = String(k ?? "").trim().toLowerCase(); const m = s.match(/^(?:xuid\()?(\d{16})\)?$/); return m ? m[1] : s; };
 
 async function api(path, { method = "GET", body, tok = token(), r = repo() } = {}) {
+  if (!tok) { const err = new Error("not connected"); err.status = 401; err.tok = null; throw err; } // disconnected mid-tick
   const url = path.startsWith("http") ? path : `${API}/repos/${r.owner}/${r.name}${path}`;
   const res = await fetch(url, {
     method,
@@ -68,6 +74,7 @@ async function api(path, { method = "GET", body, tok = token(), r = repo() } = {
     try { msg = `${res.status} ${(await res.json()).message || ""}`.trim(); } catch { /* not JSON */ }
     const err = new Error(msg);
     err.status = res.status;
+    err.tok = tok; // a 401 only means something if this is still the token in use
     throw err;
   }
   return res.status === 204 ? null : res.json();
@@ -91,18 +98,33 @@ export async function connect(tok, { repoOverride = null, remember = false } = {
   ssSet("token", remember ? null : tok);
   lsSet("token", remember ? tok : null);
   ssSet("dropped", null);
+  lsSet("dropped", null);
   emit();
   resume(); // jobs that were paused for lack of a token carry on now
 }
-/** Why this tab lost its connection, if GitHub rejected the token. */
-export const droppedReason = () => ssGet("dropped", null);
-export function disconnect(reason = null) {
+/** Why the token went away, if GitHub rejected it (shared across tabs when it was the remembered one). */
+export const droppedReason = () => (connected() ? null : ssGet("dropped", null) || lsGet("dropped", null));
+/** The user's own Disconnect: forget every stored token, with no "rejected" story attached. */
+export function disconnect() {
   ssSet("token", null);
   lsSet("token", null);
-  ssSet("dropped", reason);
+  ssSet("dropped", null);
+  lsSet("dropped", null);
   safe(() => localStorage.removeItem("debrief.ghToken"));
+  releaseLease();
   emit();
+  watch();
 }
+/** GitHub rejected `tok`: forget only the slot(s) holding that exact token, and say why. */
+function dropToken(tok, reason) {
+  if (ssGet("token", null) === tok) { ssSet("token", null); ssSet("dropped", reason); }
+  if (lsGet("token", null) === tok) { lsSet("token", null); lsSet("dropped", reason); }
+  if (!connected()) releaseLease();
+  emit();
+  watch();
+}
+/** A tab that can't poll any more hands the lease on at once, so others take over or show "paused". */
+function releaseLease() { if (lsGet("lease", null)?.tab === TAB) lsSet("lease", null); }
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 
@@ -148,16 +170,29 @@ function stageOf(job, step) {
 }
 
 // ---------- tab coordination: one tab talks to GitHub, the others watch ----------
+/**
+ * "lead": this tab polls. "claimed": it just wrote the lease and must wait a beat. false: another tab polls.
+ * localStorage reaches other tabs asynchronously, so two tabs claiming at the same moment can each read
+ * their own write back. A claim only counts once it has survived until this tab's next tick: by then both
+ * tabs see the same winner, and the loser backs off before anything is dispatched twice.
+ */
 function lead() {
   const now = Date.now();
   const l = lsGet("lease", null);
   if (l && l.tab !== TAB && l.until > now) return false;
   lsSet("lease", { tab: TAB, until: now + 15000 });
-  return lsGet("lease", null)?.tab === TAB;
+  return l?.tab === TAB ? "lead" : "claimed";
 }
+// A reloaded page gets a new TAB id: hand the lease back on the way out so it can poll at once.
+addEventListener("pagehide", () => releaseLease());
+addEventListener("pageshow", (e) => { if (e.persisted) { resume(); watch(); } }); // back from the bfcache
 const seenStates = new Map(jobs().map((j) => [j.id, j.state]));
 addEventListener("storage", (e) => {
-  if (e.key && e.key.endsWith(":token")) { emit(); resume(); return; } // a remembered token appeared or was dropped
+  if (e.key && e.key.endsWith(":token")) { // a remembered token appeared or was dropped in another tab
+    if (connected()) ssSet("dropped", null);
+    emit(); resume(); watch(); return;
+  }
+  if (e.key && e.key.endsWith(":lease")) { resume(); watch(); return; } // the polling tab may have left: take over
   if (!e.key || !e.key.endsWith(":jobs")) return;
   // Another tab finished a job: load the new data here too, once per batch.
   const finished = new Map();
@@ -167,6 +202,8 @@ addEventListener("storage", (e) => {
   }
   for (const group of finished.values()) runHandlers(group);
   emit();
+  resume(); // keep a heartbeat in every connected tab, so one can take over if the polling tab goes away
+  watch();
 });
 
 /** Tell the app a batch finished (once per batch, with every player in it). */
@@ -229,9 +266,11 @@ async function follow(group) {
       const age = Date.now() - Date.parse(j.dispatchedAt);
       // A claimed dispatch whose POST never landed: put it back in the queue after a grace period.
       if (j.state === "dispatching" && age > 90 * 1000) {
-        const tries = (j.dispatchTries || 0) + 1;
-        if (tries >= 3) patch(ids, { state: "failed", error: "GitHub didn't accept the update after several tries. Try again in a few minutes." });
-        else patch(ids, { state: "held", rid: null, stage: "Retrying…", dispatchTries: tries });
+        for (const x of group) { // each request counts its own attempts, even when batched with newer ones
+          const tries = (x.dispatchTries || 0) + 1;
+          if (tries >= 3) patch(x.id, { state: "failed", error: "GitHub didn't accept the update after several tries. Try again in a few minutes." });
+          else patch(x.id, { state: "held", rid: null, stage: "Retrying…", dispatchTries: tries });
+        }
       }
       else if (age > 3 * 60 * 1000) patch(ids, { state: "failed", error: "GitHub accepted the request but the run never appeared. Check the Actions tab." });
       return;
@@ -281,9 +320,10 @@ async function follow(group) {
   patch(ids, { state: run.status === "queued" ? "queued" : "in_progress", stage: STAGE_LABELS[stageIndex], stageIndex, detail, errors: 0 });
 }
 
-/** Hold leadership for the whole tick: Web Locks are atomic across tabs; the lease is the fallback. */
+/** Hold leadership for the whole tick: the lease picks one tab; the Web Lock keeps its ticks from overlapping. */
 function withLeadership(fn) {
-  if (!lead()) return null; // one tab polls GitHub; the others follow through storage events
+  const l = lead();
+  if (l !== "lead") return l; // one tab polls GitHub; the others follow through storage events
   const r = repo();
   if (navigator.locks?.request) return navigator.locks.request(`debrief:${r?.owner}/${r?.name}:tick`, { ifAvailable: true }, (lock) => (lock ? fn() : null));
   return fn();
@@ -292,8 +332,9 @@ function withLeadership(fn) {
 async function tick() {
   if (busy) return;
   busy = true;
+  let claimed = false;
   try {
-    if (activeJobs().length) await withLeadership(async () => {
+    if (activeJobs().length) claimed = "claimed" === await withLeadership(async () => {
       try {
         await releaseHeld();
       } catch (e) {
@@ -315,27 +356,43 @@ async function tick() {
     busy = false;
   }
   clearTimeout(timer);
-  if (activeJobs().length) timer = setTimeout(tick, document.visibilityState === "visible" ? 4000 : 10000);
+  if (activeJobs().length) timer = setTimeout(tick, claimed ? 600 : document.visibilityState === "visible" ? 4000 : 10000);
 }
 
 function handleError(group, e) {
   if (!group.length) return;
   const ids = group.map((j) => j.id);
   if (e.status === 401) {
-    disconnect("GitHub rejected the token (expired or revoked)."); // jobs pause until a valid token picks them up
+    // Only if the rejected token is still the one in use: a request that raced a Disconnect, or used a
+    // token since replaced, says nothing about the current one. Jobs pause until a valid token picks them up.
+    if (e.tok && e.tok === token()) dropToken(e.tok, "GitHub rejected the token (expired or revoked).");
     return;
   }
   if (e.status === 404 && group[0].runId) return patch(ids, { state: "failed", error: "That run no longer exists on GitHub." });
   // Network drops, 5xx and rate limits are usually momentary: keep going, give up only if it persists.
-  const errors = (group[0].errors || 0) + 1;
-  if (errors >= 8) return patch(ids, { state: "failed", error: `Lost contact with GitHub (${e.message}).` });
-  patch(ids, { errors });
+  for (const x of group) {
+    const errors = (x.errors || 0) + 1;
+    if (errors >= 8) patch(x.id, { state: "failed", error: `Lost contact with GitHub (${e.message}).` });
+    else patch(x.id, { errors });
+  }
 }
 
 export function resume() {
   if (activeJobs().length) tick();
 }
 document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && resume());
+
+// A tab without a token can't poll, but it should notice when the tab that was polling goes away
+// (its lease lapses), so "running" turns into "paused" instead of spinning forever.
+let watchTimer = null;
+let pausedSig = pausedJobs().map((j) => j.id).join();
+function watch() {
+  clearTimeout(watchTimer);
+  const sig = pausedJobs().map((j) => j.id).join();
+  if (sig !== pausedSig) { pausedSig = sig; emit(); }
+  if (liveJobs().length && !connected()) watchTimer = setTimeout(watch, 5000);
+}
+watch();
 
 export function clearFinished() {
   saveJobs(jobs().filter((j) => ACTIVE.has(j.state)));
