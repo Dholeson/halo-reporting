@@ -80,6 +80,7 @@ function decode(raw) {
   const players = raw.players.map((p, i) => ({ ...p, i }));
   return {
     generated: raw.generated,
+    digest: raw.digest || null, // same digest = same data, whatever the build time
     players,
     me: players.filter((p) => p.me),
     others: players.filter((p) => !p.me),

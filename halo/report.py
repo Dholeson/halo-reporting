@@ -8,6 +8,7 @@ Everything is precomputed here except the analysis itself, which runs in the
 browser so filters are instant.
 """
 
+import hashlib
 import json
 import re
 import shutil
@@ -283,6 +284,10 @@ def main() -> None:
         },
         "cols": cols, "rows": rows,
     }
+    # Same data, same digest: a rebuild that found nothing new (a quiet check, a code deploy) is
+    # recognisably identical, so open tabs neither reload nor announce "fresh data".
+    same = {k: v for k, v in payload.items() if k != "generated"}
+    payload["digest"] = hashlib.sha1(json.dumps(same, separators=(",", ":"), sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]
     (SITE / "data" / "data.json").write_text(json.dumps(payload, separators=(",", ":"), allow_nan=False))
     # Lobby scoreboards, sharded by month so the match drawer only fetches what it needs.
     (SITE / "data" / "lobbies").mkdir(exist_ok=True)
@@ -310,7 +315,7 @@ def main() -> None:
 
     # Tiny file the app polls to notice fresh data (and to version the big fetches).
     (SITE / "data" / "version.json").write_text(json.dumps({
-        "generated": payload["generated"], "games": len(rows),
+        "generated": payload["generated"], "digest": payload["digest"], "games": len(rows),
         "players": {x: stored_by.get(i, 0) for i, x in enumerate(player_xuids)},
     }))
 

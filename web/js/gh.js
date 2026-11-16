@@ -31,18 +31,28 @@ export function repo() {
   return null;
 }
 const ns = (k) => { const r = repo(); return `debrief:${r ? `${r.owner}/${r.name}` : "_"}:${k}`; };
-// The first version stored the token origin-wide under a fixed key. Never leave it behind.
-safe(() => { localStorage.removeItem("debrief.ghToken"); localStorage.removeItem("debrief.jobs"); });
+// Early versions stored these origin-wide under fixed keys. Never leave them behind.
+safe(() => ["ghToken", "jobs", "autoCheck", "autoCheckAt"].forEach((k) => localStorage.removeItem(`debrief.${k}`)));
 const lsGet = (k, d) => safe(() => { const v = localStorage.getItem(ns(k)); return v === null ? d : JSON.parse(v); }, d);
 const lsSet = (k, v) => safe(() => (v === null ? localStorage.removeItem(ns(k)) : localStorage.setItem(ns(k), JSON.stringify(v))));
 const ssGet = (k, d) => safe(() => { const v = sessionStorage.getItem(ns(k)); return v === null ? d : JSON.parse(v); }, d);
 const ssSet = (k, v) => safe(() => (v === null ? sessionStorage.removeItem(ns(k)) : sessionStorage.setItem(ns(k), JSON.stringify(v))));
 
+/** This site's own preferences, kept per repo like everything else here. */
+export const pref = (k, d) => lsGet(`pref:${k}`, d);
+export const setPref = (k, v) => lsSet(`pref:${k}`, v);
+
 export const token = () => ssGet("token", null) || lsGet("token", null);
 export const remembered = () => !!lsGet("token", null);
 export const connected = () => !!(token() && repo());
 export const jobs = () => lsGet("jobs", []);
-const saveJobs = (list) => { lsSet("jobs", list.slice(-30)); emit(); };
+const saveJobs = (list) => {
+  // Automatic checks run every 10-30 minutes; only the newest finished one is worth keeping around.
+  let keep = null;
+  for (let i = list.length - 1; i >= 0 && !keep; i--) if (list[i].auto && !ACTIVE.has(list[i].state)) keep = list[i];
+  lsSet("jobs", list.filter((j) => !j.auto || ACTIVE.has(j.state) || j === keep).slice(-30));
+  emit();
+};
 const liveJobs = () => jobs().filter((j) => ACTIVE.has(j.state));
 /** Another tab holds the polling lease: it is driving the jobs and this tab follows via storage events. */
 // The UI waits LEASE_GRACE past the lease before calling an update "paused": a hidden tab's timers
@@ -53,8 +63,9 @@ const drivenElsewhere = () => { const l = lsGet("lease", null); return !!l && l.
 export const activeJobs = () => (connected() ? liveJobs() : []);
 /** Jobs in motion, driven by this tab or another one. What the UI should show as running. */
 export const runningJobs = () => (connected() || drivenElsewhere() ? liveJobs() : []);
-/** Jobs nobody is driving: this tab has no token and no other tab is polling. */
-export const pausedJobs = () => (connected() || drivenElsewhere() ? [] : liveJobs());
+/** Jobs nobody is driving: this tab has no token and no other tab is polling. Automatic checks never
+ *  count: nobody asked for them, and their run finishes on GitHub whether or not a tab follows it. */
+export const pausedJobs = () => (connected() || drivenElsewhere() ? [] : liveJobs().filter((j) => !j.auto));
 export const isActive = (j) => !!j && ACTIVE.has(j.state);
 export const onChange = (fn) => (listeners.add(fn), () => listeners.delete(fn));
 export const onNewData = (fn) => (newDataHandlers.add(fn), () => newDataHandlers.delete(fn));
@@ -118,6 +129,7 @@ export function disconnect() {
   emit();
   watch();
 }
+const REJECTED = "GitHub rejected the token (expired or revoked).";
 /** GitHub rejected `tok`: forget only the slot(s) holding that exact token, and say why. */
 function dropToken(tok, reason) {
   if (ssGet("token", null) === tok) { ssSet("token", null); ssSet("dropped", reason); }
@@ -134,34 +146,56 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 /**
  * kind: "sync" (everyone, newest games) | "scout" (first look at new players) | "full" (whole history)
  * players: [{key: gamertag or xuid, label: display name}]
+ * auto: the site's own check for your new games. It waits behind anything you asked for, runs as a
+ * light "check" (your games; everyone only when the 6-hourly refresh is due) and reports quietly.
  */
-export async function request(kind, players = []) {
+export async function request(kind, players = [], { auto = false } = {}) {
   if (!connected()) throw new Error("not-connected");
   const list = jobs();
   const sig = (ps) => ps.map((p) => normKey(p.key)).sort().join();
-  const dup = list.find((j) => isActive(j) && j.kind === kind && sig(j.players) === sig(players));
-  if (dup) return dup;
-  const job = { id: rid(), kind, players, createdAt: new Date().toISOString(), state: "held", stage: "Starting…", stageIndex: 0, errors: 0 };
+  const same = (j) => isActive(j) && j.kind === kind && sig(j.players) === sig(players);
+  // An automatic check that hasn't started yet simply becomes yours. One that's already running only
+  // covers your own games, so a Sync now you ask for meanwhile runs after it.
+  const dup = list.find((j) => same(j) && !j.auto) || list.find((j) => same(j) && (auto || j.state === "held"));
+  if (dup) {
+    if (dup.auto && !auto) patch(dup.id, { auto: false }); // you asked for it now: it reports back like any update
+    return dup;
+  }
+  const job = { id: rid(), kind, players, createdAt: new Date().toISOString(), state: "held", stage: "Starting…", stageIndex: 0, errors: 0, ...(auto ? { auto: true } : {}) };
   saveJobs([...list, job]);
   tick();
   return job;
 }
 
 /**
- * When Halo was last checked for new games: the start of the newest ingest run that actually pulled
- * (a scheduled run the gate passed on doesn't count). A run that's still going counts as now. null if none.
+ * When Halo was last checked for your new games: the start of the newest ingest run that pulled them
+ * (not a scheduled run the gate passed on, and not a scout, which pulls only the players it names).
+ * A run that's still going counts as now. null if none.
  */
+let checkProblem = null;
+/** Why the last automatic check couldn't ask GitHub, if it was GitHub saying no (not just offline). */
+export const lastCheckProblem = () => (connected() ? checkProblem : null);
 export async function lastCheck() {
-  const runs = (await api(`/actions/workflows/${WORKFLOW}/runs?per_page=5`)).workflow_runs;
-  for (const r of runs) {
-    if (r.status !== "completed") return Date.now();
-    if (r.event === "schedule") {
-      const detail = await api(`/actions/runs/${r.id}/jobs`).catch(() => null);
-      if (detail?.jobs?.find((j) => j.name === "ingest")?.conclusion === "skipped") continue;
+  try {
+    const runs = (await api(`/actions/workflows/${WORKFLOW}/runs?per_page=10`)).workflow_runs;
+    if (checkProblem) { checkProblem = null; emit(); }
+    for (const r of runs) {
+      if (/^Scout /.test(r.display_title || "")) continue;
+      if (r.status !== "completed") return Date.now();
+      if (r.event === "schedule") {
+        const detail = await api(`/actions/runs/${r.id}/jobs`).catch(() => null);
+        if (detail?.jobs?.find((j) => j.name === "ingest")?.conclusion === "skipped") continue;
+      }
+      return Date.parse(r.run_started_at || r.created_at);
     }
-    return Date.parse(r.run_started_at || r.created_at);
+    return null;
+  } catch (e) {
+    // A rejected token is dropped just as a tick would drop it, so the panel says why and stops claiming
+    // "Connected". Other refusals are shown there too; a network blip isn't worth a word.
+    if (e.status === 401) { if (e.tok && e.tok === token()) dropToken(e.tok, REJECTED); }
+    else if (e.status) { checkProblem = `Couldn't check for new games: GitHub said ${e.message}.`; emit(); }
+    throw e;
   }
-  return null;
 }
 
 function patch(ids, changes) {
@@ -246,18 +280,21 @@ async function runHandlers(group, extra = {}) {
 }
 
 async function releaseHeld() {
+  if (!activeJobs().some((j) => j.state === "held")) return;
+  const runs = await api(`/actions/workflows/${WORKFLOW}/runs?per_page=20`);
+  // Read the list after GitHub answers: another tab may have rewritten it in the meantime.
   const held = activeJobs().filter((j) => j.state === "held");
   if (!held.length) return;
-  const runs = await api(`/actions/workflows/${WORKFLOW}/runs?per_page=20`);
   patch(held.map((j) => j.id), { errors: 0 }); // GitHub answered: reset the transient-error count
   const busyRun = runs.workflow_runs.some((r) => r.status !== "completed");
   const inFlight = jobs().some((j) => j.state === "dispatched" || j.state === "dispatching");
   if (busyRun || inFlight) {
-    patch(held.map((j) => j.id), { stage: busyRun ? "Queued behind another update" : "Starting…" });
+    patch(held.map((j) => j.id), { stage: busyRun ? "Queued behind another update" : "Starting…", queued: busyRun });
     return;
   }
-  // One dispatch per tick. Held scouts (or full-history requests) ride in a single run.
-  const first = held[0];
+  // One dispatch per tick: what you asked for before an automatic check. Held scouts (or full-history
+  // requests) ride in a single run.
+  const first = held.find((j) => !j.auto) || held[0];
   const batch = first.kind === "sync" ? [first] : held.filter((j) => j.kind === first.kind);
   const players = [];
   for (const p of batch.flatMap((j) => j.players)) if (!players.some((q) => normKey(q.key) === normKey(p.key))) players.push(p);
@@ -265,11 +302,14 @@ async function releaseHeld() {
   const inputs = { request_id: id, gamertags: players.map((p) => p.key).join(", ") };
   if (first.kind === "scout") inputs.phase = "scout";
   if (first.kind === "full") inputs.phase = "full";
-  if (first.kind === "sync") { inputs.max_new_matches = "200"; inputs.skill_max = "600"; }
+  if (first.kind === "sync") { inputs.max_new_matches = "200"; inputs.skill_max = "600"; if (first.auto) inputs.phase = "check"; }
   // Claim first: if the POST's response is lost, the next tick finds the run by [rid] instead of
   // dispatching a duplicate.
   const ids = batch.map((j) => j.id);
-  patch(ids, { state: "dispatching", rid: id, dispatchedAt: new Date().toISOString(), stage: "Waiting for a runner", stageIndex: 0 });
+  patch(ids, { state: "dispatching", rid: id, dispatchedAt: new Date().toISOString(), stage: "Waiting for a runner", stageIndex: 0, queued: false });
+  // Dispatch only what the claim actually covers: a job another tab's write has already replaced has
+  // nothing to follow it, and whatever replaced it is dispatched on its own.
+  if (jobs().filter((j) => ids.includes(j.id) && j.rid === id).length !== ids.length) return;
   try {
     await api(`/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: { ref: "main", inputs } });
     patch(ids, { state: "dispatched", errors: 0 });
@@ -313,8 +353,9 @@ async function follow(group) {
     const live = !!v && Date.parse(v.generated) >= Date.parse(cur.liveAfter || cur.runStartedAt || cur.createdAt);
     const giveUp = Date.now() - Date.parse(cur.completedAt) > 10 * 60 * 1000;
     if (live || giveUp) {
-      await runHandlers(group, { live, version: live ? v.generated : null }); // reload BEFORE "done"
-      patch(ids, { state: "done", live, stage: live ? "Done" : "Saved; the site hasn't updated yet", stageIndex: STAGE_LABELS.length, version: live ? v.generated : null, finishedAt: new Date().toISOString() });
+      const version = live ? v.generated : null, digest = live ? v.digest || null : null;
+      await runHandlers(group, { live, version, digest }); // reload BEFORE "done"
+      patch(ids, { state: "done", live, stage: live ? "Done" : "Saved; the site hasn't updated yet", stageIndex: STAGE_LABELS.length, version, digest, finishedAt: new Date().toISOString() });
     }
     return;
   }
@@ -396,7 +437,7 @@ function handleError(group, e) {
   if (e.status === 401) {
     // Only if the rejected token is still the one in use: a request that raced a Disconnect, or used a
     // token since replaced, says nothing about the current one. Jobs pause until a valid token picks them up.
-    if (e.tok && e.tok === token()) dropToken(e.tok, "GitHub rejected the token (expired or revoked).");
+    if (e.tok && e.tok === token()) dropToken(e.tok, REJECTED);
     return;
   }
   if (e.status === 404 && group[0].runId) return patch(ids, { state: "failed", error: "That run no longer exists on GitHub." });
@@ -414,13 +455,15 @@ export function resume() {
 document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && resume());
 
 // A tab without a token can't poll, but it should notice when the tab that was polling goes away
-// (its lease lapses), so "running" turns into "paused" instead of spinning forever.
+// (its lease lapses), so "running" turns into "paused" (or, for an automatic check, into nothing)
+// instead of spinning forever.
 let watchTimer = null;
-let pausedSig = pausedJobs().map((j) => j.id).join();
+const watchSig = () => `${runningJobs().map((j) => j.id)}|${pausedJobs().map((j) => j.id)}`;
+let lastWatchSig = watchSig();
 function watch() {
   clearTimeout(watchTimer);
-  const sig = pausedJobs().map((j) => j.id).join();
-  if (sig !== pausedSig) { pausedSig = sig; emit(); }
+  const sig = watchSig();
+  if (sig !== lastWatchSig) { lastWatchSig = sig; emit(); }
   if (liveJobs().length && !connected()) watchTimer = setTimeout(watch, 5000);
 }
 watch();

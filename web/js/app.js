@@ -231,7 +231,7 @@ function renderFilterBar() {
 
 function renderFooter() {
   const repo = location.hostname.endsWith("github.io") ? `https://github.com/${location.hostname.split(".")[0]}/${location.pathname.split("/").filter(Boolean)[0] || ""}` : null;
-  $("#footer").innerHTML = `<span>Data updated ${esc(ago(Date.parse(db.generated) / 1000))} · ${fmt.int(db.rows.length)} player-games · new games arrive within 5–15 min while you play</span>
+  $("#footer").innerHTML = `<span>Data updated ${esc(ago(Date.parse(db.generated) / 1000))} · ${fmt.int(db.rows.length)} player-games · Debrief checks for new games while it's open and connected</span>
     <span><a href="data/player_matches.parquet">Raw data (Parquet)</a>${repo ? ` · <a href="${esc(repo)}">Source</a>` : ""}</span>
     <span style="flex-basis:100%">Halo © Microsoft Corporation. Debrief was created under Microsoft's <a href="https://www.xbox.com/en-US/developers/rules">Game Content Usage Rules</a> using assets from Halo Infinite, and it is not endorsed by or affiliated with Microsoft.</span>`;
 }
@@ -269,7 +269,7 @@ function render() {
   const all = scouting ? [] : rowsFor(db, f.who);
   const rows = applyFilters(all, f);
   const prev = f.range !== "all" ? applyFilters(all, f, { prev: true }) : null;
-  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), reloading: () => reloading, reloadFailed: () => reloadFailed, reload: () => reload() };
+  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), dbNow: () => db, reloading: () => reloading, reloadFailed: () => reloadFailed, reload: () => reload() };
   ctx.openMatch = (r) => openMatch(r, ctx);
   lastCtx = ctx;
   renderTabs();
@@ -295,9 +295,10 @@ function render() {
   renderFooter();
   if (params.match && $("#drawer").hidden) {
     const r = all.find((x) => x.mid === params.match);
-    if (r) openMatch(r, ctx);
+    if (r) drawerReady = openMatch(r, ctx);
   }
 }
+let drawerReady = null; // resolves once the open match drawer has its lobby
 
 function setFilterSilently(patch) {
   state.f = { ...state.f, ...patch };
@@ -315,6 +316,8 @@ function refreshChrome() {
 /** Reload data in place (after an update finishes or when newer data is live). */
 async function reload() {
   const before = db.rows.length;
+  const drawer = $("#drawer");
+  const reopenAt = !drawer.hidden && state.params.match ? drawer.scrollTop : null;
   reloading = true;
   try {
     const next = await loadData();
@@ -322,7 +325,13 @@ async function reload() {
     reloadFailed = false;
     initArt(db.art);
     $("#fresh").hidden = true;
-    closeMatch(lastCtx); // its context belongs to the old data
+    // An open match's rows and people indices belong to the old data. Close it but keep it in the URL:
+    // render() below reopens it from the new data, in place (no slide-in) and back at the same spot.
+    if (reopenAt !== null) {
+      drawer.classList.add("quiet");
+      closeMatch();
+      drawerReady = null;
+    }
     return db.rows.length - before;
   } catch (e) {
     reloadFailed = true;
@@ -334,12 +343,18 @@ async function reload() {
   } finally {
     reloading = false;
     render();
+    if (reopenAt !== null) {
+      const opened = drawerReady;
+      opened?.then(() => { if (!drawer.hidden) drawer.scrollTop = reopenAt; });
+      requestAnimationFrame(() => requestAnimationFrame(() => drawer.classList.remove("quiet")));
+    }
   }
 }
 
 // GitHub's scheduler can run hours late (new schedules sometimes not at all), so an open, connected
 // Debrief checks Halo itself whenever nothing else has: when you open it (10 min since the last check),
-// and while it stays open (every 10 min if your last game ended in the past 3 hours, else every 30).
+// and while it stays open, in the background too (every 10 min if your last game ended in the past
+// 3 hours, else every 30). A PC player's Debrief tab sits behind the game the whole session.
 const OPEN_GAP = 10 * 60e3, IDLE_GAP = 30 * 60e3;
 let autoChecking = false;
 let askedAt = 0;
@@ -351,22 +366,32 @@ function lastGameEnd() {
 }
 async function autoCheck({ periodic = false } = {}) {
   const gap = !periodic || Date.now() - lastGameEnd() < 3 * 3600e3 ? OPEN_GAP : IDLE_GAP;
-  const idle = () => gh.connected() && store.get("autoCheck", true) && document.visibilityState === "visible" && !gh.runningJobs().length
-    && Date.now() - (store.get("autoCheckAt", 0) || 0) >= gap; // another tab may have just done it
+  const idle = () => gh.connected() && gh.pref("autoCheck", true) && !gh.runningJobs().length
+    && Date.now() - (gh.pref("autoCheckAt", 0) || 0) >= gap; // another tab may have just done it
   if (autoChecking || !idle() || (periodic && Date.now() - askedAt < 3 * 60e3)) return; // ask GitHub at most every 3 min
   autoChecking = true;
   askedAt = Date.now();
+  const wasConnected = gh.connected();
   try {
     const last = await gh.lastCheck();
     if ((last && Date.now() - last < gap) || !idle()) return; // re-check: things moved while we asked
-    store.set("autoCheckAt", Date.now());
-    await gh.request("sync", []);
-    toast("Checking Halo for new games…");
+    gh.setPref("autoCheckAt", Date.now());
+    await gh.request("sync", [], { auto: true });
+    if (!periodic && document.visibilityState === "visible") toast("Checking Halo for new games…");
   } catch {
-    /* offline or a token problem: the Updates panel explains, and Sync now still works */
+    // Offline, or GitHub said no: lastCheck drops a rejected token and the Updates panel says why.
+    if (wasConnected && !gh.connected()) { toast("GitHub rejected the saved token, so Debrief can't check for new games. Reconnect in Updates."); refreshChrome(); }
   } finally {
     autoChecking = false;
   }
+}
+
+/** A new build with exactly the data on screen (a check that found nothing): only the "updated" time moves. */
+function quietBuild(generated) {
+  if (generated) db.generated = generated;
+  reloadFailed = false; // what's on screen is what's live
+  $("#fresh").hidden = true;
+  renderFooter();
 }
 
 function watchFreshness() {
@@ -375,6 +400,7 @@ function watchFreshness() {
     if (document.visibilityState !== "visible" || gh.runningJobs().length) return; // that update reloads by itself
     const v = await latestVersion();
     if (!v || v.generated === db.generated) return;
+    if (v.digest && v.digest === db.digest) { quietBuild(v.generated); return; } // rebuilt, same data
     const diff = v.games - db.rows.length;
     const el = $("#fresh");
     el.innerHTML = `<span>${diff > 0 ? `${diff} new game${diff === 1 ? "" : "s"} are in` : "Fresh data is in"}</span><button class="btn primary" type="button" id="fresh-go">Refresh</button>`;
@@ -419,12 +445,17 @@ async function boot() {
   });
   gh.onNewData(async (job) => {
     if (job.live === false) {
+      if (job.auto) return; // nobody's waiting on an automatic check; its games come with the next build
       toast("Saved. The site hasn't published it yet; it'll appear with the next update.");
       render();
       return;
     }
-    const added = await reload();
-    if (added === null) return; // the "couldn't load" notice is up; don't claim anything about the data
+    let added = 0;
+    if (job.digest && job.digest === db.digest) quietBuild(job.version); // nothing new: leave the page alone
+    else {
+      added = await reload();
+      if (added === null) return; // the "couldn't load" notice is up; don't claim anything about the data
+    }
     if (job.kind === "scout") {
       const found = [...new Set(job.players.map((p) => resolveKey(p.key)).filter(Boolean))];
       const watching = state.f.who.startsWith("scout:") ? resolveKey(state.f.who.slice(6)) : null;
@@ -435,7 +466,8 @@ async function boot() {
       if (!found.length) toast("Scouting finished, but that player wasn't found (typo, or private history?)");
       else if (empty.length) toast(`Found ${empty.map((p) => p.gamertag).join(", ")}, but no public matchmaking games`);
       else toast(`${found.map((p) => p.gamertag).join(", ")}: dossier ready`);
-    } else toast(added > 0 ? `Updated: ${added} new game${added === 1 ? "" : "s"}` : "Up to date: no new games");
+    } else if (job.auto) { if (added > 0) toast(`${added} new game${added === 1 ? " is" : "s are"} in`); }
+    else toast(added > 0 ? `Updated: ${added} new game${added === 1 ? "" : "s"}` : "Up to date: no new games");
   });
   gh.resume();
   watchFreshness();

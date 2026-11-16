@@ -25,18 +25,23 @@ the URL, so any view can be bookmarked or shared.
 New games arrive two ways:
 
 - **The open site checks.** With a token connected, Debrief checks Halo when you open
-  it and keeps checking while it's open (every 10 minutes if you played in the last
-  3 hours, every 30 otherwise), whenever nothing else has checked in that time. Turn
-  it off in the Updates panel.
+  it and keeps checking while it's open, in a background tab too (every 10 minutes if
+  you played in the last 3 hours, every 30 otherwise), whenever nothing else has pulled
+  your games in that time. A check covers your own accounts, waits behind anything you
+  asked for, and leaves the page alone when it finds nothing. Turn it off in the
+  Updates panel.
 - **GitHub's schedule.** The workflow is set to poll every 5 minutes while one of your
   games ended in the last 3 hours and every 15 otherwise, but GitHub delivers scheduled
   runs late and drops many (new schedules can take hours, sometimes a day, to start),
-  so treat it as a backstop. A late tick still runs if nothing has for 15 minutes.
+  so treat it as a backstop. A late tick still runs if nothing has pulled your games
+  for 15 minutes.
 
 Every 6 hours an update also refreshes everyone you've scouted and fills in older
-history. Quiet checks don't commit, rebuild or deploy. The gate that decides what a run
-does lives in `scripts/gate.sh`, so tuning it doesn't edit the workflow file (an edit
-re-registers the schedule, which restarts GitHub's wait).
+history. Scheduled polls that find nothing don't rebuild or deploy; the site's own
+checks always republish, but the build is identical (same data digest), so open pages
+ignore it. The gate that decides what a run does lives in `scripts/gate.sh`, so tuning
+it doesn't edit the workflow file (an edit re-registers the schedule, which restarts
+GitHub's wait).
 
 From the site you can also **Sync now**, **scout anyone** (search a gamertag, or tap a
 name in a scoreboard / teammate / rival list) and **load a full history**. A scout pulls

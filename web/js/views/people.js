@@ -1,12 +1,12 @@
 // People: search, person cards, scouting, the activity panel and the
 // "still loading" states. Anything that starts an update goes through gh.js.
 
-import { $, esc, fmt, icon, initials, ago, toast, accountColor, cssVar, store } from "../util.js";
+import { $, esc, fmt, icon, initials, ago, toast, accountColor, cssVar } from "../util.js";
 import * as gh from "../gh.js";
 import { agg } from "../stats.js";
 
 const VALID_KEY = /^(?:[A-Za-z0-9 ]{1,16}(?:#\d{1,5})?|(?:xuid\()?\d{16}\)?)$/;
-const label = (job) => (job.kind === "sync" ? "Sync" : `${job.kind === "full" ? "Full history" : "Scout"}: ${job.players.map((p) => p.label || p.key).join(", ")}`);
+const label = (job) => (job.kind === "sync" ? (job.auto ? "Automatic check" : "Sync") : `${job.kind === "full" ? "Full history" : "Scout"}: ${job.players.map((p) => p.label || p.key).join(", ")}`);
 
 // ---------- modal ----------
 let current = null; // the open modal: {owner, onClose[], prevScrim}
@@ -115,12 +115,15 @@ export function stepper(job, { compact = false } = {}) {
 // ---------- activity panel ----------
 export function activityButtonHtml() {
   const active = gh.runningJobs(); // this tab's, or another tab's it is following
-  const failed = gh.jobs().some((j) => j.state === "failed" && Date.now() - Date.parse(j.updatedAt || j.createdAt) < 3600e3);
+  const failed = gh.droppedReason() || gh.jobs().some((j) => j.state === "failed" && Date.now() - Date.parse(j.updatedAt || j.createdAt) < 3600e3);
   return `<button class="icon-btn activity${active.length ? " busy" : ""}" id="activity-btn" type="button" aria-label="${active.length ? `${active.length} update${active.length === 1 ? "" : "s"} running` : "Updates"}" title="Updates">
     ${active.length ? '<span class="spin" aria-hidden="true"></span>' : icon("reset")}
     ${active.length ? `<span class="count">${active.length}</span>` : failed ? '<span class="count bad">!</span>' : ""}
   </button>`;
 }
+
+/** An automatic check no open tab is following: its run carries on and publishes on GitHub by itself. */
+const adrift = (j) => j.auto && gh.isActive(j) && !gh.runningJobs().some((x) => x.id === j.id);
 
 export function openActivity(ctx) {
   const render = () => {
@@ -132,16 +135,17 @@ export function openActivity(ctx) {
       <div><b>Sync now</b><p class="note">Pulls new games for everyone you track. They also arrive on GitHub's schedule, which GitHub sometimes runs hours late.</p></div>
       <button class="btn primary" id="sync-now">${icon("reset")}Sync now</button>
     </div>
-    <label class="check"><input type="checkbox" id="auto-check" ${store.get("autoCheck", true) ? "checked" : ""}> <span>Check for new games when I open Debrief${gh.connected() ? "" : " (once connected)"}</span></label>
-    ${gh.pausedJobs().length ? `<div class="callout">${icon("clock")} <b>${gh.pausedJobs().length} update${gh.pausedJobs().length === 1 ? " is" : "s are"} paused.</b> ${gh.droppedReason() ? esc(gh.droppedReason()) + " " : ""}No open tab is connected to GitHub. Connect here to keep following ${gh.pausedJobs().length === 1 ? "it" : "them"}.</div>` : ""}
+    <label class="check"><input type="checkbox" id="auto-check" ${gh.pref("autoCheck", true) ? "checked" : ""}> <span>Check for new games while Debrief is open${gh.connected() ? "" : " (once connected)"}</span></label>
+    ${gh.lastCheckProblem() ? `<p class="note bad-text">${esc(gh.lastCheckProblem())}</p>` : ""}
+    ${gh.pausedJobs().length ? `<div class="callout">${icon("clock")} <b>${gh.pausedJobs().length} update${gh.pausedJobs().length === 1 ? " is" : "s are"} paused.</b> No open tab is connected to GitHub. Connect here to keep following ${gh.pausedJobs().length === 1 ? "it" : "them"}.</div>` : ""}
     ${list.length ? `<div class="jobs">${list.map((j) => `
       <div class="job ${esc(j.state)}">
         <div class="job-top"><b>${esc(label(j))}</b><span class="note">${esc(ago(Date.parse(j.createdAt) / 1000))}</span></div>
-        ${j.state === "failed" ? `<p class="bad-text">${esc(j.error || "Failed")}</p>` : `<div class="job-stage">${stepper(j, { compact: true })}<span>${esc(j.stage || "")}</span></div>`}
+        ${j.state === "failed" ? `<p class="bad-text">${esc(j.error || "Failed")}</p>` : `<div class="job-stage">${stepper(j, { compact: true })}<span>${esc(adrift(j) ? "Finishing on GitHub; its games show up once it publishes" : j.stage || "")}</span></div>`}
         ${j.url ? `<a class="note" href="${esc(j.url)}" target="_blank" rel="noopener">View run on GitHub</a>` : ""}
       </div>`).join("")}</div>` : '<p class="note">No updates yet.</p>'}
     <div class="mc-foot">
-      ${gh.connected() ? `<span class="note">${icon("check")} Connected to ${esc(r.owner)}/${esc(r.name)} ${gh.remembered() ? "on this device" : "in this tab"}</span><button class="link-btn" id="disc">Disconnect</button>` : `<span class="note">Not connected: updates can't be started from this device.</span><button class="link-btn" id="conn">Connect GitHub</button>`}
+      ${gh.connected() ? `<span class="note">${icon("check")} Connected to ${esc(r.owner)}/${esc(r.name)} ${gh.remembered() ? "on this device" : "in this tab"}</span><button class="link-btn" id="disc">Disconnect</button>` : `<span class="note">${gh.droppedReason() ? `${esc(gh.droppedReason())} Connect again to keep new games coming.` : "Not connected: updates can't be started from this device."}</span><button class="link-btn" id="conn">Connect GitHub</button>`}
       ${list.some((j) => !gh.isActive(j)) ? '<button class="link-btn" id="clear">Clear finished</button>' : ""}
     </div>`;
   };
@@ -156,7 +160,7 @@ export function openActivity(ctx) {
     el.querySelector("#disc")?.addEventListener("click", () => { gh.disconnect(); redraw(); ctx.refreshChrome(); });
     el.querySelector("#conn")?.addEventListener("click", () => { close(); openConnect(ctx); });
     el.querySelector("#clear")?.addEventListener("click", () => { gh.clearFinished(); redraw(); });
-    el.querySelector("#auto-check")?.addEventListener("change", (e) => store.set("autoCheck", e.target.checked));
+    el.querySelector("#auto-check")?.addEventListener("change", (e) => gh.setPref("autoCheck", e.target.checked));
     el.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
   };
   wire();
@@ -229,30 +233,57 @@ export function openSearch(ctx, anchor) {
 // ---------- person card ----------
 export function openPerson(ctx, { xuid, name }) {
   const { db } = ctx;
-  const tracked = db.players.find((p) => p.xuid === xuid);
   const person = db.people.find((p) => p.xuid === xuid);
   const meRows = ctx.meRows();
   const withR = person ? meRows.filter((r) => r.mates.includes(person.i)) : [];
   const vsR = person ? meRows.filter((r) => !r.ffa && r.foes.includes(person.i)) : [];
   const W = agg(withR), V = agg(vsR);
-  const display = name || person?.gt || tracked?.gamertag || `Player ··${String(xuid).slice(-6)}`;
-  const job = gh.jobFor([xuid, display]);
-  const pending = gh.isActive(job);
-  const paused = pending && gh.pausedJobs().some((x) => x.id === job.id);
-  const { el, close } = modal(`
+  const display = name || person?.gt || db.players.find((p) => p.xuid === xuid)?.gamertag || `Player ··${String(xuid).slice(-6)}`;
+  // The scouting status and its button follow the update live, and the data as it reloads.
+  const status = () => {
+    const tracked = (ctx.dbNow?.() || db).players.find((p) => p.xuid === xuid);
+    const job = gh.jobFor([xuid, display]);
+    const pending = gh.isActive(job);
+    const paused = pending && gh.pausedJobs().some((x) => x.id === job.id);
+    const later = gh.runningJobs().length ? " once the update that's running finishes" : " now";
+    return {
+      job,
+      text: tracked ? `<p class="text-2">${esc(display)} is tracked. ${esc(historyLine(tracked) || "")}</p>` : paused ? `<div class="callout"><b>Scouting paused.</b> No open tab is connected to GitHub, so nothing is following it. Connect to pick it back up.</div>` : pending ? `<div class="callout"><b>Scouting in progress.</b> ${esc(job.stage || "")}${stepper(job)}</div>` : `<p class="text-2">Scouting pulls their newest 300 games${later} (about 3 minutes) and the rest of their history in the background. They'll appear under Scouted players.</p>`,
+      actions: tracked ? `<button class="btn primary" id="p-open">Open ${esc(display)}'s dossier</button>` : paused ? `<button class="btn primary" id="p-connect">Connect GitHub</button>` : pending ? `<button class="btn" id="p-pending">Follow progress</button>` : `<button class="btn primary" id="p-scout">${icon("people")}Scout ${esc(display)}</button>`,
+    };
+  };
+  const s0 = status();
+  const m = modal(`
     <div class="mc-head"><div style="display:flex;gap:12px;align-items:center"><span class="avatar" style="width:44px;height:44px;--c1:var(--tie);--c2:var(--tie)">${esc(initials(display))}</span><div><h2>${esc(display)}</h2><div class="note">XUID ${esc(xuid)}</div></div></div><button class="icon-btn" data-close aria-label="Close">${icon("close")}</button></div>
     <div class="split">
       <div class="mini-stat"><div class="l">On your team</div><div class="v">${withR.length ? `${W.w}–${W.decided - W.w}` : "–"}</div><div class="note">${withR.length ? `${fmt.int(withR.length)} games · ${fmt.pct(W.wr)}` : person ? "Never" : "Under 2 shared games"}</div></div>
       <div class="mini-stat"><div class="l">Against you (team modes)</div><div class="v">${vsR.length ? `${V.w}–${V.decided - V.w}` : "–"}</div><div class="note">${vsR.length ? `your record in ${fmt.int(vsR.length)} games` : person ? "Never" : "Under 2 shared games"}</div></div>
     </div>
-    ${tracked ? `<p class="text-2">${esc(display)} is tracked. ${esc(historyLine(tracked) || "")}</p>` : paused ? `<div class="callout"><b>Scouting paused.</b> No open tab is connected to GitHub, so nothing is following it. Connect to pick it back up.</div>` : pending ? `<div class="callout"><b>Scouting in progress.</b> ${esc(job.stage || "")}${stepper(job)}</div>` : `<p class="text-2">Scouting pulls their newest 300 games now (about 3 minutes) and the rest of their history in the background. They'll appear under Scouted players.</p>`}
-    <div class="mc-actions">
-      ${tracked ? `<button class="btn primary" id="p-open">Open ${esc(display)}'s dossier</button>` : paused ? `<button class="btn primary" id="p-connect">Connect GitHub</button>` : pending ? `<button class="btn" id="p-pending">Follow progress</button>` : `<button class="btn primary" id="p-scout">${icon("people")}Scout ${esc(display)}</button>`}
-    </div>`);
-  el.querySelector("#p-open")?.addEventListener("click", () => { close(); ctx.setFilter({ who: xuid }); });
-  el.querySelector("#p-pending")?.addEventListener("click", () => { close(); ctx.setFilter({ who: `scout:${job.players[0].key}` }); });
-  el.querySelector("#p-connect")?.addEventListener("click", () => { close(); openConnect(ctx); });
-  el.querySelector("#p-scout")?.addEventListener("click", () => { close(); scout(ctx, { xuid, name: display }); });
+    <div id="p-status">${s0.text}</div>
+    <div class="mc-actions" id="p-actions">${s0.actions}</div>`);
+  const { el, close } = m;
+  let shown = s0;
+  const wire = () => {
+    const job = shown.job;
+    el.querySelector("#p-open")?.addEventListener("click", () => { close(); ctx.setFilter({ who: xuid }); });
+    el.querySelector("#p-pending")?.addEventListener("click", () => { close(); ctx.setFilter({ who: `scout:${job.players[0].key}` }); });
+    el.querySelector("#p-connect")?.addEventListener("click", () => { close(); openConnect(ctx); });
+    el.querySelector("#p-scout")?.addEventListener("click", () => { close(); scout(ctx, { xuid, name: display }); });
+  };
+  wire();
+  m.onClose(gh.onChange(() => {
+    if (!m.isOpen()) return;
+    const next = status();
+    if (next.text !== shown.text) el.querySelector("#p-status").innerHTML = next.text;
+    const rewire = next.actions !== shown.actions;
+    if (rewire) {
+      const hadFocus = el.querySelector("#p-actions").contains(document.activeElement);
+      el.querySelector("#p-actions").innerHTML = next.actions;
+      if (hadFocus) el.querySelector("#p-actions button")?.focus();
+    }
+    shown = next;
+    if (rewire) wire(); // fresh buttons only: the old ones were replaced with their listeners
+  }));
 }
 
 /** Make [data-person] elements inside root open person cards. */
@@ -286,11 +317,12 @@ export function partialBanner(ctx) {
   const job = gh.jobFor(inc.map((p) => p.xuid));
   const full = job && job.kind === "full" ? job : null;
   const running = !!full && gh.runningJobs().some((x) => x.id === full.id);
+  const waiting = running && full.state === "held" && !!full.queued; // asked for, but queued behind another update
   const paused = !!full && gh.pausedJobs().some((x) => x.id === full.id);
   return `<div class="loading-banner" role="status">
-    ${running ? '<span class="spin" aria-hidden="true"></span>' : ""}
-    <div><b>Showing ${fmt.int(stored)} of ~${fmt.int(total)} games.</b> ${running ? `Loading the rest now: ${esc(full.stage || "")}.` : paused ? "Loading the rest is paused: no open tab is connected to GitHub." : "Older games fill in a batch every few hours as updates run, so trends sharpen as they arrive."}</div>
-    ${running ? stepper(full, { compact: true }) : paused ? '<button class="btn" id="load-connect" type="button">Connect GitHub</button>' : '<button class="btn" id="load-full" type="button">Load everything now</button>'}
+    ${running && !waiting ? '<span class="spin" aria-hidden="true"></span>' : ""}
+    <div><b>Showing ${fmt.int(stored)} of ~${fmt.int(total)} games.</b> ${waiting ? "Loading the rest starts as soon as the update that's running finishes." : running ? `Loading the rest now: ${esc(full.stage || "")}.` : paused ? "Loading the rest is paused: no open tab is connected to GitHub." : "Older games fill in a batch every few hours as updates run, so trends sharpen as they arrive."}</div>
+    ${waiting ? "" : running ? stepper(full, { compact: true }) : paused ? '<button class="btn" id="load-connect" type="button">Connect GitHub</button>' : '<button class="btn" id="load-full" type="button">Load everything now</button>'}
   </div>`;
 }
 export function wirePartialBanner(root, ctx) {
@@ -352,7 +384,7 @@ export function pendingView(ctx, key) {
       <div class="eyebrow">${failed ? "Scouting failed" : "Scouting"}</div>
       <h1>${esc(name)}</h1>
       ${failed ? `<p class="bad-text">${esc(job.error || "Something went wrong.")}</p><div class="mc-actions" style="justify-content:flex-start"><button class="btn primary" id="pv-retry">Try again</button>${job.url ? `<a class="btn" href="${esc(job.url)}" target="_blank" rel="noopener">View run on GitHub</a>` : ""}</div>`
-      : `<p class="text-2">Pulling their newest 300 games from Halo. This usually takes 3–5 minutes, and you can keep browsing. This page switches to their dossier the moment it's ready. The rest of their history follows in the background.</p>
+      : `<p class="text-2">${job.state === "held" && job.queued ? "Waiting for the update that's running to finish, then pulling their newest 300 games from Halo (3–5 minutes)." : "Pulling their newest 300 games from Halo. This usually takes 3–5 minutes."} You can keep browsing: this page switches to their dossier the moment it's ready. The rest of their history follows in the background.</p>
       ${stepper(job)}
       ${gh.connected() ? "" : '<p class="note">Another tab is talking to GitHub; this one follows along.</p>'}
       <div class="skeleton-grid" aria-hidden="true">${Array.from({ length: 6 }, () => '<div class="sk"></div>').join("")}</div>
