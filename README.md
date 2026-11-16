@@ -27,7 +27,8 @@ Microsoft rotates refresh tokens, so each run writes the new one back to the
    - Repository access: only this repo
    - Permissions: **Secrets → Read and write**. Nothing else.
 3. **Repo secrets** (Settings → Secrets and variables → Actions):
-   `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`, `SECRETS_PAT`
+   `AZURE_CLIENT_SECRET`, `SECRETS_PAT`. Put `AZURE_CLIENT_ID` under the **Variables** tab instead.
+   It isn't secret, and as a secret GitHub masks it as `***` in the sign-in link.
 4. **Sign in once**: Actions → *Bootstrap Xbox sign-in* → Run with the box empty →
    open the link in the log → sign in → copy the `https://localhost/?code=…` URL
    (the page won't load; that's expected) → run the workflow again within ~5 min with that URL.

@@ -39,7 +39,7 @@ jobs:
       - name: Pull new matches
         if: env.HAS_TOKEN == 'true'
         env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID || secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           HALO_REFRESH_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN }}
           REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
