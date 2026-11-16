@@ -136,12 +136,23 @@ export function lineChart(el, opts) {
 
   for (const s of series) {
     if (s.raw) for (const p of s.raw) S("circle", { cx: X(p.x), cy: Y(Math.max(ymin, Math.min(ymax, p.y))), r: 2, fill: s.color, class: "raw" }, svg);
-    const d = s.data.map((p, i) => `${i ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
-    if (s.area) S("path", { d: `${d}L${X(s.data[s.data.length - 1].x)},${Y(ymin)}L${X(s.data[0].x)},${Y(ymin)}Z`, fill: s.color, class: "area" }, svg);
+    const gap = opts.gapBreak;
+    const d = s.data.map((p, i) => `${i && !(gap && p.x - s.data[i - 1].x > gap) ? "L" : "M"}${X(p.x).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
+    if (s.area && !gap) S("path", { d: `${d}L${X(s.data[s.data.length - 1].x)},${Y(ymin)}L${X(s.data[0].x)},${Y(ymin)}Z`, fill: s.color, class: "area" }, svg);
     S("path", { d, stroke: s.color, class: "series" }, svg);
+    if (gap) // a lone point between two breaks has no line segment: show it as a dot
+      s.data.forEach((p, i) => {
+        const before = i === 0 || p.x - s.data[i - 1].x > gap, after = i === s.data.length - 1 || s.data[i + 1].x - p.x > gap;
+        if (before && after) S("circle", { cx: X(p.x), cy: Y(p.y), r: 2.5, fill: s.color }, svg);
+      });
     const last = s.data[s.data.length - 1];
     S("circle", { cx: X(last.x), cy: Y(last.y), r: 4, fill: s.color, class: "dot" }, svg);
-    if (opts.endLabels) S("text", { x: X(last.x) + 8, y: Y(last.y) + 4, class: "end-label" }, svg).textContent = yF(last.y);
+  }
+  // End labels: nudge apart so close values don't print on top of each other.
+  if (opts.endLabels) {
+    const labels = series.map((s) => { const l = s.data[s.data.length - 1]; return { x: X(l.x) + 8, y: Y(l.y) + 4, text: yF(l.y) }; }).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < labels.length; i++) if (Math.abs(labels[i].x - labels[i - 1].x) < 40 && labels[i].y - labels[i - 1].y < 14) labels[i].y = labels[i - 1].y + 14;
+    for (const l of labels) S("text", { x: l.x, y: l.y, class: "end-label" }, svg).textContent = l.text;
   }
 
   // reference labels sit above the data, with a surface halo so they stay legible

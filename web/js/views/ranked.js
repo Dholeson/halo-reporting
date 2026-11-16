@@ -84,7 +84,7 @@ export function render(ctx) {
   const series = [...pl.accts].sort((x, y) => y.rows.length - x.rows.length).map((x) => ({ name: x.player.gamertag, color: color(x.player), data: x.rows.map((r) => ({ x: r.t, y: r.csrPost, row: r })) }));
   const asOf = (s, t) => { let best = null; for (const d of s.data) { if (d.x <= t) best = d; else break; } return best; };
   lineChart(el.querySelector("#journey"), {
-    height: 280, yFormat: fmt.int, yDomain: domain, yTicks: 5, endLabels: true, yWidth: 44,
+    height: 280, yFormat: fmt.int, yDomain: domain, yTicks: 5, endLabels: true, yWidth: 44, gapBreak: 30 * 86400, // no lines through month-long breaks
     bands: TIERS.map((t, i) => ({ ...t, color: i % 2 ? "var(--text)" : "transparent" })),
     series,
     xTicks: (mn, mx) => (innerWidth < 600 ? [0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1]).map((q) => mn + (mx - mn) * q).map((x) => ({ x, label: fmt.month(x) })),
