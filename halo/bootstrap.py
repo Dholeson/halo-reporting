@@ -30,6 +30,11 @@ async def main() -> None:
         print(oauth.generate_authorization_url(app))
         return
     code = extract_code(sys.argv[1])
+    # Codes are single-use and short-lived, so a hint about the shape is safe to log.
+    print(f"Input looked like: {'full URL' if 'code=' in sys.argv[1] else 'bare code'}; "
+          f"code starts {code[:4]!r}, length {len(code)}")
+    if not code.startswith("M."):
+        print("::warning::Microsoft codes usually start with 'M.' - the pasted value may be truncated or not the redirect URL.")
     async with ClientSession() as http:
         token = await oauth.request_oauth_token(http, code, app)
     save_refresh_token(token.refresh_token)
