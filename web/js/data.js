@@ -92,6 +92,7 @@ function decode(raw) {
     people: raw.people.map(([xuid, gt, n], i) => ({ i, xuid, gt, n })),
     rows,
     hasSkill: rows.some((r) => r.csrPost != null || r.xk != null),
+    aliases: raw.aliases || {},
     art: raw.art || {},
   };
 }

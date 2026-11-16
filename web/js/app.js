@@ -39,6 +39,7 @@ function parseHash() {
   const view = VIEWS.find((v) => v.id === path)?.id || "overview";
   const sp = new URLSearchParams(query);
   const f = { ...DEFAULT_F, ...store.get("filters", {}) };
+  if (String(f.who).startsWith("scout:")) f.who = "me"; // only a URL may point at a scouting page
   for (const k of F_KEYS) if (sp.has(k)) f[k] = sp.get(k);
   const params = {};
   for (const [k, v] of sp) if (!F_KEYS.includes(k)) params[k] = v;
@@ -57,7 +58,28 @@ function go(view, params = {}) {
   else location.hash = next;
   scrollTo({ top: 0 });
 }
-const persistable = (f) => (f.who.startsWith("scout:") ? { ...f, who: store.get("filters", {}).who || "me" } : f);
+const persistable = (f) => {
+  if (!f.who.startsWith("scout:")) return f;
+  const prev = store.get("filters", {}).who;
+  return { ...f, who: prev && !String(prev).startsWith("scout:") ? prev : "me" };
+};
+/** Which tracked player a typed key means: XUID, exact gamertag, an alias the ingest recorded, or a
+ *  modern "Name#1234" whose profile name is just "Name". */
+function resolveKey(key) {
+  const k = gh.normKey(key);
+  const x = db.aliases?.[k] || k;
+  return db.players.find((p) => p.xuid === x || p.gamertag.toLowerCase() === k) || (/#\d+$/.test(k) ? db.players.find((p) => p.gamertag.toLowerCase() === k.replace(/#\d+$/, "")) : null);
+}
+/** What the identity button should say while a scouting placeholder is showing. */
+function scoutState(key) {
+  const job = gh.jobFor([key]);
+  if (!job) return { spin: false, sub: "not tracked" };
+  if (gh.isActive(job)) return { spin: true, sub: gh.pausedJobs().some((x) => x.id === job.id) ? "paused" : "scouting…" };
+  if (job.state === "failed") return { spin: false, sub: "scout failed" };
+  if (job.live === false) return { spin: false, sub: "saved, publishing" };
+  if (reloading || (job.version && Date.parse(db.generated) < Date.parse(job.version))) return { spin: true, sub: "loading…" };
+  return { spin: false, sub: "not found" };
+}
 function setFilter(patch) {
   state.f = { ...state.f, ...patch };
   store.set("filters", persistable(state.f));
@@ -111,7 +133,8 @@ function openMenu(btn) {
       const s = saved[+b.dataset.saved];
       closeMenus();
       state.f = { ...state.f, ...s.f };
-      store.set("filters", state.f);
+      if (state.f.who.startsWith("scout:")) state.f.who = "me";
+      store.set("filters", persistable(state.f));
       location.hash = hashFor(s.view, state.f, s.params || {});
     };
     b.addEventListener("click", apply);
@@ -128,7 +151,7 @@ function openMenu(btn) {
     const name = prompt("Name this view", defaultViewName());
     if (!name) return;
     const list = store.get("views", []);
-    list.push({ name: name.slice(0, 60), view: state.view, f: { ...state.f }, params: { ...state.params, match: undefined } });
+    list.push({ name: name.slice(0, 60), view: state.view, f: persistable({ ...state.f }), params: { ...state.params, match: undefined } });
     store.set("views", list);
     closeMenus();
     toast("View saved on this device");
@@ -167,15 +190,16 @@ function renderFilterBar() {
   const isBrief = view === "briefing";
   const who = f.who === "me" ? null : db.players.find((p) => p.xuid === f.who);
   const scoutJob = scouting ? gh.jobFor([f.who.slice(6)]) : null;
-  const scoutLive = gh.isActive(scoutJob);
+  const ss = scouting ? scoutState(f.who.slice(6)) : null;
+  const scoutLive = !!ss?.spin;
   const whoName = scouting ? scoutJob?.players.find((p) => gh.normKey(p.key) === gh.normKey(f.who.slice(6)))?.label || f.who.slice(6) : who ? who.gamertag : db.me.length > 1 ? "Me" : db.me[0]?.gamertag || "Me";
-  const whoSub = scouting ? (scoutLive ? "scouting…" : scoutJob?.state === "failed" ? "scout failed" : "not found") : who ? (who.me ? "one of your accounts" : "scouted player") : db.me.length > 1 ? `${db.me.length} accounts merged` : "your account";
+  const whoSub = scouting ? ss.sub : who ? (who.me ? "one of your accounts" : "scouted player") : db.me.length > 1 ? `${db.me.length} accounts merged` : "your account";
   const meIdx = who ? db.me.indexOf(who) : -1;
   const avColor = who ? (meIdx >= 0 ? accountColor(meIdx) : cssVar("--tie")) : null;
   const nonDefault = F_KEYS.some((k) => k !== "who" && f[k] !== DEFAULT_F[k]);
 
   $("#filterbar").innerHTML = `<div class="filters">
-    <button class="who" id="who-btn" type="button" title="Switch player or search" aria-haspopup="dialog">
+    <button class="who" id="who-btn" type="button" title="Switch player or search" aria-haspopup="dialog" data-sub="${esc(whoSub)}">
       <span class="avatar" style="${avColor ? `--c1:${avColor};--c2:${avColor}` : "--c1:var(--s1);--c2:var(--accent)"}">${scouting && scoutLive ? '<span class="spin" style="width:14px;height:14px;border-width:2px"></span>' : scouting ? icon("alert") : esc(initials(whoName))}</span>
       <span style="text-align:left"><span class="who-name">${esc(whoName)}</span><br><span class="who-sub">${esc(whoSub)}</span></span>
       ${icon("search", "chev")}
@@ -228,8 +252,7 @@ function render() {
   let { view, f, params } = state;
   // "scout:<gamertag or xuid>" = a player whose first games are still being fetched
   if (f.who.startsWith("scout:")) {
-    const key = gh.normKey(f.who.slice(6));
-    const hit = db.players.find((p) => p.xuid === key || p.gamertag.toLowerCase() === key);
+    const hit = resolveKey(f.who.slice(6));
     if (hit) {
       setFilterSilently({ who: hit.xuid });
       f = state.f; // the placeholder is resolved; render the real dossier
@@ -299,8 +322,8 @@ async function reload() {
     const el = $("#fresh");
     el.innerHTML = `<span>Couldn't load the new data (${esc(e.message)})</span><button class="btn primary" type="button" id="fresh-go">Try again</button>`;
     el.hidden = false;
-    $("#fresh-go").onclick = () => reload().then(render);
-    return 0;
+    $("#fresh-go").onclick = () => reload();
+    return null;
   } finally {
     reloading = false;
     render();
@@ -342,8 +365,10 @@ async function boot() {
     refreshChrome();
     if (!lastCtx) return;
     if (state.f.who.startsWith("scout:")) {
-      // Only the scouting card changes; the filter bar, menus and selects stay put.
-      renderFilterBar();
+      // Only the scouting card and the identity button change; menus and selects stay put.
+      const ss = scoutState(state.f.who.slice(6));
+      const btn = $("#who-btn");
+      if (btn && (btn.dataset.sub !== ss.sub)) renderFilterBar();
       pendingView(lastCtx, state.f.who.slice(6));
       return;
     }
@@ -354,13 +379,18 @@ async function boot() {
     }
   });
   gh.onNewData(async (job) => {
+    if (job.live === false) {
+      toast("Saved. The site hasn't published it yet; it'll appear with the next update.");
+      render();
+      return;
+    }
     const added = await reload();
+    if (added === null) return; // the "couldn't load" notice is up; don't claim anything about the data
     if (job.kind === "scout") {
-      const keys = new Set(job.players.map((p) => gh.normKey(p.key)));
-      const found = db.players.filter((p) => keys.has(p.xuid) || keys.has(p.gamertag.toLowerCase()));
-      const watching = state.f.who.startsWith("scout:") ? gh.normKey(state.f.who.slice(6)) : null;
+      const found = [...new Set(job.players.map((p) => resolveKey(p.key)).filter(Boolean))];
+      const watching = state.f.who.startsWith("scout:") ? resolveKey(state.f.who.slice(6)) : null;
       // Switch only if you're on THIS scout's page, not someone else's.
-      const target = found.find((p) => watching && (p.xuid === watching || p.gamertag.toLowerCase() === watching));
+      const target = watching && found.includes(watching) ? watching : null;
       if (target) setFilter({ who: target.xuid });
       const empty = found.filter((p) => !p.stored);
       if (!found.length) toast("Scouting finished, but that player wasn't found (typo, or private history?)");

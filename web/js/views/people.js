@@ -132,6 +132,7 @@ export function openActivity(ctx) {
       <div><b>Sync now</b><p class="note">Pulls new games for everyone you track. New games also arrive automatically: every 5 min while you're playing, every 15 min otherwise.</p></div>
       <button class="btn primary" id="sync-now">${icon("reset")}Sync now</button>
     </div>
+    ${gh.pausedJobs().length ? `<div class="callout">${icon("clock")} <b>${gh.pausedJobs().length} update${gh.pausedJobs().length === 1 ? " is" : "s are"} paused.</b> They were started in another tab or session; connect here to keep following them.</div>` : ""}
     ${list.length ? `<div class="jobs">${list.map((j) => `
       <div class="job ${esc(j.state)}">
         <div class="job-top"><b>${esc(label(j))}</b><span class="note">${esc(ago(Date.parse(j.createdAt) / 1000))}</span></div>
@@ -301,6 +302,13 @@ export function pendingView(ctx, key) {
   if (!job) {
     ctx.el.innerHTML = `<div class="card empty">${icon("people")}<h3>${esc(name)} isn't tracked yet</h3><p>Scout them to pull their match history.</p><button class="btn primary" id="pv-scout">Scout ${esc(name)}</button></div>`;
     ctx.el.querySelector("#pv-scout").addEventListener("click", () => scout(ctx, { key, name }));
+    return;
+  }
+  if (job.state === "done" && job.live === false) {
+    ctx.el.innerHTML = `<section class="card pending-card"><div class="eyebrow">Scouting</div><h1>${esc(name)}</h1>
+      <p class="text-2">Their games were saved, but the site hasn't published them yet. They'll appear with the next update, usually within a few minutes.</p>
+      <div class="mc-actions" style="justify-content:flex-start"><button class="btn primary" id="pv-reload">Check again</button></div></section>`;
+    ctx.el.querySelector("#pv-reload").addEventListener("click", () => location.reload());
     return;
   }
   if (job.state === "done" && (ctx.reloading() || (job.version && Date.parse(ctx.db.generated) < Date.parse(job.version)))) {

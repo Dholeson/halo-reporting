@@ -10,7 +10,7 @@
 
 const API = "https://api.github.com";
 const WORKFLOW = "ingest.yml";
-const ACTIVE = new Set(["held", "dispatched", "queued", "in_progress", "publishing"]);
+const ACTIVE = new Set(["held", "dispatching", "dispatched", "queued", "in_progress", "publishing"]);
 const TAB = Math.random().toString(36).slice(2);
 const listeners = new Set();
 const newDataHandlers = new Set();
@@ -31,6 +31,8 @@ export function repo() {
   return null;
 }
 const ns = (k) => { const r = repo(); return `debrief:${r ? `${r.owner}/${r.name}` : "_"}:${k}`; };
+// The first version stored the token origin-wide under a fixed key. Never leave it behind.
+safe(() => { localStorage.removeItem("debrief.ghToken"); localStorage.removeItem("debrief.jobs"); });
 const lsGet = (k, d) => safe(() => { const v = localStorage.getItem(ns(k)); return v === null ? d : JSON.parse(v); }, d);
 const lsSet = (k, v) => safe(() => (v === null ? localStorage.removeItem(ns(k)) : localStorage.setItem(ns(k), JSON.stringify(v))));
 const ssGet = (k, d) => safe(() => { const v = sessionStorage.getItem(ns(k)); return v === null ? d : JSON.parse(v); }, d);
@@ -41,7 +43,10 @@ export const remembered = () => !!lsGet("token", null);
 export const connected = () => !!(token() && repo());
 export const jobs = () => lsGet("jobs", []);
 const saveJobs = (list) => { lsSet("jobs", list.slice(-30)); emit(); };
-export const activeJobs = () => jobs().filter((j) => ACTIVE.has(j.state));
+const liveJobs = () => jobs().filter((j) => ACTIVE.has(j.state));
+/** Jobs being driven to completion. Without a token in this tab nothing can drive them: see pausedJobs(). */
+export const activeJobs = () => (connected() ? liveJobs() : []);
+export const pausedJobs = () => (connected() ? [] : liveJobs());
 export const isActive = (j) => !!j && ACTIVE.has(j.state);
 export const onChange = (fn) => (listeners.add(fn), () => listeners.delete(fn));
 export const onNewData = (fn) => (newDataHandlers.add(fn), () => newDataHandlers.delete(fn));
@@ -87,7 +92,12 @@ export async function connect(tok, { repoOverride = null, remember = false } = {
   lsSet("token", remember ? tok : null);
   emit();
 }
-export function disconnect() { ssSet("token", null); lsSet("token", null); emit(); }
+export function disconnect() {
+  ssSet("token", null);
+  lsSet("token", null);
+  safe(() => localStorage.removeItem("debrief.ghToken"));
+  emit();
+}
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 
@@ -110,18 +120,24 @@ export async function request(kind, players = []) {
 function patch(ids, changes) {
   const set = new Set([].concat(ids));
   const list = jobs();
-  let hit = false;
-  for (const j of list) if (set.has(j.id)) { Object.assign(j, changes, { updatedAt: new Date().toISOString() }); hit = true; }
-  if (hit) saveJobs(list);
+  let changed = false;
+  for (const j of list) {
+    if (!set.has(j.id)) continue;
+    if (Object.entries(changes).some(([k, v]) => JSON.stringify(j[k]) !== JSON.stringify(v))) {
+      Object.assign(j, changes, { updatedAt: new Date().toISOString() });
+      changed = true;
+    }
+  }
+  if (changed) saveJobs(list);
 }
 
 // Workflow steps → the few stages people care about. Post/cleanup steps count as the last stage.
 export const STAGE_LABELS = ["Waiting for a runner", "Setting up", "Pulling games from Halo", "Saving", "Building and publishing", "Going live"];
 function stageOf(job, step) {
-  const n = `${job} ${step}`.toLowerCase();
+  const n = String(step).toLowerCase();
+  if (job === "gate") return 1;
   if (job === "publish") return 4;
-  if (/post |complete job/.test(n)) return 3;
-  if (/commit new data/.test(n)) return 3;
+  if (/^post |complete job|commit new data/.test(n)) return 3;
   if (/pull new matches|rotate refresh/.test(n)) return 2;
   return 1;
 }
@@ -137,18 +153,24 @@ function lead() {
 const seenStates = new Map(jobs().map((j) => [j.id, j.state]));
 addEventListener("storage", (e) => {
   if (!e.key || !e.key.endsWith(":jobs")) return;
-  // Another tab finished a job: load the new data here too.
+  // Another tab finished a job: load the new data here too, once per batch.
+  const finished = new Map();
   for (const j of jobs()) {
-    if (j.state === "done" && seenStates.get(j.id) !== "done") runHandlers(j);
+    if (j.state === "done" && seenStates.get(j.id) !== "done") finished.set(j.rid || j.id, [...(finished.get(j.rid || j.id) || []), j]);
     seenStates.set(j.id, j.state);
   }
+  for (const group of finished.values()) runHandlers(group);
   emit();
 });
 
-async function runHandlers(job, version) {
-  seenStates.set(job.id, "done");
+/** Tell the app a batch finished (once per batch, with every player in it). */
+async function runHandlers(group, extra = {}) {
+  for (const j of group) seenStates.set(j.id, "done");
+  const players = [];
+  for (const p of group.flatMap((j) => j.players)) if (!players.some((q) => normKey(q.key) === normKey(p.key))) players.push(p);
+  const merged = { ...group[0], ...extra, ids: group.map((j) => j.id), players };
   for (const fn of newDataHandlers) {
-    try { await fn(job, version); } catch (e) { console.warn("reload after update failed", e); }
+    try { await fn(merged); } catch (e) { console.warn("reload after update failed", e); }
   }
 }
 
@@ -156,12 +178,11 @@ async function releaseHeld() {
   const held = activeJobs().filter((j) => j.state === "held");
   if (!held.length) return;
   const runs = await api(`/actions/workflows/${WORKFLOW}/runs?per_page=20`);
+  patch(held.map((j) => j.id), { errors: 0 }); // GitHub answered: reset the transient-error count
   const busyRun = runs.workflow_runs.some((r) => r.status !== "completed");
-  const inFlight = jobs().some((j) => j.state === "dispatched"); // dispatched, run not visible yet
+  const inFlight = jobs().some((j) => j.state === "dispatched" || j.state === "dispatching");
   if (busyRun || inFlight) {
-    const stage = busyRun ? "Queued behind another update" : "Starting…";
-    const stale = held.filter((j) => j.stage !== stage).map((j) => j.id);
-    if (stale.length) patch(stale, { stage });
+    patch(held.map((j) => j.id), { stage: busyRun ? "Queued behind another update" : "Starting…" });
     return;
   }
   // One dispatch per tick. Held scouts (or full-history requests) ride in a single run.
@@ -174,8 +195,18 @@ async function releaseHeld() {
   if (first.kind === "scout") inputs.phase = "scout";
   if (first.kind === "full") inputs.phase = "full";
   if (first.kind === "sync") { inputs.max_new_matches = "200"; inputs.skill_max = "600"; }
-  await api(`/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: { ref: "main", inputs } });
-  patch(batch.map((j) => j.id), { state: "dispatched", rid: id, dispatchedAt: new Date().toISOString(), stage: "Waiting for a runner", stageIndex: 0, errors: 0 });
+  // Claim first: if the POST's response is lost, the next tick finds the run by [rid] instead of
+  // dispatching a duplicate.
+  const ids = batch.map((j) => j.id);
+  patch(ids, { state: "dispatching", rid: id, dispatchedAt: new Date().toISOString(), stage: "Waiting for a runner", stageIndex: 0 });
+  try {
+    await api(`/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: { ref: "main", inputs } });
+    patch(ids, { state: "dispatched", errors: 0 });
+  } catch (e) {
+    // A definite "no" means nothing was created: back in the queue. Anything else may have landed.
+    if ([401, 403, 404, 422].includes(e.status)) patch(ids, { state: "held", rid: null });
+    throw e;
+  }
 }
 
 async function follow(group) {
@@ -185,7 +216,10 @@ async function follow(group) {
     const runs = await api(`/actions/workflows/${WORKFLOW}/runs?event=workflow_dispatch&per_page=20`);
     const run = runs.workflow_runs.find((r) => (r.display_title || r.name || "").includes(`[${j.rid}]`));
     if (!run) {
-      if (Date.now() - Date.parse(j.dispatchedAt) > 3 * 60 * 1000) patch(ids, { state: "failed", error: "GitHub accepted the request but the run never appeared. Check the Actions tab." });
+      const age = Date.now() - Date.parse(j.dispatchedAt);
+      // A claimed dispatch whose POST never landed: put it back in the queue after a grace period.
+      if (j.state === "dispatching" && age > 90 * 1000) patch(ids, { state: "held", rid: null, stage: "Retrying…" });
+      else if (age > 3 * 60 * 1000) patch(ids, { state: "failed", error: "GitHub accepted the request but the run never appeared. Check the Actions tab." });
       return;
     }
     runId = run.id;
@@ -193,13 +227,13 @@ async function follow(group) {
   }
   const cur = jobs().find((x) => x.id === j.id) || j;
   if (cur.state === "publishing") {
-    // The run is done; wait until Pages actually serves a build from after it started.
+    // The run is done; wait until Pages serves a build made after this run's data landed.
     const v = await fetch(`data/version.json?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    const live = v && Date.parse(v.generated) >= Date.parse(cur.runStartedAt || cur.createdAt);
+    const live = !!v && Date.parse(v.generated) >= Date.parse(cur.liveAfter || cur.runStartedAt || cur.createdAt);
     const giveUp = Date.now() - Date.parse(cur.completedAt) > 10 * 60 * 1000;
     if (live || giveUp) {
-      await runHandlers(cur, v);  // load the new data BEFORE the job counts as done
-      patch(ids, { state: "done", stage: live ? "Done" : "Done (the site may take a minute to catch up)", stageIndex: STAGE_LABELS.length, version: v?.generated, finishedAt: new Date().toISOString() });
+      await runHandlers(group, { live, version: live ? v.generated : null }); // reload BEFORE "done"
+      patch(ids, { state: "done", live, stage: live ? "Done" : "Saved; the site hasn't updated yet", stageIndex: STAGE_LABELS.length, version: live ? v.generated : null, finishedAt: new Date().toISOString() });
     }
     return;
   }
@@ -207,29 +241,44 @@ async function follow(group) {
   let steps = null;
   try { steps = await api(`/actions/runs/${runId}/jobs`); } catch { /* progress detail is optional */ }
   if (run.status === "completed") {
-    const ingestJob = steps?.jobs?.find((x) => x.name === "ingest");
-    // A publish superseded by a newer deploy still means the data landed; that deploy shows it.
-    if (run.conclusion === "success" || ingestJob?.conclusion === "success") {
-      patch(ids, { state: "publishing", stage: "Going live", stageIndex: STAGE_LABELS.length - 1, completedAt: new Date().toISOString() });
+    if (!steps) return; // decide only with the job details in hand; try again next tick
+    const ingestJob = steps.jobs.find((x) => x.name === "ingest");
+    const publishJob = steps.jobs.find((x) => x.name === "publish");
+    const goLive = (after) => patch(ids, { state: "publishing", stage: "Going live", stageIndex: STAGE_LABELS.length - 1, completedAt: new Date().toISOString(), liveAfter: after });
+    if (ingestJob?.conclusion !== "success") {
+      patch(ids, { state: "failed", error: run.conclusion === "cancelled" ? "The run was cancelled." : "Pulling games failed. Open the run on GitHub for details." });
+    } else if (publishJob?.conclusion === "success") {
+      goLive(publishJob.started_at || cur.runStartedAt);
+    } else if (publishJob?.conclusion === "cancelled" || publishJob?.conclusion === "skipped") {
+      // Superseded by a newer deploy (or nothing new): any build after the data landed shows it.
+      goLive(ingestJob.completed_at || cur.runStartedAt);
     } else {
-      patch(ids, { state: "failed", error: run.conclusion === "cancelled" ? "The run was cancelled." : "The run failed. Open it on GitHub for details." });
+      patch(ids, { state: "failed", error: "Games were saved, but publishing the site failed. The next update will publish them." });
     }
     return;
   }
   let stageIndex = cur.stageIndex ?? 0, detail = cur.detail || "";
   const active = steps?.jobs?.filter((x) => x.status === "in_progress") || [];
   for (const job of active) {
+    if (job.name === "gate") continue;
     const s = job.steps?.find((x) => x.status === "in_progress") || [...(job.steps || [])].reverse().find((x) => x.status === "completed");
     if (s) { stageIndex = Math.max(stageIndex, stageOf(job.name, s.name)); detail = s.name; }
   }
   patch(ids, { state: run.status === "queued" ? "queued" : "in_progress", stage: STAGE_LABELS[stageIndex], stageIndex, detail, errors: 0 });
 }
 
+/** Hold leadership for the whole tick: Web Locks are atomic across tabs; the lease is the fallback. */
+function withLeadership(fn) {
+  const r = repo();
+  if (navigator.locks?.request) return navigator.locks.request(`debrief:${r?.owner}/${r?.name}:tick`, { ifAvailable: true }, (lock) => (lock ? fn() : null));
+  return lead() ? fn() : null;
+}
+
 async function tick() {
   if (busy) return;
   busy = true;
   try {
-    if (activeJobs().length && connected() && lead()) {
+    if (activeJobs().length) await withLeadership(async () => {
       try {
         await releaseHeld();
       } catch (e) {
@@ -237,6 +286,8 @@ async function tick() {
       }
       const groups = new Map();
       for (const j of activeJobs()) if (j.state !== "held" && j.rid) groups.set(j.rid, [...(groups.get(j.rid) || []), j]);
+      // anything in flight without a request id can't be followed: let it go rather than spin forever
+      for (const j of activeJobs()) if (j.state !== "held" && !j.rid) patch(j.id, { state: "failed", error: "Lost track of this update." });
       for (const group of groups.values()) {
         try {
           await follow(group);
@@ -244,18 +295,21 @@ async function tick() {
           handleError(group, e);
         }
       }
-    }
+    });
   } finally {
     busy = false;
   }
   clearTimeout(timer);
-  if (activeJobs().length) timer = setTimeout(tick, document.visibilityState === "visible" ? 4000 : 15000);
+  if (activeJobs().length) timer = setTimeout(tick, document.visibilityState === "visible" ? 4000 : 10000);
 }
 
 function handleError(group, e) {
   if (!group.length) return;
   const ids = group.map((j) => j.id);
-  if (e.status === 401) return patch(ids, { state: "failed", error: "Your GitHub token expired or was revoked. Reconnect from the Updates panel." });
+  if (e.status === 401) {
+    disconnect(); // this tab's token is dead: the jobs pause until a valid token picks them up
+    return;
+  }
   if (e.status === 404 && group[0].runId) return patch(ids, { state: "failed", error: "That run no longer exists on GitHub." });
   // Network drops, 5xx and rate limits are usually momentary: keep going, give up only if it persists.
   const errors = (group[0].errors || 0) + 1;

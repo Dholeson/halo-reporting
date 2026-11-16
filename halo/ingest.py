@@ -390,6 +390,9 @@ async def main() -> None:
         # players.txt is the source of truth (gamertags or XUIDs); players.json caches xuid -> gamertag.
         known = {bare_xuid(k): v for k, v in load_json(DATA / "players.json").items()}
         by_gt = {v.lower(): k for k, v in known.items()}
+        # Typed entries that differ from Halo's gamertag (e.g. "Name#1234": the profile returns "Name").
+        saved_aliases = load_json(DATA / "aliases.json")
+        by_gt.update({k: v for k, v in saved_aliases.items() if v in known})
         entries = tracked_entries()
         if os.environ.get("TRACK_SELF") == "1":
             entries.append((me.gamertag, False))
@@ -428,6 +431,9 @@ async def main() -> None:
             if is_me:
                 me_xuids.add(xuid)
         dump_json(DATA / "players.json", players)
+        typed = {e.lower(): x for e, x in aliases.items() if not entry_xuid(e) and players.get(x, "").lower() != e.lower()}
+        if typed or saved_aliases:
+            dump_json(DATA / "aliases.json", {k: v for k, v in typed.items() if v in players})
         if not_found:  # a typo'd scout shouldn't warn on every run forever
             path = Path("players.txt")
             keep = [l for l in path.read_text().splitlines() if TAG_RE.sub("", l).strip() not in not_found]
@@ -502,7 +508,9 @@ async def main() -> None:
                 dump_json(DATA / "assets.json", assets)
 
         dump_json(DATA / "assets.json", assets)
-        update_markers(fetched, me_xuids or set(players), full_run=not only and not only_me)
+        # Only a run that actually topped up counts as the "full refresh" the gate waits 6 hours for;
+        # a Sync (everyone, but no top-up) must not postpone it.
+        update_markers(fetched, me_xuids or set(players), full_run=os.environ.get("TOPUP") == "1" and not only)
         print(f"Stored {stored} new matches.")
 
         # Enrichment is best-effort: never let it fail the run.
