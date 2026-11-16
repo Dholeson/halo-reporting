@@ -47,6 +47,12 @@ def known_match_ids() -> set[str]:
     return ids
 
 
+def bare_xuid(x: str | int) -> str:
+    """'xuid(123)' / '123' / 123 -> '123'. One format on disk, everywhere."""
+    s = str(x).strip()
+    return s[5:-1] if s.startswith("xuid(") else s
+
+
 def tracked_gamertags() -> list[str]:
     path = Path("players.txt")
     if not path.exists():
@@ -108,19 +114,19 @@ async def main() -> None:
 
         client = HaloInfiniteClient(http, me.spartan_token, me.clearance_token, requests_per_second=3)
 
-        players = load_json(DATA / "players.json")
-        players[me.xuid] = me.gamertag
+        players = {bare_xuid(k): v for k, v in load_json(DATA / "players.json").items()}
+        players[bare_xuid(me.xuid)] = me.gamertag
         for gt in tracked_gamertags():
             if gt.lower() in (g.lower() for g in players.values()):
                 continue
             user = await (await client.profile.get_user_by_gamertag(gt)).json()
-            players[str(user["xuid"])] = user["gamertag"]
+            players[bare_xuid(user["xuid"])] = user["gamertag"]
 
         seen = known_match_ids()
         todo: list[str] = []
         for xuid, gt in players.items():
             ids = await new_match_ids(client, xuid, seen | set(todo), cap, backfill, match_type)
-            print(f"{gt}: {len(ids)} new matches")
+            print(f"{gt} (xuid {xuid}): {len(ids)} new {match_type} matches")
             todo += ids
 
         assets = load_json(DATA / "assets.json")

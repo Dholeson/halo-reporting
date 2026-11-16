@@ -28,7 +28,7 @@ def iso_seconds(d: str | None) -> float:
 def rows():
     players = json.loads((DATA / "players.json").read_text()) if (DATA / "players.json").exists() else {}
     assets = json.loads((DATA / "assets.json").read_text()) if (DATA / "assets.json").exists() else {}
-    tracked = {f"xuid({x})": gt for x, gt in players.items()}
+    tracked = {f"xuid({x[5:-1] if x.startswith('xuid(') else x})": gt for x, gt in players.items()}
 
     def name(a):
         return assets.get(f"{a['AssetId']}:{a['VersionId']}") if a else None
