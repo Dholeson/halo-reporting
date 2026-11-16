@@ -1,0 +1,479 @@
+{
+  "maps": {
+    "Absolution": {
+      "hero": "art/maps/absolution.jpg",
+      "thumb": "art/maps/absolution-thumb.jpg"
+    },
+    "Aquarius": {
+      "hero": "art/maps/aquarius.jpg",
+      "thumb": "art/maps/aquarius-thumb.jpg"
+    },
+    "Argyle": {
+      "hero": "art/maps/argyle.jpg",
+      "thumb": "art/maps/argyle-thumb.jpg"
+    },
+    "Ascension": {
+      "hero": "art/maps/ascension.jpg",
+      "thumb": "art/maps/ascension-thumb.jpg"
+    },
+    "Banished Narrows": {
+      "hero": "art/maps/banished-narrows.jpg",
+      "thumb": "art/maps/banished-narrows-thumb.jpg"
+    },
+    "Bazaar": {
+      "hero": "art/maps/bazaar.jpg",
+      "thumb": "art/maps/bazaar-thumb.jpg"
+    },
+    "Beaver Canyon": {
+      "hero": "art/maps/beaver-canyon.jpg",
+      "thumb": "art/maps/beaver-canyon-thumb.jpg"
+    },
+    "Behemoth": {
+      "hero": "art/maps/behemoth.jpg",
+      "thumb": "art/maps/behemoth-thumb.jpg"
+    },
+    "Boulevard": {
+      "hero": "art/maps/boulevard.jpg",
+      "thumb": "art/maps/boulevard-thumb.jpg"
+    },
+    "Breaker": null,
+    "Breaker Heavies": {
+      "hero": "art/maps/breaker-heavies.jpg",
+      "thumb": "art/maps/breaker-heavies-thumb.jpg"
+    },
+    "Canopy": {
+      "hero": "art/maps/canopy.jpg",
+      "thumb": "art/maps/canopy-thumb.jpg"
+    },
+    "Catalyst": {
+      "hero": "art/maps/catalyst.jpg",
+      "thumb": "art/maps/catalyst-thumb.jpg"
+    },
+    "Chasm": {
+      "hero": "art/maps/chasm.jpg",
+      "thumb": "art/maps/chasm-thumb.jpg"
+    },
+    "Cliffhanger": {
+      "hero": "art/maps/cliffhanger.jpg",
+      "thumb": "art/maps/cliffhanger-thumb.jpg"
+    },
+    "Cliffside": {
+      "hero": "art/maps/cliffside.jpg",
+      "thumb": "art/maps/cliffside-thumb.jpg"
+    },
+    "Cold Storage": {
+      "hero": "art/maps/cold-storage.jpg",
+      "thumb": "art/maps/cold-storage-thumb.jpg"
+    },
+    "Conjurer": {
+      "hero": "art/maps/conjurer.jpg",
+      "thumb": "art/maps/conjurer-thumb.jpg"
+    },
+    "Corrosion": {
+      "hero": "art/maps/corrosion.jpg",
+      "thumb": "art/maps/corrosion-thumb.jpg"
+    },
+    "Critical Dewpoint": {
+      "hero": "art/maps/critical-dewpoint.jpg",
+      "thumb": "art/maps/critical-dewpoint-thumb.jpg"
+    },
+    "Curfew": {
+      "hero": "art/maps/curfew.jpg",
+      "thumb": "art/maps/curfew-thumb.jpg"
+    },
+    "Deadlock": {
+      "hero": "art/maps/deadlock.jpg",
+      "thumb": "art/maps/deadlock-thumb.jpg"
+    },
+    "Detachment": {
+      "hero": "art/maps/detachment.jpg",
+      "thumb": "art/maps/detachment-thumb.jpg"
+    },
+    "Disciple": {
+      "hero": "art/maps/disciple.jpg",
+      "thumb": "art/maps/disciple-thumb.jpg"
+    },
+    "Domicile": {
+      "hero": "art/maps/domicile.jpg",
+      "thumb": "art/maps/domicile-thumb.jpg"
+    },
+    "Dredge": {
+      "hero": "art/maps/dredge.jpg",
+      "thumb": "art/maps/dredge-thumb.jpg"
+    },
+    "Duck Hunt": {
+      "hero": "art/maps/duck-hunt.jpg",
+      "thumb": "art/maps/duck-hunt-thumb.jpg"
+    },
+    "Dynasty": {
+      "hero": "art/maps/dynasty.jpg",
+      "thumb": "art/maps/dynasty-thumb.jpg"
+    },
+    "Ecotone": {
+      "hero": "art/maps/ecotone.jpg",
+      "thumb": "art/maps/ecotone-thumb.jpg"
+    },
+    "Elevation": {
+      "hero": "art/maps/elevation.jpg",
+      "thumb": "art/maps/elevation-thumb.jpg"
+    },
+    "Empyrean": {
+      "hero": "art/maps/empyrean.jpg",
+      "thumb": "art/maps/empyrean-thumb.jpg"
+    },
+    "Exiled": {
+      "hero": "art/maps/exiled.jpg",
+      "thumb": "art/maps/exiled-thumb.jpg"
+    },
+    "First Light": {
+      "hero": "art/maps/first-light.jpg",
+      "thumb": "art/maps/first-light-thumb.jpg"
+    },
+    "Forbidden": {
+      "hero": "art/maps/forbidden.jpg",
+      "thumb": "art/maps/forbidden-thumb.jpg"
+    },
+    "Forest": {
+      "hero": "art/maps/forest.jpg",
+      "thumb": "art/maps/forest-thumb.jpg"
+    },
+    "Fortress": {
+      "hero": "art/maps/fortress.jpg",
+      "thumb": "art/maps/fortress-thumb.jpg"
+    },
+    "Fragmentation": {
+      "hero": "art/maps/fragmentation.jpg",
+      "thumb": "art/maps/fragmentation-thumb.jpg"
+    },
+    "Ghost Town": {
+      "hero": "art/maps/ghost-town.jpg",
+      "thumb": "art/maps/ghost-town-thumb.jpg"
+    },
+    "Goliath": {
+      "hero": "art/maps/goliath.jpg",
+      "thumb": "art/maps/goliath-thumb.jpg"
+    },
+    "Goose Halo": {
+      "hero": "art/maps/goose-halo.jpg",
+      "thumb": "art/maps/goose-halo-thumb.jpg"
+    },
+    "Gothic": {
+      "hero": "art/maps/gothic.jpg",
+      "thumb": "art/maps/gothic-thumb.jpg"
+    },
+    "Guardian": {
+      "hero": "art/maps/guardian.jpg",
+      "thumb": "art/maps/guardian-thumb.jpg"
+    },
+    "Gyre": {
+      "hero": "art/maps/gyre.jpg",
+      "thumb": "art/maps/gyre-thumb.jpg"
+    },
+    "Harvest": {
+      "hero": "art/maps/harvest.jpg",
+      "thumb": "art/maps/harvest-thumb.jpg"
+    },
+    "Harvesters": {
+      "hero": "art/maps/harvesters.jpg",
+      "thumb": "art/maps/harvesters-thumb.jpg"
+    },
+    "Hex A Gone": {
+      "hero": "art/maps/hex-a-gone.jpg",
+      "thumb": "art/maps/hex-a-gone-thumb.jpg"
+    },
+    "High Ground": {
+      "hero": "art/maps/high-ground.jpg",
+      "thumb": "art/maps/high-ground-thumb.jpg"
+    },
+    "Highpower": {
+      "hero": "art/maps/highpower.jpg",
+      "thumb": "art/maps/highpower-thumb.jpg"
+    },
+    "Highpower Heavies": {
+      "hero": "art/maps/highpower-heavies.jpg",
+      "thumb": "art/maps/highpower-heavies-thumb.jpg"
+    },
+    "Houseki": {
+      "hero": "art/maps/houseki.jpg",
+      "thumb": "art/maps/houseki-thumb.jpg"
+    },
+    "Illusion": {
+      "hero": "art/maps/illusion.jpg",
+      "thumb": "art/maps/illusion-thumb.jpg"
+    },
+    "Interference": {
+      "hero": "art/maps/interference.jpg",
+      "thumb": "art/maps/interference-thumb.jpg"
+    },
+    "Isolation": {
+      "hero": "art/maps/isolation.jpg",
+      "thumb": "art/maps/isolation-thumb.jpg"
+    },
+    "Jarok Bridge": {
+      "hero": "art/maps/jarok-bridge.jpg",
+      "thumb": "art/maps/jarok-bridge-thumb.jpg"
+    },
+    "Kaiketsu": {
+      "hero": "art/maps/kaiketsu.jpg",
+      "thumb": "art/maps/kaiketsu-thumb.jpg"
+    },
+    "Kiken'na": {
+      "hero": "art/maps/kiken-na.jpg",
+      "thumb": "art/maps/kiken-na-thumb.jpg"
+    },
+    "Kusini Bay": {
+      "hero": "art/maps/kusini-bay.jpg",
+      "thumb": "art/maps/kusini-bay-thumb.jpg"
+    },
+    "Lattice": {
+      "hero": "art/maps/lattice.jpg",
+      "thumb": "art/maps/lattice-thumb.jpg"
+    },
+    "Launch Site": {
+      "hero": "art/maps/launch-site.jpg",
+      "thumb": "art/maps/launch-site-thumb.jpg"
+    },
+    "Live Fire": {
+      "hero": "art/maps/live-fire.jpg",
+      "thumb": "art/maps/live-fire-thumb.jpg"
+    },
+    "Longshore": {
+      "hero": "art/maps/longshore.jpg",
+      "thumb": "art/maps/longshore-thumb.jpg"
+    },
+    "Maze Craze": {
+      "hero": "art/maps/maze-craze.jpg",
+      "thumb": "art/maps/maze-craze-thumb.jpg"
+    },
+    "Merchant's Square": {
+      "hero": "art/maps/merchant-s-square.jpg",
+      "thumb": "art/maps/merchant-s-square-thumb.jpg"
+    },
+    "Nadair": {
+      "hero": "art/maps/nadair.jpg",
+      "thumb": "art/maps/nadair-thumb.jpg"
+    },
+    "Nemesis": {
+      "hero": "art/maps/nemesis.jpg",
+      "thumb": "art/maps/nemesis-thumb.jpg"
+    },
+    "Oasis": {
+      "hero": "art/maps/oasis.jpg",
+      "thumb": "art/maps/oasis-thumb.jpg"
+    },
+    "Oppressor": {
+      "hero": "art/maps/oppressor.jpg",
+      "thumb": "art/maps/oppressor-thumb.jpg"
+    },
+    "Opulence": {
+      "hero": "art/maps/opulence.jpg",
+      "thumb": "art/maps/opulence-thumb.jpg"
+    },
+    "Origin": {
+      "hero": "art/maps/origin.jpg",
+      "thumb": "art/maps/origin-thumb.jpg"
+    },
+    "Outlook": {
+      "hero": "art/maps/outlook.jpg",
+      "thumb": "art/maps/outlook-thumb.jpg"
+    },
+    "Perdition": {
+      "hero": "art/maps/perdition.jpg",
+      "thumb": "art/maps/perdition-thumb.jpg"
+    },
+    "Perilous": {
+      "hero": "art/maps/perilous.jpg",
+      "thumb": "art/maps/perilous-thumb.jpg"
+    },
+    "Pharaoh": {
+      "hero": "art/maps/pharaoh.jpg",
+      "thumb": "art/maps/pharaoh-thumb.jpg"
+    },
+    "Plunderland": {
+      "hero": "art/maps/plunderland.jpg",
+      "thumb": "art/maps/plunderland-thumb.jpg"
+    },
+    "Prism": {
+      "hero": "art/maps/prism.jpg",
+      "thumb": "art/maps/prism-thumb.jpg"
+    },
+    "Promenade": {
+      "hero": "art/maps/promenade.jpg",
+      "thumb": "art/maps/promenade-thumb.jpg"
+    },
+    "Rat's Nest": {
+      "hero": "art/maps/rat-s-nest.jpg",
+      "thumb": "art/maps/rat-s-nest-thumb.jpg"
+    },
+    "Recharge": {
+      "hero": "art/maps/recharge.jpg",
+      "thumb": "art/maps/recharge-thumb.jpg"
+    },
+    "Refuge": {
+      "hero": "art/maps/refuge.jpg",
+      "thumb": "art/maps/refuge-thumb.jpg"
+    },
+    "Rendezvous": {
+      "hero": "art/maps/rendezvous.jpg",
+      "thumb": "art/maps/rendezvous-thumb.jpg"
+    },
+    "Ronin": {
+      "hero": "art/maps/ronin.jpg",
+      "thumb": "art/maps/ronin-thumb.jpg"
+    },
+    "Salvation": {
+      "hero": "art/maps/salvation.jpg",
+      "thumb": "art/maps/salvation-thumb.jpg"
+    },
+    "Scarlett's Landing": {
+      "hero": "art/maps/scarlett-s-landing.jpg",
+      "thumb": "art/maps/scarlett-s-landing-thumb.jpg"
+    },
+    "Serenity": {
+      "hero": "art/maps/serenity.jpg",
+      "thumb": "art/maps/serenity-thumb.jpg"
+    },
+    "Shogun": {
+      "hero": "art/maps/shogun.jpg",
+      "thumb": "art/maps/shogun-thumb.jpg"
+    },
+    "Showdown Arena": {
+      "hero": "art/maps/showdown-arena.jpg",
+      "thumb": "art/maps/showdown-arena-thumb.jpg"
+    },
+    "Smallhalla": {
+      "hero": "art/maps/smallhalla.jpg",
+      "thumb": "art/maps/smallhalla-thumb.jpg"
+    },
+    "Snowbound": {
+      "hero": "art/maps/snowbound.jpg",
+      "thumb": "art/maps/snowbound-thumb.jpg"
+    },
+    "Solitude": {
+      "hero": "art/maps/solitude.jpg",
+      "thumb": "art/maps/solitude-thumb.jpg"
+    },
+    "Solution": {
+      "hero": "art/maps/solution.jpg",
+      "thumb": "art/maps/solution-thumb.jpg"
+    },
+    "Speedball": {
+      "hero": "art/maps/speedball.jpg",
+      "thumb": "art/maps/speedball-thumb.jpg"
+    },
+    "Stage Fright": {
+      "hero": "art/maps/stage-fright.jpg",
+      "thumb": "art/maps/stage-fright-thumb.jpg"
+    },
+    "Starboard": {
+      "hero": "art/maps/starboard.jpg",
+      "thumb": "art/maps/starboard-thumb.jpg"
+    },
+    "Streets": {
+      "hero": "art/maps/streets.jpg",
+      "thumb": "art/maps/streets-thumb.jpg"
+    },
+    "Sunken": {
+      "hero": "art/maps/sunken.jpg",
+      "thumb": "art/maps/sunken-thumb.jpg"
+    },
+    "Sylvanus": {
+      "hero": "art/maps/sylvanus.jpg",
+      "thumb": "art/maps/sylvanus-thumb.jpg"
+    },
+    "Takamanohara": {
+      "hero": "art/maps/takamanohara.jpg",
+      "thumb": "art/maps/takamanohara-thumb.jpg"
+    },
+    "The Gravemind": {
+      "hero": "art/maps/the-gravemind.jpg",
+      "thumb": "art/maps/the-gravemind-thumb.jpg"
+    },
+    "The Pit": {
+      "hero": "art/maps/the-pit.jpg",
+      "thumb": "art/maps/the-pit-thumb.jpg"
+    },
+    "Thunderbowl": {
+      "hero": "art/maps/thunderbowl.jpg",
+      "thumb": "art/maps/thunderbowl-thumb.jpg"
+    },
+    "Timberland Evolved": {
+      "hero": "art/maps/timberland-evolved.jpg",
+      "thumb": "art/maps/timberland-evolved-thumb.jpg"
+    },
+    "Urban Raid": {
+      "hero": "art/maps/urban-raid.jpg",
+      "thumb": "art/maps/urban-raid-thumb.jpg"
+    },
+    "Vacancy": {
+      "hero": "art/maps/vacancy.jpg",
+      "thumb": "art/maps/vacancy-thumb.jpg"
+    },
+    "Vagabond": {
+      "hero": "art/maps/vagabond.jpg",
+      "thumb": "art/maps/vagabond-thumb.jpg"
+    },
+    "Vallaheim": {
+      "hero": "art/maps/vallaheim.jpg",
+      "thumb": "art/maps/vallaheim-thumb.jpg"
+    },
+    "Yosai": {
+      "hero": "art/maps/yosai.jpg",
+      "thumb": "art/maps/yosai-thumb.jpg"
+    }
+  },
+  "modes": {
+    "Assault": {
+      "hero": "art/modes/assault.jpg",
+      "thumb": "art/modes/assault-thumb.jpg"
+    },
+    "Capture the Flag": {
+      "hero": "art/modes/capture-the-flag.jpg",
+      "thumb": "art/modes/capture-the-flag-thumb.jpg"
+    },
+    "Elimination": {
+      "hero": "art/modes/elimination.jpg",
+      "thumb": "art/modes/elimination-thumb.jpg"
+    },
+    "Escalation": {
+      "hero": "art/modes/escalation.jpg",
+      "thumb": "art/modes/escalation-thumb.jpg"
+    },
+    "Extraction": {
+      "hero": "art/modes/extraction.jpg",
+      "thumb": "art/modes/extraction-thumb.jpg"
+    },
+    "Fiesta": {
+      "hero": "art/modes/fiesta.jpg",
+      "thumb": "art/modes/fiesta-thumb.jpg"
+    },
+    "Infection & Minigames": {
+      "hero": "art/modes/infection-minigames.jpg",
+      "thumb": "art/modes/infection-minigames-thumb.jpg"
+    },
+    "King of the Hill": {
+      "hero": "art/modes/king-of-the-hill.jpg",
+      "thumb": "art/modes/king-of-the-hill-thumb.jpg"
+    },
+    "Oddball": {
+      "hero": "art/modes/oddball.jpg",
+      "thumb": "art/modes/oddball-thumb.jpg"
+    },
+    "Slayer": {
+      "hero": "art/modes/slayer.jpg",
+      "thumb": "art/modes/slayer-thumb.jpg"
+    },
+    "Strongholds": {
+      "hero": "art/modes/strongholds.jpg",
+      "thumb": "art/modes/strongholds-thumb.jpg"
+    },
+    "Total Control": {
+      "hero": "art/modes/total-control.jpg",
+      "thumb": "art/modes/total-control-thumb.jpg"
+    },
+    "VIP": {
+      "hero": "art/modes/vip.jpg",
+      "thumb": "art/modes/vip-thumb.jpg"
+    }
+  }
+}
