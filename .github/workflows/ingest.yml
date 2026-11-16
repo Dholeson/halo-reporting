@@ -52,14 +52,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
           SCHEDULE: ${{ github.event.schedule }}
+          PHASE: ${{ inputs.phase }}
+          GAMERTAGS: ${{ inputs.gamertags }}
         run: |
           out() { printf 'run=%s\nscope=%s\ntopup=%s\n' "$1" "$2" "${3:-false}" | tee -a "$GITHUB_OUTPUT"; }
-          if [ "$EVENT" = "workflow_dispatch" ]; then out true all; exit 0; fi
+          # Scouts and full-history loads from the app: always, for everyone they name.
+          if [ "$EVENT" = "workflow_dispatch" ] && [ -n "$PHASE$GAMERTAGS" ]; then out true all; exit 0; fi
           # GitHub keeps only one pending run per concurrency group and cancels the older one,
           # so a poll must never queue behind other work (it could cancel a scout you asked for).
-          busy=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ingest.yml/runs?per_page=20" \
-            --jq "[.workflow_runs[] | select(.status != \"completed\" and .id != $GITHUB_RUN_ID)] | length" 2>/dev/null || echo 0)
-          if [ "${busy:-0}" -gt 0 ]; then echo "Another ingest run is active or queued; skipping this poll."; out false me; exit 0; fi
+          # (The app holds its own requests until GitHub is idle, so dispatches skip this.)
+          if [ "$EVENT" != "workflow_dispatch" ]; then
+            busy=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ingest.yml/runs?per_page=20" \
+              --jq "[.workflow_runs[] | select(.status != \"completed\" and .id != $GITHUB_RUN_ID)] | length" 2>/dev/null || echo 0)
+            if [ "${busy:-0}" -gt 0 ]; then echo "Another ingest run is active or queued; skipping this poll."; out false me; exit 0; fi
+          fi
           marks=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/last.json" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)
           last_game=$(echo "${marks:-{\}}" | jq -r '.last_game_end // 0' 2>/dev/null || echo 0)
           last_full=$(echo "${marks:-{\}}" | jq -r '.last_full // 0' 2>/dev/null || echo 0)
@@ -69,6 +75,9 @@ jobs:
           scope=me; topup=false
           # Everyone (scouted players too) is refreshed when the last full refresh is 6 hours old.
           if [ $(( now - ${last_full:-0} )) -ge 21600 ]; then scope=all; topup=true; fi
+          # Sync now / the app's check on open: everyone, plus the 6-hourly backfill when it's due
+          # (GitHub's scheduler can't be relied on to deliver the scheduled one).
+          if [ "$EVENT" = "workflow_dispatch" ]; then out true all "$topup"; exit 0; fi
           if [ "$SCHEDULE" = "*/5 * * * *" ] && [ "$age" -ge 10800 ]; then out false "$scope"; exit 0; fi
           out true "$scope" "$topup"
 

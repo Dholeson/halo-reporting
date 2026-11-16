@@ -45,7 +45,10 @@ export const jobs = () => lsGet("jobs", []);
 const saveJobs = (list) => { lsSet("jobs", list.slice(-30)); emit(); };
 const liveJobs = () => jobs().filter((j) => ACTIVE.has(j.state));
 /** Another tab holds the polling lease: it is driving the jobs and this tab follows via storage events. */
-const drivenElsewhere = () => { const l = lsGet("lease", null); return !!l && l.tab !== TAB && l.until > Date.now(); };
+// The UI waits LEASE_GRACE past the lease before calling an update "paused": a hidden tab's timers
+// can be throttled to about once a minute, and its lease shouldn't flicker the other tabs' status.
+const LEASE_MS = 30000, LEASE_GRACE = 45000;
+const drivenElsewhere = () => { const l = lsGet("lease", null); return !!l && l.tab !== TAB && l.until + LEASE_GRACE > Date.now(); };
 /** Jobs this tab can drive (it has a token). */
 export const activeJobs = () => (connected() ? liveJobs() : []);
 /** Jobs in motion, driven by this tab or another one. What the UI should show as running. */
@@ -197,7 +200,7 @@ function lead() {
   const now = Date.now();
   const l = lsGet("lease", null);
   if (l && l.tab !== TAB && l.until > now) return false;
-  lsSet("lease", { tab: TAB, until: now + 15000 });
+  lsSet("lease", { tab: TAB, until: now + LEASE_MS });
   return l?.tab === TAB ? "lead" : "claimed";
 }
 // A reloaded page gets a new TAB id: hand the lease back on the way out so it can poll at once.
@@ -207,6 +210,7 @@ const seenStates = new Map(jobs().map((j) => [j.id, j.state]));
 addEventListener("storage", (e) => {
   if (e.key && e.key.endsWith(":token")) { // a remembered token appeared or was dropped in another tab
     if (connected()) ssSet("dropped", null);
+    else releaseLease(); // e.g. Disconnect clicked in another tab: this one can't poll any more
     emit(); resume(); watch(); return;
   }
   if (e.key && e.key.endsWith(":lease")) { resume(); watch(); return; } // the polling tab may have left: take over
@@ -372,6 +376,8 @@ async function tick() {
   } finally {
     busy = false;
   }
+  // Renew at the end too: a slow tick (GitHub answering slowly, a throttled hidden tab) mustn't let it lapse.
+  if (lsGet("lease", null)?.tab === TAB && connected()) lsSet("lease", { tab: TAB, until: Date.now() + LEASE_MS });
   clearTimeout(timer);
   if (activeJobs().length) timer = setTimeout(tick, claimed ? 600 : document.visibilityState === "visible" ? 4000 : 10000);
 }

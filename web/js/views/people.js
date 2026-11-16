@@ -238,18 +238,20 @@ export function openPerson(ctx, { xuid, name }) {
   const display = name || person?.gt || tracked?.gamertag || `Player ··${String(xuid).slice(-6)}`;
   const job = gh.jobFor([xuid, display]);
   const pending = gh.isActive(job);
+  const paused = pending && gh.pausedJobs().some((x) => x.id === job.id);
   const { el, close } = modal(`
     <div class="mc-head"><div style="display:flex;gap:12px;align-items:center"><span class="avatar" style="width:44px;height:44px;--c1:var(--tie);--c2:var(--tie)">${esc(initials(display))}</span><div><h2>${esc(display)}</h2><div class="note">XUID ${esc(xuid)}</div></div></div><button class="icon-btn" data-close aria-label="Close">${icon("close")}</button></div>
     <div class="split">
       <div class="mini-stat"><div class="l">On your team</div><div class="v">${withR.length ? `${W.w}–${W.decided - W.w}` : "–"}</div><div class="note">${withR.length ? `${fmt.int(withR.length)} games · ${fmt.pct(W.wr)}` : person ? "Never" : "Under 2 shared games"}</div></div>
       <div class="mini-stat"><div class="l">Against you (team modes)</div><div class="v">${vsR.length ? `${V.w}–${V.decided - V.w}` : "–"}</div><div class="note">${vsR.length ? `your record in ${fmt.int(vsR.length)} games` : person ? "Never" : "Under 2 shared games"}</div></div>
     </div>
-    ${tracked ? `<p class="text-2">${esc(display)} is tracked. ${esc(historyLine(tracked) || "")}</p>` : pending ? `<div class="callout"><b>Scouting in progress.</b> ${esc(job.stage || "")}${stepper(job)}</div>` : `<p class="text-2">Scouting pulls their newest 300 games now (about 3 minutes) and the rest of their history in the background. They'll appear under Scouted players.</p>`}
+    ${tracked ? `<p class="text-2">${esc(display)} is tracked. ${esc(historyLine(tracked) || "")}</p>` : paused ? `<div class="callout"><b>Scouting paused.</b> No open tab is connected to GitHub, so nothing is following it. Connect to pick it back up.</div>` : pending ? `<div class="callout"><b>Scouting in progress.</b> ${esc(job.stage || "")}${stepper(job)}</div>` : `<p class="text-2">Scouting pulls their newest 300 games now (about 3 minutes) and the rest of their history in the background. They'll appear under Scouted players.</p>`}
     <div class="mc-actions">
-      ${tracked ? `<button class="btn primary" id="p-open">Open ${esc(display)}'s dossier</button>` : pending ? `<button class="btn" id="p-pending">Follow progress</button>` : `<button class="btn primary" id="p-scout">${icon("people")}Scout ${esc(display)}</button>`}
+      ${tracked ? `<button class="btn primary" id="p-open">Open ${esc(display)}'s dossier</button>` : paused ? `<button class="btn primary" id="p-connect">Connect GitHub</button>` : pending ? `<button class="btn" id="p-pending">Follow progress</button>` : `<button class="btn primary" id="p-scout">${icon("people")}Scout ${esc(display)}</button>`}
     </div>`);
   el.querySelector("#p-open")?.addEventListener("click", () => { close(); ctx.setFilter({ who: xuid }); });
   el.querySelector("#p-pending")?.addEventListener("click", () => { close(); ctx.setFilter({ who: `scout:${job.players[0].key}` }); });
+  el.querySelector("#p-connect")?.addEventListener("click", () => { close(); openConnect(ctx); });
   el.querySelector("#p-scout")?.addEventListener("click", () => { close(); scout(ctx, { xuid, name: display }); });
 }
 
@@ -282,14 +284,17 @@ export function partialBanner(ctx) {
   if (!inc.length) return "";
   const stored = ps.reduce((s, p) => s + p.stored, 0), total = ps.reduce((s, p) => s + Math.max(p.history || 0, p.stored), 0);
   const job = gh.jobFor(inc.map((p) => p.xuid));
-  const running = job && job.kind === "full" && gh.isActive(job);
+  const full = job && job.kind === "full" ? job : null;
+  const running = !!full && gh.runningJobs().some((x) => x.id === full.id);
+  const paused = !!full && gh.pausedJobs().some((x) => x.id === full.id);
   return `<div class="loading-banner" role="status">
-    <span class="spin" aria-hidden="true"></span>
-    <div><b>Showing ${fmt.int(stored)} of ~${fmt.int(total)} games.</b> ${running ? `Loading the rest now: ${esc(job.stage || "")}.` : "Older games load in the background every 6 hours, so trends will sharpen as they arrive."}</div>
-    ${running ? stepper(job, { compact: true }) : `<button class="btn" id="load-full" type="button">Load everything now</button>`}
+    ${running ? '<span class="spin" aria-hidden="true"></span>' : ""}
+    <div><b>Showing ${fmt.int(stored)} of ~${fmt.int(total)} games.</b> ${running ? `Loading the rest now: ${esc(full.stage || "")}.` : paused ? "Loading the rest is paused: no open tab is connected to GitHub." : "Older games fill in a batch every few hours as updates run, so trends sharpen as they arrive."}</div>
+    ${running ? stepper(full, { compact: true }) : paused ? '<button class="btn" id="load-connect" type="button">Connect GitHub</button>' : '<button class="btn" id="load-full" type="button">Load everything now</button>'}
   </div>`;
 }
 export function wirePartialBanner(root, ctx) {
+  root.querySelector("#load-connect")?.addEventListener("click", () => openConnect(ctx));
   root.querySelector("#load-full")?.addEventListener("click", () => {
     const { db, f } = ctx;
     const ps = (f.who === "me" ? db.me : db.players.filter((p) => p.xuid === f.who)).filter(partial);
