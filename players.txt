@@ -1,3 +1,6 @@
 # Gamertags to track, one per line. Easiest way to add people:
 # Actions -> Ingest & report -> Run workflow -> type gamertags in the lookup box.
 # Delete a line to stop tracking someone (their stored matches stay in data/).
+Dholeson
+Soft Paws TV
+Ocelot Paws
