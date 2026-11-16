@@ -1,0 +1,82 @@
+name: Ingest & report
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: "Keep paging past known matches to fill older history"
+        type: boolean
+        default: false
+      max_new_matches:
+        description: "Max new matches per player this run"
+        type: string
+        default: "100"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN != '' }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+
+      - name: Pull new matches
+        if: env.HAS_TOKEN == 'true'
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          HALO_REFRESH_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN }}
+          REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
+          BACKFILL: ${{ inputs.backfill && '1' || '0' }}
+          MAX_NEW_MATCHES: ${{ inputs.max_new_matches || '100' }}
+        run: uv run python -m halo.ingest
+
+      # Microsoft rotates refresh tokens. Store the new one so the chain never goes stale.
+      - name: Rotate refresh token
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.SECRETS_PAT }}
+        run: |
+          f="$RUNNER_TEMP/refresh_token"
+          [ -s "$f" ] || exit 0
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::SECRETS_PAT not set; refresh token not rotated. It will expire eventually."
+          else
+            gh secret set HALO_REFRESH_TOKEN --repo "$GITHUB_REPOSITORY" < "$f"
+          fi
+          rm -f "$f"
+
+      - name: Commit new data
+        run: |
+          git config user.name "halo-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -m "data: ingest $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push
+
+      - name: Build report
+        run: uv run python -m halo.report
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

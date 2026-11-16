@@ -1,0 +1,42 @@
+name: Bootstrap Xbox sign-in
+
+# Run once (or again if the refresh token ever dies).
+# 1. Run with the box empty -> the log prints a Microsoft sign-in link.
+# 2. Open it, sign in, copy the https://localhost/?code=... URL you land on (the page won't load; that's fine).
+# 3. Run again within ~5 minutes, pasting that URL. The refresh token goes straight into secrets.
+# The code is single-use, expires in minutes, and is useless without the client secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      redirect_url:
+        description: "URL you landed on after signing in (leave empty to get the sign-in link)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - name: Sign-in link or code exchange
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          REDIRECT: ${{ inputs.redirect_url }}
+          REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
+        run: uv run python -m halo.bootstrap "$REDIRECT"
+      - name: Save refresh token as a secret
+        env:
+          GH_TOKEN: ${{ secrets.SECRETS_PAT }}
+        run: |
+          f="$RUNNER_TEMP/refresh_token"
+          [ -s "$f" ] || exit 0
+          gh secret set HALO_REFRESH_TOKEN --repo "$GITHUB_REPOSITORY" < "$f"
+          rm -f "$f"
+          echo "Saved HALO_REFRESH_TOKEN. Run 'Ingest & report' (tick backfill for your history)."

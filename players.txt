@@ -1,0 +1,3 @@
+# Gamertags to track, one per line. The account that signed in is always tracked.
+# Example:
+# SomeFriend
