@@ -8,9 +8,25 @@ export const OBJECTIVE_FAMILIES = new Set(["Capture the Flag", "King of the Hill
 export const CASUAL_FAMILIES = new Set(["Infection & Minigames", "Firefight"]);
 const SESSION_GAP = 50 * 60; // seconds of idle between games that starts a new session
 
+let VERSION = "";
+/** Small, cache-busted file that says which build is live (and lets big fetches be versioned). */
+export async function latestVersion() {
+  try {
+    const r = await fetch(`data/version.json?t=${Date.now()}`, { cache: "no-store" });
+    return r.ok ? r.json() : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function loadData() {
-  const res = await fetch("data/data.json", { cache: "no-cache" });
+  const v = await latestVersion();
+  VERSION = v?.generated || String(Date.now());
+  // Versioned URL: the CDN can't hand back an older copy right after an update.
+  const res = await fetch(`data/data.json?v=${encodeURIComponent(VERSION)}`, { cache: "no-cache" });
   if (!res.ok) throw new Error(`data.json: HTTP ${res.status}`);
+  cache.clear();
+  shardCache.clear();
   return decode(await res.json());
 }
 
@@ -213,7 +229,7 @@ const shardCache = new Map();
 export async function lobbyFor(row) {
   const month = new Date(row.t * 1000).toISOString().slice(0, 7);
   if (!shardCache.has(month)) {
-    shardCache.set(month, fetch(`data/lobbies/${month}.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null));
+    shardCache.set(month, fetch(`data/lobbies/${month}.json?v=${encodeURIComponent(VERSION)}`).then((r) => (r.ok ? r.json() : null)).catch(() => null));
   }
   const shard = await shardCache.get(month);
   if (!shard || !shard.matches[row.mid]) return null;

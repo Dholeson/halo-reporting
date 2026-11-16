@@ -1,6 +1,6 @@
 // App shell: routing (hash), global filters, presets & saved views, theme.
 import { $, esc, icon, store, debounce, toast, fmt, ago, initials, accountColor, cssVar } from "./util.js";
-import { loadData, rowsFor, applyFilters, RANGES, QUEUES } from "./data.js";
+import { loadData, rowsFor, applyFilters, RANGES, QUEUES, latestVersion } from "./data.js";
 import { hideTip } from "./charts.js";
 import * as overview from "./views/overview.js";
 import * as briefing from "./views/briefing.js";
@@ -11,6 +11,8 @@ import * as matches from "./views/matches.js";
 import * as squad from "./views/squad.js";
 import { openMatch, closeMatch } from "./views/drawer.js";
 import { initArt } from "./art.js";
+import * as gh from "./gh.js";
+import { openSearch, openActivity, activityButtonHtml, pendingView, partialBanner, wirePartialBanner, closeModal } from "./views/people.js";
 
 const VIEWS = [
   { id: "overview", label: "Overview", icon: "overview", mod: overview },
@@ -26,6 +28,7 @@ const F_KEYS = Object.keys(DEFAULT_F);
 
 let db;
 let state = { view: "overview", f: { ...DEFAULT_F }, params: {} };
+let lastCtx = null;
 let lastWidth = innerWidth;
 
 // ---------- routing ----------
@@ -152,7 +155,8 @@ function renderTabs() {
 
 function renderFilterBar() {
   const { f, view } = state;
-  const all = rowsFor(db, f.who);
+  const scouting = f.who.startsWith("scout:");
+  const all = scouting ? [] : rowsFor(db, f.who);
   const count = (key) => {
     const m = new Map();
     for (const r of all) m.set(r[key], (m.get(r[key]) || 0) + 1);
@@ -160,23 +164,19 @@ function renderFilterBar() {
   };
   const isBrief = view === "briefing";
   const who = f.who === "me" ? null : db.players.find((p) => p.xuid === f.who);
-  const whoName = who ? who.gamertag : db.me.length > 1 ? "Me" : db.me[0]?.gamertag || "Me";
-  const whoSub = who ? (who.me ? "one of your accounts" : "scouted player") : db.me.length > 1 ? `${db.me.length} accounts merged` : "your account";
+  const scoutJob = scouting ? gh.jobFor([f.who.slice(6)]) : null;
+  const whoName = scouting ? scoutJob?.players[0]?.label || f.who.slice(6) : who ? who.gamertag : db.me.length > 1 ? "Me" : db.me[0]?.gamertag || "Me";
+  const whoSub = scouting ? "scouting…" : who ? (who.me ? "one of your accounts" : "scouted player") : db.me.length > 1 ? `${db.me.length} accounts merged` : "your account";
   const meIdx = who ? db.me.indexOf(who) : -1;
   const avColor = who ? (meIdx >= 0 ? accountColor(meIdx) : cssVar("--tie")) : null;
   const nonDefault = F_KEYS.some((k) => k !== "who" && f[k] !== DEFAULT_F[k]);
 
   $("#filterbar").innerHTML = `<div class="filters">
-    <label class="who" title="Whose stats">
-      <span class="avatar" style="${avColor ? `--c1:${avColor};--c2:${avColor}` : "--c1:var(--s1);--c2:var(--accent)"}">${esc(initials(whoName))}</span>
-      <span><span class="who-name">${esc(whoName)}</span><br><span class="who-sub">${esc(whoSub)}</span></span>
-      ${icon("chev", "chev")}
-      <select id="f-who" aria-label="Whose stats">
-        ${db.me.length ? `<option value="me" ${f.who === "me" ? "selected" : ""}>Me${db.me.length > 1 ? ` (all ${db.me.length} accounts)` : ""}</option>` : ""}
-        ${db.me.length > 1 ? `<optgroup label="My accounts">${db.me.map((p) => `<option value="${esc(p.xuid)}" ${f.who === p.xuid ? "selected" : ""}>${esc(p.gamertag)}</option>`).join("")}</optgroup>` : ""}
-        ${db.others.length ? `<optgroup label="Scouted players">${db.others.map((p) => `<option value="${esc(p.xuid)}" ${f.who === p.xuid ? "selected" : ""}>${esc(p.gamertag)}</option>`).join("")}</optgroup>` : ""}
-      </select>
-    </label>
+    <button class="who" id="who-btn" type="button" title="Switch player or search" aria-haspopup="dialog">
+      <span class="avatar" style="${avColor ? `--c1:${avColor};--c2:${avColor}` : "--c1:var(--s1);--c2:var(--accent)"}">${scouting ? '<span class="spin" style="width:14px;height:14px;border-width:2px"></span>' : esc(initials(whoName))}</span>
+      <span style="text-align:left"><span class="who-name">${esc(whoName)}</span><br><span class="who-sub">${esc(whoSub)}</span></span>
+      ${icon("search", "chev")}
+    </button>
     <span class="fsep"></span>
     ${isBrief ? "" : `<div class="seg" role="group" aria-label="Time range">${RANGES.map((r) => `<button type="button" data-range="${r.id}" aria-pressed="${f.range === r.id}">${esc(r.label)}</button>`).join("")}</div>`}
     <select class="select ${f.queue !== "all" ? "active" : ""}" id="f-queue" aria-label="Queue">${QUEUES.map((q) => `<option value="${q.id}" ${f.queue === q.id ? "selected" : ""}>${esc(q.label)}</option>`).join("")}</select>
@@ -188,7 +188,7 @@ function renderFilterBar() {
     ${nonDefault ? `<button class="btn ghost" type="button" id="reset">${icon("reset")}Reset</button>` : ""}
   </div>`;
 
-  $("#f-who").addEventListener("change", (e) => setFilter({ who: e.target.value }));
+  $("#who-btn").addEventListener("click", (e) => (document.querySelector("#people-pop") ? document.querySelector("#people-pop").remove() : openSearch(lastCtx, e.currentTarget)));
   $("#f-queue").addEventListener("change", (e) => setFilter({ queue: e.target.value }));
   $("#f-fam")?.addEventListener("change", (e) => setFilter({ fam: e.target.value }));
   $("#f-map")?.addEventListener("change", (e) => setFilter({ map: e.target.value }));
@@ -199,7 +199,7 @@ function renderFilterBar() {
 
 function renderFooter() {
   const repo = location.hostname.endsWith("github.io") ? `https://github.com/${location.hostname.split(".")[0]}/${location.pathname.split("/").filter(Boolean)[0] || ""}` : null;
-  $("#footer").innerHTML = `<span>Data updated ${esc(ago(Date.parse(db.generated) / 1000))} · ${fmt.int(db.rows.length)} player-games · refreshes every 6 hours</span>
+  $("#footer").innerHTML = `<span>Data updated ${esc(ago(Date.parse(db.generated) / 1000))} · ${fmt.int(db.rows.length)} player-games · new games arrive within 5–15 min while you play</span>
     <span><a href="data/player_matches.parquet">Raw data (Parquet)</a>${repo ? ` · <a href="${esc(repo)}">Source</a>` : ""}</span>
     <span style="flex-basis:100%">Halo © Microsoft Corporation. Debrief was created under Microsoft's <a href="https://www.xbox.com/en-US/developers/rules">Game Content Usage Rules</a> using assets from Halo Infinite, and it is not endorsed by or affiliated with Microsoft.</span>`;
 }
@@ -222,21 +222,41 @@ function themeButton() {
 function render() {
   hideTip();
   closeMenus();
-  const { view, f, params } = state;
-  if (f.who !== "me" && !db.players.some((p) => p.xuid === f.who)) f.who = "me";
+  let { view, f, params } = state;
+  // "scout:<gamertag or xuid>" = a player whose first games are still being fetched
+  if (f.who.startsWith("scout:")) {
+    const key = f.who.slice(6).toLowerCase();
+    const hit = db.players.find((p) => p.xuid === key || p.gamertag.toLowerCase() === key);
+    if (hit) {
+      setFilterSilently({ who: hit.xuid });
+      f = state.f; // the placeholder is resolved; render the real dossier
+    }
+  }
+  if (!f.who.startsWith("scout:") && f.who !== "me" && !db.players.some((p) => p.xuid === f.who)) f.who = "me";
   if (f.who === "me" && !db.me.length && db.players.length) f.who = db.players[0].xuid;
-  const all = rowsFor(db, f.who);
+  const scouting = f.who.startsWith("scout:");
+  const all = scouting ? [] : rowsFor(db, f.who);
   const rows = applyFilters(all, f);
   const prev = f.range !== "all" ? applyFilters(all, f, { prev: true }) : null;
-  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast };
+  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me") };
   ctx.openMatch = (r) => openMatch(r, ctx);
+  lastCtx = ctx;
   renderTabs();
   renderFilterBar();
+  refreshChrome();
+  if (scouting) {
+    document.title = "Scouting · Debrief";
+    pendingView(ctx, f.who.slice(6));
+    renderFooter();
+    return;
+  }
   const v = VIEWS.find((x) => x.id === view);
   document.title = `${v.label} · Debrief`;
   document.querySelector('.tab[aria-current="page"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   try {
     v.mod.render(ctx);
+    const banner = partialBanner(ctx);
+    if (banner) { ctx.el.insertAdjacentHTML("afterbegin", banner); wirePartialBanner(ctx.el, ctx); }
   } catch (e) {
     console.error(e);
     ctx.el.innerHTML = `<div class="card empty"><h3>Something broke on this page</h3><p>${esc(e.message)}</p></div>`;
@@ -246,6 +266,45 @@ function render() {
     const r = all.find((x) => x.mid === params.match);
     if (r) openMatch(r, ctx);
   }
+}
+
+function setFilterSilently(patch) {
+  state.f = { ...state.f, ...patch };
+  store.set("filters", state.f);
+  history.replaceState(null, "", hashFor(state.view, state.f, state.params));
+}
+
+function refreshChrome() {
+  const slot = $("#activity-slot");
+  if (!slot) return;
+  slot.innerHTML = activityButtonHtml();
+  $("#activity-btn").onclick = () => openActivity(lastCtx);
+}
+
+/** Reload data in place (after an update finishes or when newer data is live). */
+async function reload() {
+  const before = db.rows.length;
+  db = await loadData();
+  initArt(db.art);
+  $("#fresh").hidden = true;
+  render();
+  return db.rows.length - before;
+}
+
+function watchFreshness() {
+  // An open tab (or your phone coming back to it) notices new games without a manual refresh.
+  const check = async () => {
+    if (document.visibilityState !== "visible" || gh.activeJobs().length) return;
+    const v = await latestVersion();
+    if (!v || v.generated === db.generated) return;
+    const diff = v.games - db.rows.length;
+    const el = $("#fresh");
+    el.innerHTML = `<span>${diff > 0 ? `${diff} new game${diff === 1 ? "" : "s"} are in` : "Fresh data is in"}</span><button class="btn primary" type="button" id="fresh-go">Refresh</button>`;
+    el.hidden = false;
+    $("#fresh-go").onclick = () => reload();
+  };
+  setInterval(check, 60000);
+  document.addEventListener("visibilitychange", check);
 }
 
 async function boot() {
@@ -263,6 +322,21 @@ async function boot() {
     return;
   }
   state = parseHash();
+  gh.onChange(() => {
+    refreshChrome();
+    if (state.f.who.startsWith("scout:")) render();
+  });
+  gh.onNewData(async (job) => {
+    const added = await reload();
+    if (job.kind === "scout") {
+      const keys = job.players.map((p) => String(p.key).toLowerCase());
+      const hit = db.players.find((p) => keys.includes(p.xuid) || keys.includes(p.gamertag.toLowerCase()));
+      if (hit && state.f.who.startsWith("scout:")) setFilter({ who: hit.xuid });
+      toast(hit ? `${hit.gamertag}'s dossier is ready` : "Scouting finished, but that player wasn't found (private history or typo?)");
+    } else toast(added > 0 ? `Updated: ${added} new game${added === 1 ? "" : "s"}` : "Up to date: no new games");
+  });
+  gh.resume();
+  watchFreshness();
   addEventListener("hashchange", () => {
     const prevView = state.view;
     state = parseHash();
@@ -272,7 +346,7 @@ async function boot() {
     if (prevView !== state.view) $("#view").focus({ preventScroll: true });
   });
   addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closeMenus(); closeMatch({ setParam }); }
+    if (e.key === "Escape") { document.querySelector("#people-pop")?.remove(); if (closeModal()) return; closeMenus(); closeMatch({ setParam }); }
   });
   addEventListener("resize", debounce(() => {
     if (Math.abs(innerWidth - lastWidth) < 30) return;

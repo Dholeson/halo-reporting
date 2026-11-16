@@ -1,7 +1,7 @@
 # halo-reporting · Debrief
 
 Personal Halo Infinite analytics. GitHub Actions pulls your matches from Halo
-Waypoint every 6 hours, stores them in this repo (`data/`), and publishes
+Waypoint (every 5 minutes while you're playing, every 15 otherwise), stores them in this repo (`data/`), and publishes
 **Debrief** to GitHub Pages: pre-game briefings, post-game debriefs and coaching
 built from your own history. Nothing runs or is stored on your own machine.
 
@@ -20,6 +20,23 @@ built from your own history. Nothing runs or is stored on your own machine.
 Filters (account, time range, queue, mode, map), presets and saved views live in
 the URL, so any view can be bookmarked or shared.
 
+## Updates, scouting and the GitHub token
+
+New games arrive on their own: a cheap poll runs every 5 minutes while one of your
+games ended in the last 3 hours, every 15 minutes otherwise, and everyone you've
+scouted is refreshed every 6 hours. Quiet polls don't commit, rebuild or deploy.
+
+From the site you can also **Sync now**, **scout anyone** (search a gamertag, or tap a
+name in a scoreboard / teammate / rival list) and **load a full history**. A scout pulls
+the player's newest 300 games first (about 3 minutes), then the rest arrives in the
+background; the app shows live progress and how much of the history is loaded.
+
+Starting those from the browser needs a fine-grained GitHub token, entered once in
+the Updates panel and stored only in that browser:
+github.com/settings/personal-access-tokens/new → *Only select repositories* → this
+repo → *Permissions: Actions → Read and write*. Nothing else. Without a token the
+site works read-only for everyone.
+
 ## How it works
 
 | Piece | Where |
@@ -36,12 +53,12 @@ Microsoft rotates refresh tokens, so each run writes the new one back to the
 
 ## Tracking players
 
-`players.txt`, one gamertag per line. Add ` [me]` after your own accounts:
+`players.txt`, one gamertag (or XUID) per line. Add ` [me]` after your own accounts:
 they're merged into **Me** in the report. Everyone else is a scouted player you
-can switch to from the account picker.
+can switch to from the player search.
 
-Fastest way to add someone: **Actions → Ingest & report → Run workflow** and
-type gamertags (comma-separated) in the first box. Their full history is pulled.
+Ways to add someone: scout them from the site, or **Actions → Ingest & report →
+Run workflow** with gamertags (comma-separated) in the first box.
 
 ## One-time setup
 

@@ -1,12 +1,19 @@
 name: Ingest & report
+# Shown in the Actions list; the app matches its own requests by the [id] suffix.
+run-name: ${{ inputs.request_id && format('{0} [{1}]', inputs.gamertags && format('Scout {0}', inputs.gamertags) || 'Sync', inputs.request_id) || format('Ingest ({0})', github.event_name) }}
 
 on:
   schedule:
-    - cron: "17 */6 * * *"   # every 6 hours
+    - cron: "*/5 * * * *"          # hot: only proceeds if one of your games ended in the last 3 hours
+    - cron: "7,22,37,52 * * * *"   # cool: every 15 minutes, your accounts only
+    - cron: "41 */6 * * *"         # full: every 6 hours, everyone including scouted players
+  push:
+    branches: [main]
+    paths: ["web/**", "halo/**", "pyproject.toml", "uv.lock", ".github/workflows/ingest.yml"]
   workflow_dispatch:
     inputs:
       gamertags:
-        description: "Look up / start tracking these gamertags (comma-separated). Pulls their full history."
+        description: "Look up / start tracking these players (comma-separated gamertags or XUIDs). Pulls their history."
         type: string
         default: ""
       backfill:
@@ -21,19 +28,61 @@ on:
         description: "Max matches to enrich with CSR / expected-performance data this run (all history ≈ 2500)"
         type: string
         default: "600"
+      phase:
+        description: "App use: scout = fast first look (newest 300 games); full = whole history now"
+        type: string
+        default: ""
+      request_id:
+        description: "App use: lets the app find and follow this run"
+        type: string
+        default: ""
 
 permissions:
   contents: write
   pages: write
   id-token: write
-
-concurrency:
-  group: ingest
-  cancel-in-progress: false
+  actions: read    # the gate looks at other runs
 
 jobs:
-  ingest:
+  gate:
     runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      scope: ${{ steps.decide.outputs.scope }}
+    steps:
+      - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          out() { echo "run=$1" >> "$GITHUB_OUTPUT"; echo "scope=$2" >> "$GITHUB_OUTPUT"; echo "run=$1 scope=$2"; }
+          case "$EVENT" in
+            workflow_dispatch) out true all; exit 0 ;;
+            push) out true me; exit 0 ;;
+          esac
+          # GitHub keeps only one pending run per concurrency group and cancels the older one,
+          # so a poll must never queue behind other work (it could cancel a scout you asked for).
+          busy=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ingest.yml/runs?per_page=20" \
+            --jq "[.workflow_runs[] | select(.status != \"completed\" and .id != $GITHUB_RUN_ID)] | length" 2>/dev/null || echo 0)
+          if [ "${busy:-0}" -gt 0 ]; then echo "Another ingest run is active or queued; skipping this poll."; out false me; exit 0; fi
+          case "$SCHEDULE" in
+            "41 */6 * * *") out true all ;;
+            "7,22,37,52 * * * *") out true me ;;
+            *)
+              last=$(gh api "repos/$GITHUB_REPOSITORY/contents/data/last.json" --jq .content 2>/dev/null | base64 -d 2>/dev/null | jq -r '.last_game_end // 0' 2>/dev/null || true)
+              age=$(( $(date +%s) - ${last:-0} ))
+              echo "Last tracked game ended $(( age / 60 )) min ago"
+              if [ "$age" -lt 10800 ]; then out true me; else out false me; fi ;;
+          esac
+
+  ingest:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ingest    # shared with the sign-in workflow: one token rotation, one data commit at a time
+      cancel-in-progress: false
     env:
       HAS_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN != '' }}
     environment:
@@ -42,13 +91,29 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
       - run: uv sync
 
-      - name: Backfill checkbox
-        if: inputs.backfill
-        run: echo "BACKFILL=1" >> "$GITHUB_ENV"
+      - name: Run settings
+        env:
+          SCOPE: ${{ needs.gate.outputs.scope }}
+          PHASE: ${{ inputs.phase }}
+          BACKFILL_BOX: ${{ inputs.backfill }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          {
+            [ "$SCOPE" = "me" ] && echo "ONLY_ME=1"
+            [ "$BACKFILL_BOX" = "true" ] && echo "BACKFILL=1"
+            # scout: newest 300 games and no CSR yet, so a first dossier is up in a few minutes
+            [ "$PHASE" = "scout" ] && printf 'MAX_NEW_MATCHES=300\nSKILL_MAX=0\n'
+            [ "$PHASE" = "full" ] && printf 'MAX_NEW_MATCHES=1500\nSKILL_MAX=1500\n'
+            # the 6-hourly run also tops up scouted players whose history is still partial
+            [ "$SCHEDULE" = "41 */6 * * *" ] && echo "TOPUP=1"
+            true
+          } >> "$GITHUB_ENV"
 
-      - name: Add looked-up gamertags to players.txt
+      - name: Add looked-up players to players.txt
         if: inputs.gamertags != ''
         env:
           GAMERTAGS: ${{ inputs.gamertags }}
@@ -57,27 +122,40 @@ jobs:
           import os, re
           path = "players.txt"
           lines = open(path).read().splitlines()
-          # "Gamertag [me]" marks your own accounts; compare on the gamertag alone
-          have = {re.sub(r"\s*\[[^\]]*\]\s*$", "", l).strip().lower() for l in lines if l.strip() and not l.startswith("#")}
-          new = [g.strip() for g in os.environ["GAMERTAGS"].split(",") if g.strip()]
-          added = [g for g in new if g.lower() not in have]
+          bare = lambda l: re.sub(r"\s*\[[^\]]*\]\s*$", "", l).strip()
+          norm = lambda s: (m.group(1) if (m := re.match(r"^(?:xuid\()?(\d{10,20})\)?$", s, re.I)) else s).lower()
+          have = {norm(bare(l)) for l in lines if l.strip() and not l.startswith("#")}
+          valid = re.compile(r"^(?:[A-Za-z0-9 ]{1,16}(?:#\d{1,5})?|(?:xuid\()?\d{10,20}\)?)$")
+          wanted = [g.strip() for g in os.environ["GAMERTAGS"].split(",") if g.strip()]
+          bad = [g for g in wanted if not valid.match(g)]
+          for g in bad:
+              print(f"::warning::Skipping {g!r}: not a gamertag or XUID")
+          new = [g for g in wanted if g not in bad]
+          if not new:
+              raise SystemExit("No valid gamertags or XUIDs given")
+          added = [g for g in new if norm(g) not in have]
           with open(path, "a") as f:
               f.writelines(g + "\n" for g in added)
           print("Added:", ", ".join(added) or "(already tracked)")
           with open(os.environ["GITHUB_ENV"], "a") as f:
-              f.write("ONLY_PLAYERS=" + ",".join(new) + "\nBACKFILL=1\n")
+              f.write("ONLY_PLAYERS=" + ",".join(new) + "\nBACKFILL=1\nONLY_ME=0\n")
           PY
 
       - name: Pull new matches
+        id: pull
         if: env.HAS_TOKEN == 'true'
         env:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID || secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           HALO_REFRESH_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN }}
           REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
-          MAX_NEW_MATCHES: ${{ inputs.max_new_matches || '100' }}
-          SKILL_MAX: ${{ inputs.skill_max || '600' }}
-        run: uv run python -m halo.ingest
+          MAX_NEW_MATCHES_INPUT: ${{ inputs.max_new_matches }}
+          SKILL_MAX_INPUT: ${{ inputs.skill_max }}
+        run: |
+          # explicit inputs win unless the quick phase already set a cap
+          export MAX_NEW_MATCHES="${MAX_NEW_MATCHES:-${MAX_NEW_MATCHES_INPUT:-100}}"
+          export SKILL_MAX="${SKILL_MAX:-${SKILL_MAX_INPUT:-600}}"
+          uv run python -m halo.ingest
 
       # Microsoft rotates refresh tokens. Store the new one so the chain never goes stale.
       - name: Rotate refresh token
@@ -95,21 +173,28 @@ jobs:
           rm -f "$f"
 
       - name: Commit new data
+        id: commit
         run: |
           git config user.name "halo-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data players.txt
-          git diff --cached --quiet && exit 0
+          if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "Nothing new."; exit 0; fi
           git commit -m "data: ingest $(date -u +%Y-%m-%dT%H:%MZ)"
           git pull --rebase -q origin main
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
+      # Quiet scheduled polls stop here: no rebuild, no deploy.
       - name: Build report
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         run: uv run python -m halo.report
-
       - uses: actions/configure-pages@v5
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
       - uses: actions/upload-pages-artifact@v3
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         with:
           path: site
       - id: deploy
+        if: steps.commit.outputs.changed == 'true' || github.event_name != 'schedule'
         uses: actions/deploy-pages@v4
+

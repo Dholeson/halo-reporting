@@ -3,6 +3,7 @@ import { barList, hideTip } from "../charts.js";
 import { lobbyFor } from "../data.js";
 import { resultWord, badges } from "./common.js";
 import { mapArt, artLayer, medalIcon } from "../art.js";
+import { wirePeople } from "./people.js";
 
 let lastFocus = null;
 
@@ -85,15 +86,17 @@ export async function openMatch(r, ctx) {
   }), { diverging: true, max: 1 });
 
   const teams = [...new Set(lobby.map((p) => p.team))].sort((a, b) => (a === me?.team ? -1 : b === me?.team ? 1 : a - b));
-  const nameOf = (p) => (p.bot ? "Bot" : p.name || `Player ··${p.xuid.slice(-4)}`);
+  const nameOf = (p) => (p.bot ? "Bot" : p.name || `Player ··${p.xuid.slice(-6)}`);
   sb.innerHTML = teams.map((t) => {
     const ps = lobby.filter((p) => p.team === t).sort((a, b) => b.ps - a.ps || b.k - a.k);
     const label = t === me?.team ? "Your team" : teams.length > 2 ? `Team ${t + 1}` : "Enemy team";
     return `<div class="eyebrow" style="margin:8px 0 4px">${esc(label)} · ${esc(ps[0]?.out === "W" ? "Won" : ps[0]?.out === "L" ? "Lost" : "")}</div>
       <div class="table-wrap"><table class="t"><thead><tr><th>Player</th><th class="n">K</th><th class="n">D</th><th class="n">A</th><th class="n">Damage</th><th class="n">Acc</th><th class="n">Score</th></tr></thead><tbody>
-      ${ps.map((p) => `<tr class="${tracked.has(p.xuid) ? "me" : ""}"><td class="lead">${esc(nameOf(p))}${tracked.has(p.xuid) ? ' <span class="badge acc">tracked</span>' : ""}</td><td class="n">${p.k}</td><td class="n">${p.d}</td><td class="n">${p.a}</td><td class="n">${fmt.int(p.dd)}</td><td class="n">${p.acc.toFixed(1)}%</td><td class="n">${fmt.int(p.ps)}</td></tr>`).join("")}
+      ${ps.map((p) => `<tr class="${tracked.has(p.xuid) ? "me" : ""}"><td class="lead">${p.bot ? esc(nameOf(p)) : `<button class="link-btn person-link" type="button" data-person="${esc(p.xuid)}" data-name="${esc(p.name || "")}" data-direct="${tracked.has(p.xuid) ? 1 : 0}">${esc(nameOf(p))}</button>`}${tracked.has(p.xuid) ? ' <span class="badge acc">tracked</span>' : ""}</td><td class="n">${p.k}</td><td class="n">${p.d}</td><td class="n">${p.a}</td><td class="n">${fmt.int(p.dd)}</td><td class="n">${p.acc.toFixed(1)}%</td><td class="n">${fmt.int(p.ps)}</td></tr>`).join("")}
       </tbody></table></div>`;
   }).join("");
+  // Names are clickable: tracked players open their dossier, anyone else gets a card with "Scout".
+  wirePeople(sb, { ...ctx, setFilter: (p) => { closeMatch(ctx); ctx.setFilter(p); } });
 }
 
 function mini(label, value, sub) {

@@ -491,7 +491,8 @@ export function focusAreas(list, n = 3) {
 }
 
 // ---------- Overview narrative ----------
-export function formStory(rows) {
+export function formStory(rows, { they = false } = {}) {
+  const your = they ? "their" : "your", you = they ? "they" : "you", youre = they ? "they're" : "you're";
   if (rows.length < 30) return null;
   const roll = rolling(rows, 20, (a) => a.kd);
   const cur = roll[roll.length - 1].v;
@@ -501,22 +502,22 @@ export function formStory(rows) {
   let since = null;
   for (let i = roll.length - 21; i >= 0; i--) if (roll[i].v >= cur) { since = roll[i].row; break; }
   const state = pctile >= 0.8 ? "hot" : pctile <= 0.2 ? "cold" : "steady";
-  const kdTxt = `${fmt.n2(recent.kd)} K/D and ${fmt.pct(recent.wr)} wins over your last 20`;
+  const kdTxt = `${fmt.n2(recent.kd)} K/D and ${fmt.pct(recent.wr)} wins over ${your} last 20`;
   let headline, sub;
   if (state === "hot") {
-    headline = since ? `Heating up: your best 20-game stretch since ${fmt.month(since.t)}.` : "Heating up: this is your best 20-game stretch on record.";
-    sub = `${kdTxt}, up from ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before that. Ride it: this is the time to grind ranked.`;
+    headline = since ? `Heating up: ${your} best 20-game stretch since ${fmt.month(since.t)}.` : `Heating up: this is ${your} best 20-game stretch on record.`;
+    sub = `${kdTxt}, up from ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before that.${they ? "" : " Ride it: this is the time to grind ranked."}`;
   } else if (state === "cold") {
-    headline = `Cold streak: ${fmt.n2(recent.kd)} K/D over your last 20 games.`;
-    sub = `That's down from ${fmt.n2(before.kd)} before. It happens. The Coach tab has the specific things to fix.`;
+    headline = `Cold streak: ${fmt.n2(recent.kd)} K/D over ${your} last 20 games.`;
+    sub = `That's down from ${fmt.n2(before.kd)} before.${they ? "" : " It happens. The Coach tab has the specific things to fix."}`;
   } else if (recent.wr <= before.wr - 0.1) {
-    headline = "Your K/D is steady, but the wins aren't coming.";
-    sub = `${kdTxt}, compared with ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before. You're holding your own in fights. Check objective play and who you're queueing with.`;
+    headline = `${they ? "Their" : "Your"} K/D is steady, but the wins aren't coming.`;
+    sub = `${kdTxt}, compared with ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before.${they ? "" : " You're holding your own in fights. Check objective play and who you're queueing with."}`;
   } else if (recent.wr >= before.wr + 0.1) {
-    headline = "Steady fragging, and you're winning more.";
-    sub = `${kdTxt}, compared with ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before. Your teamplay is converting.`;
+    headline = `Steady fragging, and ${youre} winning more.`;
+    sub = `${kdTxt}, compared with ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before.`;
   } else {
-    headline = "Steady form: you're playing right at your level.";
+    headline = `Steady form: ${youre} playing right at ${your} level.`;
     sub = `${kdTxt}, compared with ${fmt.n2(before.kd)} and ${fmt.pct(before.wr)} before.`;
   }
   return { state, headline, sub, pctile, recent, before };

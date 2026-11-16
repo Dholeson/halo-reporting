@@ -159,12 +159,14 @@ def main() -> None:
     rows: list[list] = []
     lobbies: dict[str, list] = {}
 
+    done: set[str] = set()
     for m in jsonl(DATA / "matches"):
         info = m["MatchInfo"]
         ours = [p for p in m["Players"] if p["PlayerId"] in tracked and p.get("PlayerTeamStats")]
-        if not ours:
-            continue
         mid = m["MatchId"]
+        if not ours or mid in done:  # a match can only count once, even if it was stored twice
+            continue
+        done.add(mid)
         t = int(datetime.fromisoformat(info["StartTime"].replace("Z", "+00:00")).timestamp())
         dur = secs(info.get("Duration"))
         mapv = asset(info.get("MapVariant")) or "Unknown map"
@@ -239,6 +241,11 @@ def main() -> None:
             ])
 
     rows.sort(key=lambda r: r[1])
+    meta = load(DATA / "players_meta.json", {})
+    player_xuids = list(players)
+    stored_by = {}
+    for r in rows:
+        stored_by[r[3]] = stored_by.get(r[3], 0) + 1
 
     # Keep co-players seen 2+ times (squadmates, rivals); one-offs are noise and bloat.
     mi, fi = cols.index("mates"), cols.index("foes")
@@ -256,7 +263,9 @@ def main() -> None:
     SITE.joinpath("data").mkdir(exist_ok=True)
     payload = {
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "players": [{"xuid": x, "gamertag": g, "me": g.lower() in me} for x, g in players.items()],
+        "players": [{"xuid": x, "gamertag": g, "me": g.lower() in me,
+                     "stored": stored_by.get(i, 0), "history": (meta.get(x) or {}).get("history")}
+                    for i, (x, g) in enumerate(players.items())],
         "maps": maps.items, "mapVariants": mapvs.items, "modes": modes.items, "playlists": playlists.items,
         "families": families.items, "tiers": tiers.items, "seasons": seasons.items,
         "people": people,
@@ -293,6 +302,12 @@ def main() -> None:
         con.execute(f"copy pm to '{SITE / 'data' / 'player_matches.parquet'}' (format parquet)")
     except Exception as e:  # parquet is a bonus, never block the site
         print(f"parquet export skipped: {e}")
+
+    # Tiny file the app polls to notice fresh data (and to version the big fetches).
+    (SITE / "data" / "version.json").write_text(json.dumps({
+        "generated": payload["generated"], "games": len(rows),
+        "players": {x: stored_by.get(i, 0) for i, x in enumerate(player_xuids)},
+    }))
 
     size = (SITE / "data" / "data.json").stat().st_size
     print(f"Wrote site/ with {len(rows)} player-matches ({size / 1024:.0f} KB data.json)")

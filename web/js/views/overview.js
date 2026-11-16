@@ -23,7 +23,8 @@ export function render(ctx) {
   }
   const a = agg(rows);
   const p = prev && prev.length >= 3 ? agg(prev) : null;
-  const story = formStory(rows);
+  const they = f.who !== "me" && !db.players.find((x) => x.xuid === f.who)?.me;
+  const story = formStory(rows, { they });
   const st = streaks(rows);
   const last = rows[rows.length - 1];
   const primary = primaryAccount(db, ctx.all);
@@ -83,7 +84,7 @@ export function render(ctx) {
       <div class="chart" id="form-kd"></div>
     </section>
     <section class="card">
-      <div class="card-head"><div><h2>Your coaching plan</h2><div class="sub">The highest-payoff changes, from the ${fmt.int(rows.length)} games in view</div></div></div>
+      <div class="card-head"><div><h2>${they ? "Where they're beatable" : "Your coaching plan"}</h2><div class="sub">The highest-payoff changes, from the ${fmt.int(rows.length)} games in view</div></div></div>
       <div class="stack" style="gap:14px">
         ${focus.length ? focus.map((ins, i) => `<div class="focus-card"><div class="focus-rank">${i + 1}</div><div><h3>${esc(ins.title)}</h3><p>${esc(ins.verdict)}</p></div></div>`).join("") : '<p class="note">Not enough games in view for coaching yet.</p>'}
         <a class="btn" href="#/coach${location.hash.includes("?") ? location.hash.slice(location.hash.indexOf("?")) : ""}">${icon("coach")}Open the full coaching report</a>
@@ -98,7 +99,7 @@ export function render(ctx) {
 
   <div class="grid g2 mt">
     <section class="card">
-      <div class="card-head"><div><h2>When you play best</h2><div class="sub">Win rate by day and time (your local time), against your ${esc(fmt.pct(a.wr))} average</div></div></div>
+      <div class="card-head"><div><h2>When ${they ? "they play" : "you play"} best</h2><div class="sub">Win rate by day and time (your local time), against ${they ? "their" : "your"} ${esc(fmt.pct(a.wr))} average</div></div></div>
       <div id="heat"></div>
       ${scaleLegend("div", "worse", "better", "hatched = fewer than 8 games")}
     </section>

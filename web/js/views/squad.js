@@ -4,6 +4,7 @@ import { columns, barList } from "../charts.js";
 import { squadStats, personName } from "../insights.js";
 import { noGames, avatar } from "./common.js";
 import { applyFilters, rowsFor } from "../data.js";
+import { openPerson, wirePeople } from "./people.js";
 
 export function render(ctx) {
   const { rows, el, db, f } = ctx;
@@ -26,13 +27,13 @@ export function render(ctx) {
   </section>` : ""}
   ${frenemies.length ? `<section class="card mt">
     <div class="card-head"><div><h2>Frenemies</h2><div class="sub">Regular teammates who also turn up on the other side</div></div></div>
-    <div class="grid g2" style="gap:10px">${frenemies.slice(0, 4).map((x) => `<div class="story">${icon("people")}<div><b>${esc(x.name)}</b><p>With you: ${x.withA.w}–${x.withA.decided - x.withA.w} (${fmt.pct(x.withA.wr)}) over ${x.withA.n} games. Against you: you're ${x.vsA.w}–${x.vsA.decided - x.vsA.w}${x.vsA.wr <= 0.25 ? ". Keep them on your team." : x.vsA.wr >= 0.6 ? ". You have their number." : "."}</p></div></div>`).join("")}</div>
+    <div class="grid g2" style="gap:10px">${frenemies.slice(0, 4).map((x) => `<div class="story">${icon("people")}<div><button class="link-btn person-link" type="button" data-person="${esc(x.xuid)}" data-name="${esc(x.named ? x.name : "")}"><b>${esc(x.name)}</b></button><p>With you: ${x.withA.w}–${x.withA.decided - x.withA.w} (${fmt.pct(x.withA.wr)}) over ${x.withA.n} games. Against you: you're ${x.vsA.w}–${x.vsA.decided - x.vsA.w}${x.vsA.wr <= 0.25 ? ". Keep them on your team." : x.vsA.wr >= 0.6 ? ". You have their number." : "."}</p></div></div>`).join("")}</div>
   </section>` : ""}
   <div class="grid g2 mt">
     <section class="card">
       <div class="card-head"><div><h2>Regular teammates</h2><div class="sub">5+ games together. Your overall win rate here: ${fmt.pct(base.wr)}.</div></div></div>
       ${mates.length ? `<div class="table-wrap"><table class="t"><thead><tr><th>Teammate</th><th class="n">Games</th><th class="n">Win %</th><th class="n">vs without</th><th class="n">Your K/D</th><th class="n">Last</th></tr></thead><tbody>
-        ${mates.slice(0, 25).map((m) => `<tr><td class="lead">${esc(m.name)}</td><td class="n">${m.n}</td><td class="n">${fmt.pct(m.wr)}</td><td class="n ${m.wr - m.without >= 0.05 ? "good-text" : m.wr - m.without <= -0.05 ? "bad-text" : ""}">${fmt.signed((m.wr - m.without) * 100, (v) => `${Math.round(v)} pts`)}</td><td class="n">${fmt.n2(m.kd)}</td><td class="n">${esc(ago(m.last))}</td></tr>`).join("")}
+        ${mates.slice(0, 25).map((m) => `<tr><td class="lead"><button class="link-btn person-link" type="button" data-person="${esc(m.person?.xuid || "")}" data-name="${esc(m.named ? m.name : "")}">${esc(m.name)}</button></td><td class="n">${m.n}</td><td class="n">${fmt.pct(m.wr)}</td><td class="n ${m.wr - m.without >= 0.05 ? "good-text" : m.wr - m.without <= -0.05 ? "bad-text" : ""}">${fmt.signed((m.wr - m.without) * 100, (v) => `${Math.round(v)} pts`)}</td><td class="n">${fmt.n2(m.kd)}</td><td class="n">${esc(ago(m.last))}</td></tr>`).join("")}
       </tbody></table></div>` : '<p class="note">No regular teammates in this view.</p>'}
       ${mates.length && named < mates.length ? `<p class="note" style="margin-top:10px">${mates.length - named} teammate${mates.length - named === 1 ? "" : "s"} show as IDs. The ingest resolves gamertags for anyone you've played with 3+ times, so names fill in after the next run.</p>` : ""}
     </section>
@@ -71,7 +72,9 @@ export function render(ctx) {
     label: r.name, value: r.wr - 0.5, display: `${r.w}–${r.n - r.w}`, note: `${r.n} g`,
     color: r.wr >= 0.5 ? cssVar("--div-pos") : cssVar("--div-neg"),
     tip: () => ({ title: r.name, rows: [{ label: "Your record vs them", value: `${r.w}–${r.n - r.w}` }, { label: "Win rate", value: fmt.pct(r.wr) }, { label: "Your K/D in those games", value: fmt.n2(r.kd) }] }),
-  })), { diverging: true, max: 0.5, emptyText: "No repeat opponents in this view.", head: ["Opponent", "← they win · you win →", "Record"] });
+    xuid: r.xuid, named: r.named,
+  })), { diverging: true, max: 0.5, emptyText: "No repeat opponents in this view.", head: ["Opponent", "← they win · you win →", "Record"], onClick: (it) => openPerson(ctx, { xuid: it.xuid, name: it.named ? it.label : "" }) });
+  wirePeople(el, ctx);
 
   const regulars = new Set(squadStats(rows, db.people, 10, own).map((m) => m.pi));
   const withR = rows.filter((r) => r.mates.some((p) => regulars.has(p))), solo = rows.filter((r) => !r.mates.some((p) => regulars.has(p)));
@@ -91,7 +94,7 @@ function rivalStats(rows, people, own) {
   }
   return [...m.entries()].filter(([, rs]) => rs.length >= 4).map(([pi, rs]) => {
     const a = agg(rs);
-    return { pi, name: personName(people[pi]), n: a.decided, w: a.w, wr: a.wr ?? 0, kd: a.kd };
+    return { pi, name: personName(people[pi]), xuid: people[pi]?.xuid, named: !!people[pi]?.gt, n: a.decided, w: a.w, wr: a.wr ?? 0, kd: a.kd };
   }).sort((x, y) => y.n - x.n);
 }
 
@@ -103,6 +106,6 @@ function frenemyStats(rows, people, own) {
   }
   return [...withM.entries()]
     .filter(([p, rs]) => rs.length >= 10 && (vsM.get(p)?.length || 0) >= 5 && !own.has(people[p]?.xuid))
-    .map(([p, rs]) => ({ name: personName(people[p], "Teammate"), withA: agg(rs), vsA: agg(vsM.get(p)) }))
+    .map(([p, rs]) => ({ name: personName(people[p], "Teammate"), xuid: people[p]?.xuid, named: !!people[p]?.gt, withA: agg(rs), vsA: agg(vsM.get(p)) }))
     .sort((x, y) => y.vsA.n - x.vsA.n);
 }
