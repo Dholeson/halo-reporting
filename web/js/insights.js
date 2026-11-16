@@ -468,7 +468,7 @@ function quitting(rows) {
 
 /** Run every analysis, best first. ctx: {db, go} */
 export function coach(allRows, ctx) {
-  const rows = allRows.filter((r) => !r.casual);
+  const rows = allRows.filter((r) => !r.casual && !r.ffa);
   const fns = [winCondition, survival, finishing, tilt, sessionLength, warmup, timeOfDay, aim, expected, lobbyDifficulty, mapPool, modeStrengths, objective, squad, quitting];
   const out = [];
   for (const fn of fns) {

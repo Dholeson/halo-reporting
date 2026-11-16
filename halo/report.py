@@ -155,7 +155,7 @@ def main() -> None:
             "call", "spawns", "objt", "obja", "objk", "done", "jip",
             "lobby", "lobbyK", "lobbyDD", "dmgRank", "kRank", "teamK", "teamD", "teamDD", "enemyK", "enemyD", "teamScore", "enemyScore",
             "season", "csrPre", "csrPost", "tier", "mmr", "mmrEnemy", "xk", "xd", "xkSd", "xdSd",
-            "mates", "foes", "medals"]
+            "teams", "mates", "foes", "medals"]
     rows: list[list] = []
     lobbies: dict[str, list] = {}
 
@@ -232,6 +232,7 @@ def main() -> None:
                 round((perf.get("Deaths") or {}).get("Expected", 0), 2) if perf.get("Deaths") else None,
                 round((perf.get("Kills") or {}).get("StdDev", 0), 2) if perf.get("Kills") else None,
                 round((perf.get("Deaths") or {}).get("StdDev", 0), 2) if perf.get("Deaths") else None,
+                0 if info.get("TeamsEnabled") is False else 1,
                 [xuid_ix(bare(q["PlayerId"])) for q in mates if q.get("PlayerType") == 1],
                 [xuid_ix(bare(q["PlayerId"])) for q in foes if q.get("PlayerType") == 1],
                 [[medal_ix(k), v] for k, v in sorted(medals.items(), key=lambda kv: -kv[1])],
@@ -285,7 +286,7 @@ def main() -> None:
     try:
         import duckdb
         con = duckdb.connect()
-        flat = [r[:-3] for r in rows]
+        flat = [r[:-3] for r in rows]  # drop list columns (mates, foes, medals)
         con.execute("create table pm (" + ", ".join(f'"{c}" varchar' for c in cols[:-3]) + ")")
         if flat:
             con.executemany(f"insert into pm values ({','.join('?' * len(flat[0]))})", [[None if v is None else str(v) for v in r] for r in flat])

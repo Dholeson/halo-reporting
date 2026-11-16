@@ -55,6 +55,7 @@ function decode(raw) {
     r.xdDiff = r.xd != null ? r.d - r.xd : null;
     r.objMode = OBJECTIVE_FAMILIES.has(r.famName);
     r.casual = CASUAL_FAMILIES.has(r.famName);
+    r.ffa = r.teams === 0; // free-for-all: only 1st place is a "win", and everyone is an "opponent"
     r.mvp = r.dmgRank === 1 && r.kRank === 1 && r.lobby > 2;
     r.date = new Date(r.t * 1000);
     return r;

@@ -37,7 +37,7 @@ export function render(ctx) {
       ${mates.length && named < mates.length ? `<p class="note" style="margin-top:10px">${mates.length - named} teammate${mates.length - named === 1 ? "" : "s"} show as IDs. The ingest resolves gamertags for anyone you've played with 3+ times, so names fill in after the next run.</p>` : ""}
     </section>
     <section class="card">
-      <div class="card-head"><div><h2>Rivals</h2><div class="sub">Opponents you keep running into (4+ games), and your record against them</div></div></div>
+      <div class="card-head"><div><h2>Rivals</h2><div class="sub">Opponents you keep running into in team games (4+), and your record against them</div></div></div>
       <div id="rivals"></div>
     </section>
   </div>
@@ -85,7 +85,7 @@ export function render(ctx) {
 function rivalStats(rows, people, own) {
   const m = new Map();
   for (const r of rows) for (const p of r.foes || []) {
-    if (own.has(people[p]?.xuid)) continue;
+    if (r.ffa || own.has(people[p]?.xuid)) continue;
     if (!m.has(p)) m.set(p, []);
     m.get(p).push(r);
   }
@@ -99,7 +99,7 @@ function frenemyStats(rows, people, own) {
   const withM = new Map(), vsM = new Map();
   for (const r of rows) {
     for (const p of r.mates || []) { if (!withM.has(p)) withM.set(p, []); withM.get(p).push(r); }
-    for (const p of r.foes || []) { if (!vsM.has(p)) vsM.set(p, []); vsM.get(p).push(r); }
+    if (!r.ffa) for (const p of r.foes || []) { if (!vsM.has(p)) vsM.set(p, []); vsM.get(p).push(r); }
   }
   return [...withM.entries()]
     .filter(([p, rs]) => rs.length >= 10 && (vsM.get(p)?.length || 0) >= 5 && !own.has(people[p]?.xuid))
