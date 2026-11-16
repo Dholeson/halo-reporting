@@ -17,6 +17,10 @@ on:
         description: "Max new matches per player this run"
         type: string
         default: "1000"
+      skill_max:
+        description: "Max matches to enrich with CSR / expected-performance data this run (all history ≈ 2500)"
+        type: string
+        default: "600"
 
 permissions:
   contents: write
@@ -36,7 +40,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
 
@@ -50,10 +54,11 @@ jobs:
           GAMERTAGS: ${{ inputs.gamertags }}
         run: |
           python3 - <<'PY'
-          import os
+          import os, re
           path = "players.txt"
           lines = open(path).read().splitlines()
-          have = {l.strip().lower() for l in lines if l.strip() and not l.startswith("#")}
+          # "Gamertag [me]" marks your own accounts; compare on the gamertag alone
+          have = {re.sub(r"\s*\[[^\]]*\]\s*$", "", l).strip().lower() for l in lines if l.strip() and not l.startswith("#")}
           new = [g.strip() for g in os.environ["GAMERTAGS"].split(",") if g.strip()]
           added = [g for g in new if g.lower() not in have]
           with open(path, "a") as f:
@@ -71,6 +76,7 @@ jobs:
           HALO_REFRESH_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN }}
           REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
           MAX_NEW_MATCHES: ${{ inputs.max_new_matches || '100' }}
+          SKILL_MAX: ${{ inputs.skill_max || '600' }}
         run: uv run python -m halo.ingest
 
       # Microsoft rotates refresh tokens. Store the new one so the chain never goes stale.

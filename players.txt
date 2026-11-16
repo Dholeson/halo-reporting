@@ -1,6 +1,7 @@
-# Gamertags to track, one per line. Easiest way to add people:
-# Actions -> Ingest & report -> Run workflow -> type gamertags in the lookup box.
+# Gamertags to track, one per line. Add " [me]" after your own accounts:
+# they're merged into "Me" in the report. Everyone else is a scouted player.
+# Easiest way to add people: Actions -> Ingest & report -> Run workflow -> gamertags box.
 # Delete a line to stop tracking someone (their stored matches stay in data/).
-Dholeson
-Soft Paws TV
-Ocelot Paws
+Dholeson [me]
+Soft Paws TV [me]
+Ocelot Paws [me]
