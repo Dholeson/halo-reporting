@@ -191,17 +191,22 @@ function stageOf(job, step) {
 
 // ---------- tab coordination: one tab talks to GitHub, the others watch ----------
 /**
- * "lead": this tab polls. "claimed": it just wrote the lease and must wait a beat. false: another tab polls.
- * localStorage reaches other tabs asynchronously, so two tabs claiming at the same moment can each read
- * their own write back. A claim only counts once it has survived until this tab's next tick: by then both
- * tabs see the same winner, and the loser backs off before anything is dispatched twice.
+ * "lead": this tab polls. "claimed": it holds a fresh claim and must wait out the beat. false: another tab polls.
+ * localStorage reaches other tabs asynchronously, and while a tab's own write is in flight it reads its own
+ * value back even after another tab wrote the same key. So a claim only counts once it is BEAT old (by its
+ * timestamp, not by tick count): by then every tab sees the same winner, and the losers back off before
+ * anything is dispatched twice. This tab's own lease keeps its claim time even after it lapses: a hidden
+ * tab's timers can be throttled to once a minute, longer than the lease, and it must still be able to lead.
  */
+const BEAT = 600;
 function lead() {
   const now = Date.now();
   const l = lsGet("lease", null);
   if (l && l.tab !== TAB && l.until > now) return false;
-  lsSet("lease", { tab: TAB, until: now + LEASE_MS });
-  return l?.tab === TAB ? "lead" : "claimed";
+  const mine = !!l && l.tab === TAB && Number.isFinite(l.since); // the newest claim this tab can see is its own
+  const since = mine ? l.since : now;
+  lsSet("lease", { tab: TAB, since, until: now + LEASE_MS });
+  return mine && now - since >= BEAT ? "lead" : "claimed";
 }
 // A reloaded page gets a new TAB id: hand the lease back on the way out so it can poll at once.
 addEventListener("pagehide", () => releaseLease());
@@ -211,9 +216,9 @@ addEventListener("storage", (e) => {
   if (e.key && e.key.endsWith(":token")) { // a remembered token appeared or was dropped in another tab
     if (connected()) ssSet("dropped", null);
     else releaseLease(); // e.g. Disconnect clicked in another tab: this one can't poll any more
-    emit(); resume(); watch(); return;
+    emit(); wake(); watch(); return;
   }
-  if (e.key && e.key.endsWith(":lease")) { resume(); watch(); return; } // the polling tab may have left: take over
+  if (e.key && e.key.endsWith(":lease")) { wake(); watch(); return; } // the polling tab may have left: take over
   if (!e.key || !e.key.endsWith(":jobs")) return;
   // Another tab finished a job: load the new data here too, once per batch.
   const finished = new Map();
@@ -223,9 +228,11 @@ addEventListener("storage", (e) => {
   }
   for (const group of finished.values()) runHandlers(group);
   emit();
-  resume(); // keep a heartbeat in every connected tab, so one can take over if the polling tab goes away
+  wake(); // keep a heartbeat in every connected tab, so one can take over if the polling tab goes away
   watch();
 });
+/** Resume a little later, at a random moment: tabs woken by the same storage event shouldn't all claim at once. */
+function wake() { setTimeout(resume, 50 + Math.floor(Math.random() * 250)); }
 
 /** Tell the app a batch finished (once per batch, with every player in it). */
 async function runHandlers(group, extra = {}) {
@@ -377,9 +384,10 @@ async function tick() {
     busy = false;
   }
   // Renew at the end too: a slow tick (GitHub answering slowly, a throttled hidden tab) mustn't let it lapse.
-  if (lsGet("lease", null)?.tab === TAB && connected()) lsSet("lease", { tab: TAB, until: Date.now() + LEASE_MS });
+  const l = lsGet("lease", null);
+  if (l?.tab === TAB && connected()) lsSet("lease", { ...l, until: Date.now() + LEASE_MS });
   clearTimeout(timer);
-  if (activeJobs().length) timer = setTimeout(tick, claimed ? 600 : document.visibilityState === "visible" ? 4000 : 10000);
+  if (activeJobs().length) timer = setTimeout(tick, claimed ? BEAT + 50 : document.visibilityState === "visible" ? 4000 : 10000);
 }
 
 function handleError(group, e) {

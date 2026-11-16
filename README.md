@@ -1,7 +1,7 @@
 # halo-reporting · Debrief
 
 Personal Halo Infinite analytics. GitHub Actions pulls your matches from Halo
-Waypoint (every 5 minutes while you're playing, every 15 otherwise), stores them in this repo (`data/`), and publishes
+Waypoint, stores them in this repo (`data/`), and publishes
 **Debrief** to GitHub Pages: pre-game briefings, post-game debriefs and coaching
 built from your own history. Nothing runs or is stored on your own machine.
 
@@ -22,9 +22,21 @@ the URL, so any view can be bookmarked or shared.
 
 ## Updates, scouting and the GitHub token
 
-New games arrive on their own: a cheap poll runs every 5 minutes while one of your
-games ended in the last 3 hours, every 15 minutes otherwise, and everyone you've
-scouted is refreshed every 6 hours. Quiet polls don't commit, rebuild or deploy.
+New games arrive two ways:
+
+- **The open site checks.** With a token connected, Debrief checks Halo when you open
+  it and keeps checking while it's open (every 10 minutes if you played in the last
+  3 hours, every 30 otherwise), whenever nothing else has checked in that time. Turn
+  it off in the Updates panel.
+- **GitHub's schedule.** The workflow is set to poll every 5 minutes while one of your
+  games ended in the last 3 hours and every 15 otherwise, but GitHub delivers scheduled
+  runs late and drops many (new schedules can take hours, sometimes a day, to start),
+  so treat it as a backstop. A late tick still runs if nothing has for 15 minutes.
+
+Every 6 hours an update also refreshes everyone you've scouted and fills in older
+history. Quiet checks don't commit, rebuild or deploy. The gate that decides what a run
+does lives in `scripts/gate.sh`, so tuning it doesn't edit the workflow file (an edit
+re-registers the schedule, which restarts GitHub's wait).
 
 From the site you can also **Sync now**, **scout anyone** (search a gamertag, or tap a
 name in a scoreboard / teammate / rival list) and **load a full history**. A scout pulls
@@ -41,7 +53,7 @@ site works read-only for everyone.
 
 | Piece | Where |
 |---|---|
-| Ingest (`halo/ingest.py`) | `Ingest & report` workflow, every 6 h. Also backfills CSR/MMR/expected stats (`data/skill/`) and names of people you play with often (`data/gamertags.json`) |
+| Ingest (`halo/ingest.py`) | `Ingest & report` workflow (scheduled, Sync now, or the site's own checks). Also backfills CSR/MMR/expected stats (`data/skill/`) and names of people you play with often (`data/gamertags.json`) |
 | Data | `data/matches/YYYY-MM.jsonl`: raw match JSON, one per line, so new Halo fields never break anything |
 | Report (`halo/report.py`) | Copies `web/` (static app, no build step) and exports `site/data/` for it |
 | Artwork | Official map/mode art and the medal sprite sheet from Halo's content API, resized into `data/art/` by the ingest (maps you've played 2+ times) |

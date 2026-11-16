@@ -338,17 +338,27 @@ async function reload() {
 }
 
 // GitHub's scheduler can run hours late (new schedules sometimes not at all), so an open, connected
-// Debrief checks Halo itself when nothing has in the last 10 minutes.
-const AUTO_CHECK_AFTER = 10 * 60e3;
+// Debrief checks Halo itself whenever nothing else has: when you open it (10 min since the last check),
+// and while it stays open (every 10 min if your last game ended in the past 3 hours, else every 30).
+const OPEN_GAP = 10 * 60e3, IDLE_GAP = 30 * 60e3;
 let autoChecking = false;
-async function autoCheck() {
+let askedAt = 0;
+function lastGameEnd() {
+  const mine = new Set(db.me.map((p) => db.players.indexOf(p)));
+  let end = 0;
+  for (const r of db.rows) if (mine.has(r.p)) end = Math.max(end, (r.t + (r.dur || 0)) * 1000);
+  return end;
+}
+async function autoCheck({ periodic = false } = {}) {
+  const gap = !periodic || Date.now() - lastGameEnd() < 3 * 3600e3 ? OPEN_GAP : IDLE_GAP;
   const idle = () => gh.connected() && store.get("autoCheck", true) && document.visibilityState === "visible" && !gh.runningJobs().length
-    && Date.now() - (store.get("autoCheckAt", 0) || 0) >= AUTO_CHECK_AFTER; // another tab may have just done it
-  if (autoChecking || !idle()) return;
+    && Date.now() - (store.get("autoCheckAt", 0) || 0) >= gap; // another tab may have just done it
+  if (autoChecking || !idle() || (periodic && Date.now() - askedAt < 3 * 60e3)) return; // ask GitHub at most every 3 min
   autoChecking = true;
+  askedAt = Date.now();
   try {
     const last = await gh.lastCheck();
-    if ((last && Date.now() - last < AUTO_CHECK_AFTER) || !idle()) return; // re-check: things moved while we asked
+    if ((last && Date.now() - last < gap) || !idle()) return; // re-check: things moved while we asked
     store.set("autoCheckAt", Date.now());
     await gh.request("sync", []);
     toast("Checking Halo for new games…");
@@ -431,6 +441,7 @@ async function boot() {
   watchFreshness();
   autoCheck();
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && autoCheck());
+  setInterval(() => autoCheck({ periodic: true }), 60000);
   addEventListener("hashchange", () => {
     const prevView = state.view;
     state = parseHash();
