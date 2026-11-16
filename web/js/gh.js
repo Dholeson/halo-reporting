@@ -144,6 +144,23 @@ export async function request(kind, players = []) {
   return job;
 }
 
+/**
+ * When Halo was last checked for new games: the start of the newest ingest run that actually pulled
+ * (a scheduled run the gate passed on doesn't count). A run that's still going counts as now. null if none.
+ */
+export async function lastCheck() {
+  const runs = (await api(`/actions/workflows/${WORKFLOW}/runs?per_page=5`)).workflow_runs;
+  for (const r of runs) {
+    if (r.status !== "completed") return Date.now();
+    if (r.event === "schedule") {
+      const detail = await api(`/actions/runs/${r.id}/jobs`).catch(() => null);
+      if (detail?.jobs?.find((j) => j.name === "ingest")?.conclusion === "skipped") continue;
+    }
+    return Date.parse(r.run_started_at || r.created_at);
+  }
+  return null;
+}
+
 function patch(ids, changes) {
   const set = new Set([].concat(ids));
   const list = jobs();

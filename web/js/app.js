@@ -337,6 +337,28 @@ async function reload() {
   }
 }
 
+// GitHub's scheduler can run hours late (new schedules sometimes not at all), so an open, connected
+// Debrief checks Halo itself when nothing has in the last 10 minutes.
+const AUTO_CHECK_AFTER = 10 * 60e3;
+let autoChecking = false;
+async function autoCheck() {
+  const idle = () => gh.connected() && store.get("autoCheck", true) && document.visibilityState === "visible" && !gh.runningJobs().length
+    && Date.now() - (store.get("autoCheckAt", 0) || 0) >= AUTO_CHECK_AFTER; // another tab may have just done it
+  if (autoChecking || !idle()) return;
+  autoChecking = true;
+  try {
+    const last = await gh.lastCheck();
+    if ((last && Date.now() - last < AUTO_CHECK_AFTER) || !idle()) return; // re-check: things moved while we asked
+    store.set("autoCheckAt", Date.now());
+    await gh.request("sync", []);
+    toast("Checking Halo for new games…");
+  } catch {
+    /* offline or a token problem: the Updates panel explains, and Sync now still works */
+  } finally {
+    autoChecking = false;
+  }
+}
+
 function watchFreshness() {
   // An open tab (or your phone coming back to it) notices new games without a manual refresh.
   const check = async () => {
@@ -407,6 +429,8 @@ async function boot() {
   });
   gh.resume();
   watchFreshness();
+  autoCheck();
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && autoCheck());
   addEventListener("hashchange", () => {
     const prevView = state.view;
     state = parseHash();

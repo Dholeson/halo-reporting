@@ -1,7 +1,7 @@
 // People: search, person cards, scouting, the activity panel and the
 // "still loading" states. Anything that starts an update goes through gh.js.
 
-import { $, esc, fmt, icon, initials, ago, toast, accountColor, cssVar } from "../util.js";
+import { $, esc, fmt, icon, initials, ago, toast, accountColor, cssVar, store } from "../util.js";
 import * as gh from "../gh.js";
 import { agg } from "../stats.js";
 
@@ -53,7 +53,7 @@ export function openConnect(ctx, { then } = {}) {
     </ol>
     ${r ? "" : `<label class="field"><span>Repository (owner/name)</span><input id="repo-in" placeholder="owner/halo-reporting" autocomplete="off"></label>`}
     <label class="field"><span>Token</span><input id="tok-in" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false"></label>
-    <label class="check"><input type="checkbox" id="tok-remember"> <span>Keep me connected on this device</span></label>
+    <label class="check"><input type="checkbox" id="tok-remember"> <span>Keep me connected on this device, so Debrief can check for new games whenever you open it</span></label>
     <p class="note">By default the token is forgotten when you close this tab. If you keep it, note that every GitHub Pages site you publish under ${esc(r ? `${r.owner}.github.io` : "your github.io address")} shares this browser storage, so only do it if you don't publish other Pages sites there. Visitors without a token stay read-only.</p>
     <p class="error" id="tok-err" hidden></p>
     <div class="mc-actions"><button class="btn" data-close>Cancel</button><button class="btn primary" id="tok-go">Connect</button></div>`);
@@ -129,9 +129,10 @@ export function openActivity(ctx) {
     return `
     <div class="mc-head"><h2>Updates</h2><button class="icon-btn" data-close aria-label="Close">${icon("close")}</button></div>
     <div class="sync-row">
-      <div><b>Sync now</b><p class="note">Pulls new games for everyone you track. New games also arrive automatically: every 5 min while you're playing, every 15 min otherwise.</p></div>
+      <div><b>Sync now</b><p class="note">Pulls new games for everyone you track. They also arrive on GitHub's schedule, which GitHub sometimes runs hours late.</p></div>
       <button class="btn primary" id="sync-now">${icon("reset")}Sync now</button>
     </div>
+    <label class="check"><input type="checkbox" id="auto-check" ${store.get("autoCheck", true) ? "checked" : ""}> <span>Check for new games when I open Debrief${gh.connected() ? "" : " (once connected)"}</span></label>
     ${gh.pausedJobs().length ? `<div class="callout">${icon("clock")} <b>${gh.pausedJobs().length} update${gh.pausedJobs().length === 1 ? " is" : "s are"} paused.</b> ${gh.droppedReason() ? esc(gh.droppedReason()) + " " : ""}No open tab is connected to GitHub. Connect here to keep following ${gh.pausedJobs().length === 1 ? "it" : "them"}.</div>` : ""}
     ${list.length ? `<div class="jobs">${list.map((j) => `
       <div class="job ${esc(j.state)}">
@@ -155,6 +156,7 @@ export function openActivity(ctx) {
     el.querySelector("#disc")?.addEventListener("click", () => { gh.disconnect(); redraw(); ctx.refreshChrome(); });
     el.querySelector("#conn")?.addEventListener("click", () => { close(); openConnect(ctx); });
     el.querySelector("#clear")?.addEventListener("click", () => { gh.clearFinished(); redraw(); });
+    el.querySelector("#auto-check")?.addEventListener("change", (e) => store.set("autoCheck", e.target.checked));
     el.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", close));
   };
   wire();
