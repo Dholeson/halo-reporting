@@ -13,6 +13,8 @@ Env:
   MAX_NEW_MATCHES   cap on new matches per player per run (default 100)
   BACKFILL          "1" = keep paging past known matches to fill old history
   MATCH_TYPE        all | matchmaking | custom | local (default matchmaking)
+  ONLY_PLAYERS      comma-separated gamertags: only pull history for these this run
+  TRACK_SELF        "1" = also track the account that signed in
 """
 
 import asyncio
@@ -114,39 +116,61 @@ async def main() -> None:
 
         client = HaloInfiniteClient(http, me.spartan_token, me.clearance_token, requests_per_second=3)
 
-        players = {bare_xuid(k): v for k, v in load_json(DATA / "players.json").items()}
-        players[bare_xuid(me.xuid)] = me.gamertag
-        for gt in tracked_gamertags():
-            if gt.lower() in (g.lower() for g in players.values()):
-                continue
-            user = await (await client.profile.get_user_by_gamertag(gt)).json()
-            players[bare_xuid(user["xuid"])] = user["gamertag"]
+        # players.txt is the source of truth; players.json just caches gamertag -> xuid.
+        cache = {v.lower(): bare_xuid(k) for k, v in load_json(DATA / "players.json").items()}
+        wanted = tracked_gamertags()
+        if os.environ.get("TRACK_SELF") == "1":
+            wanted.append(me.gamertag)
+            cache[me.gamertag.lower()] = bare_xuid(me.xuid)
 
+        players: dict[str, str] = {}
+        for gt in wanted:
+            if gt.lower() in cache:
+                players[cache[gt.lower()]] = gt
+                continue
+            try:
+                user = await (await client.profile.get_user_by_gamertag(gt)).json()
+            except Exception as e:
+                print(f"::warning::Couldn't find gamertag {gt!r} ({type(e).__name__}). Typo?")
+                continue
+            players[bare_xuid(user["xuid"])] = user["gamertag"]
+        dump_json(DATA / "players.json", players)
+
+        only = {g.strip().lower() for g in os.environ.get("ONLY_PLAYERS", "").split(",") if g.strip()}
         seen = known_match_ids()
         todo: list[str] = []
         for xuid, gt in players.items():
-            ids = await new_match_ids(client, xuid, seen | set(todo), cap, backfill, match_type)
+            if only and gt.lower() not in only:
+                continue
+            try:
+                ids = await new_match_ids(client, xuid, seen | set(todo), cap, backfill, match_type)
+            except Exception as e:
+                print(f"::warning::{gt}: couldn't read match history ({type(e).__name__}). Private history?")
+                continue
             print(f"{gt} (xuid {xuid}): {len(ids)} new {match_type} matches")
             todo += ids
 
         assets = load_json(DATA / "assets.json")
-        by_month: dict[str, list[str]] = {}
+        stored = 0
         for i, mid in enumerate(todo, 1):
-            match = await (await client.stats.get_match_stats(mid)).json()
+            try:
+                match = await (await client.stats.get_match_stats(mid)).json()
+            except Exception as e:
+                print(f"  skipped match {mid} ({type(e).__name__})")
+                continue
             info = match["MatchInfo"]
             await asset_name(client, assets, "map", info.get("MapVariant"))
             await asset_name(client, assets, "mode", info.get("UgcGameVariant"))
             await asset_name(client, assets, "playlist", info.get("Playlist"))
-            by_month.setdefault(info["StartTime"][:7], []).append(json.dumps(match, separators=(",", ":")))
+            with open(MATCHES / f"{info['StartTime'][:7]}.jsonl", "a") as f:
+                f.write(json.dumps(match, separators=(",", ":")) + "\n")
+            stored += 1
             if i % 25 == 0:
                 print(f"  fetched {i}/{len(todo)}")
+                dump_json(DATA / "assets.json", assets)
 
-        for month, lines in by_month.items():
-            with open(MATCHES / f"{month}.jsonl", "a") as f:
-                f.write("\n".join(lines) + "\n")
-        dump_json(DATA / "players.json", players)
         dump_json(DATA / "assets.json", assets)
-        print(f"Stored {len(todo)} new matches.")
+        print(f"Stored {stored} new matches.")
 
 
 if __name__ == "__main__":

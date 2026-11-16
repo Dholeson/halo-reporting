@@ -5,6 +5,10 @@ on:
     - cron: "17 */6 * * *"   # every 6 hours
   workflow_dispatch:
     inputs:
+      gamertags:
+        description: "Look up / start tracking these gamertags (comma-separated). Pulls their full history."
+        type: string
+        default: ""
       backfill:
         description: "Keep paging past known matches to fill older history"
         type: boolean
@@ -12,7 +16,7 @@ on:
       max_new_matches:
         description: "Max new matches per player this run"
         type: string
-        default: "100"
+        default: "1000"
 
 permissions:
   contents: write
@@ -36,6 +40,29 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
 
+      - name: Backfill checkbox
+        if: inputs.backfill
+        run: echo "BACKFILL=1" >> "$GITHUB_ENV"
+
+      - name: Add looked-up gamertags to players.txt
+        if: inputs.gamertags != ''
+        env:
+          GAMERTAGS: ${{ inputs.gamertags }}
+        run: |
+          python3 - <<'PY'
+          import os
+          path = "players.txt"
+          lines = open(path).read().splitlines()
+          have = {l.strip().lower() for l in lines if l.strip() and not l.startswith("#")}
+          new = [g.strip() for g in os.environ["GAMERTAGS"].split(",") if g.strip()]
+          added = [g for g in new if g.lower() not in have]
+          with open(path, "a") as f:
+              f.writelines(g + "\n" for g in added)
+          print("Added:", ", ".join(added) or "(already tracked)")
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write("ONLY_PLAYERS=" + ",".join(new) + "\nBACKFILL=1\n")
+          PY
+
       - name: Pull new matches
         if: env.HAS_TOKEN == 'true'
         env:
@@ -43,7 +70,6 @@ jobs:
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
           HALO_REFRESH_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN }}
           REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
-          BACKFILL: ${{ inputs.backfill && '1' || '0' }}
           MAX_NEW_MATCHES: ${{ inputs.max_new_matches || '100' }}
         run: uv run python -m halo.ingest
 
@@ -66,9 +92,10 @@ jobs:
         run: |
           git config user.name "halo-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          git add data players.txt
           git diff --cached --quiet && exit 0
           git commit -m "data: ingest $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase -q origin main
           git push
 
       - name: Build report
