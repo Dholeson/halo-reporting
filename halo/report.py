@@ -35,6 +35,18 @@ def secs(d) -> float:
     return round(h * 3600 + mi * 60 + s, 1)
 
 
+def num(v, digits: int | None = None):
+    """A finite number or None. Halo sends "NaN" (as a string) when it can't compute a value,
+    and a float NaN would write JSON that browsers refuse to parse."""
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if f != f or f in (float("inf"), float("-inf")):
+        return None
+    return round(f, digits) if digits is not None else f
+
+
 def load(path: Path, default):
     return json.loads(path.read_text()) if path.exists() else default
 
@@ -200,12 +212,14 @@ def main() -> None:
             pre, post = rr.get("PreMatchCsr") or {}, rr.get("PostMatchCsr") or {}
             perf = sk.get("StatPerformances") or {}
             mmrs = sk.get("TeamMmrs") or {}
-            enemy_mmr = [v for k, v in mmrs.items() if str(k) != str(team)]
+            enemy_mmr = [x for k, v in mmrs.items() if str(k) != str(team) and (x := num(v)) is not None]
+            stat = lambda kind, field: num(((perf.get(kind) or {}).get(field)), 2)
+            pre_v, post_v = num(pre.get("Value")), num(post.get("Value"))
             objt, obja, objk = objective(p)
             part = p.get("ParticipationInfo") or {}
             medals = c.get("medals", {})
             tier = ""
-            if post.get("Tier") and post.get("Value", -1) >= 0:
+            if post.get("Tier") and post_v is not None and post_v >= 0:
                 tier = post["Tier"] if post["Tier"] == "Onyx" else f"{post['Tier']} {post.get('SubTier', 0) + 1}"
             season = (info.get("SeasonId") or "").rsplit("/", 1)[-1].replace(".json", "").replace("CsrSeason", "Season ")
             rows.append([
@@ -225,15 +239,15 @@ def main() -> None:
                 sum_(mates, "DamageDealt") + c.get("DamageDealt", 0), sum_(foes, "Kills"), sum_(foes, "Deaths"),
                 team_scores.get(team), max(enemy_scores) if enemy_scores else None,
                 seasons(season) if season else None,
-                pre.get("Value") if pre.get("Value", -1) >= 0 else None,
-                post.get("Value") if post.get("Value", -1) >= 0 else None,
+                int(pre_v) if pre_v is not None and pre_v >= 0 else None,
+                int(post_v) if post_v is not None and post_v >= 0 else None,
                 tiers(tier) if tier else None,
-                round(sk["TeamMmr"]) if sk.get("TeamMmr") else None,
+                num(sk.get("TeamMmr"), 0),
                 round(sum(enemy_mmr) / len(enemy_mmr)) if enemy_mmr else None,
-                round((perf.get("Kills") or {}).get("Expected", 0), 2) if perf.get("Kills") else None,
-                round((perf.get("Deaths") or {}).get("Expected", 0), 2) if perf.get("Deaths") else None,
-                round((perf.get("Kills") or {}).get("StdDev", 0), 2) if perf.get("Kills") else None,
-                round((perf.get("Deaths") or {}).get("StdDev", 0), 2) if perf.get("Deaths") else None,
+                stat("Kills", "Expected"),
+                stat("Deaths", "Expected"),
+                stat("Kills", "StdDev"),
+                stat("Deaths", "StdDev"),
                 0 if info.get("TeamsEnabled") is False else 1,
                 [xuid_ix(bare(q["PlayerId"])) for q in mates if q.get("PlayerType") == 1],
                 [xuid_ix(bare(q["PlayerId"])) for q in foes if q.get("PlayerType") == 1],
@@ -278,7 +292,7 @@ def main() -> None:
         },
         "cols": cols, "rows": rows,
     }
-    (SITE / "data" / "data.json").write_text(json.dumps(payload, separators=(",", ":")))
+    (SITE / "data" / "data.json").write_text(json.dumps(payload, separators=(",", ":"), allow_nan=False))
     # Lobby scoreboards, sharded by month so the match drawer only fetches what it needs.
     (SITE / "data" / "lobbies").mkdir(exist_ok=True)
     month_of = {r[0]: datetime.fromtimestamp(r[1], timezone.utc).strftime("%Y-%m") for r in rows}
