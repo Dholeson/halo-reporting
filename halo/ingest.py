@@ -55,6 +55,13 @@ def bare_xuid(x: str | int) -> str:
     return s[5:-1] if s.startswith("xuid(") else s
 
 
+def why(e: Exception) -> str:
+    """Short, secret-free description of a failed request (aiohttp errors carry status)."""
+    status = getattr(e, "status", None)
+    msg = getattr(e, "message", "") or str(e)
+    return f"{type(e).__name__} {status or ''} {msg}".strip()[:200]
+
+
 def tracked_gamertags() -> list[str]:
     path = Path("players.txt")
     if not path.exists():
@@ -131,7 +138,7 @@ async def main() -> None:
             try:
                 user = await (await client.profile.get_user_by_gamertag(gt)).json()
             except Exception as e:
-                print(f"::warning::Couldn't find gamertag {gt!r} ({type(e).__name__}). Typo?")
+                print(f"::warning::Couldn't find gamertag {gt!r}: {why(e)}")
                 continue
             players[bare_xuid(user["xuid"])] = user["gamertag"]
         dump_json(DATA / "players.json", players)
@@ -145,7 +152,7 @@ async def main() -> None:
             try:
                 ids = await new_match_ids(client, xuid, seen | set(todo), cap, backfill, match_type)
             except Exception as e:
-                print(f"::warning::{gt}: couldn't read match history ({type(e).__name__}). Private history?")
+                print(f"::warning::{gt}: couldn't read match history: {why(e)}")
                 continue
             print(f"{gt} (xuid {xuid}): {len(ids)} new {match_type} matches")
             todo += ids
@@ -156,7 +163,7 @@ async def main() -> None:
             try:
                 match = await (await client.stats.get_match_stats(mid)).json()
             except Exception as e:
-                print(f"  skipped match {mid} ({type(e).__name__})")
+                print(f"  skipped match {mid}: {why(e)}")
                 continue
             info = match["MatchInfo"]
             await asset_name(client, assets, "map", info.get("MapVariant"))
