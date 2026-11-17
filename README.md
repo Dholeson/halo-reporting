@@ -11,7 +11,7 @@ built from your own history. Nothing runs or is stored on your own machine.
 |---|---|
 | **Overview** | Your story: form headline, KPIs vs the previous period, form trend, best days/times, activity calendar, highlight reel, signature medals |
 | **Briefing** | Loading into a match? Pick map + mode → verdict, your numbers there vs your baseline, how you win there, a game plan (aware of your current session and time of day) |
-| **In-game** | One screen to play from on a phone or second monitor: one-tap matchup, then what your wins look like there (only stats where wins beat losses), your game plan, the map's callouts, spawns and this mode's objectives, the mode's rules and coaching, and tap-to-start respawn timers. No app chrome, keeps the screen on, and checks Halo for your result right after a typical game there would end |
+| **In-game** | One screen to play from on a phone or second monitor: one-tap matchup, then what your wins look like there (only stats where wins beat losses), your game plan, the map's callouts, power items and this mode's objectives (drawn as a schematic you can enlarge), the mode's rules and coaching, and tap-to-start timers for the map's power items. No app chrome, keeps the screen on, and checks Halo for your result right after a typical game there would end |
 | **Coach** | Ranked findings with evidence and confidence: win condition, survival, finishing, tilt, session fatigue, warm-up, time of day, map pool, objective play, squad, expected vs actual |
 | **Maps & Modes** | Map × mode matrix (win rate / K/D / damage ratio / games) and sortable tables |
 | **Ranked** | CSR journey per account with tier bands, where you farm/bleed CSR, net CSR per session, kills/deaths vs Halo's expectation, lobby difficulty |
@@ -50,6 +50,15 @@ workflow) watches your Xbox presence and Halo's lobby presence for 25 minutes wh
 matchmade game, read-only, and writes a verdict on the run's summary page: whether either source names
 the map and mode, and how soon after the match starts. It logs only your own accounts' status (other
 players' IDs are replaced with "someone"); the run log is public on a public repo.
+
+**Map playbooks.** The In-game screen's map and mode notes live in `web/playbook/maps.json` and
+`modes.json`, compiled by `scripts/build_playbook.py` from research: community guides, map-data
+catalogs on GitHub (callout volumes and pads read from the game's map files) and your own match
+history (medals and scores show, for example, whether a ranked map has a power weapon at all). Only
+facts a source supports are kept, each map lists its sources, and the script refuses output that
+points at local files. Schematics are original diagrams of relative positions, not to scale; a map
+whose layout isn't known well enough gets a grouped callout list instead, and timers appear only for
+power items the map is known to have (a sandbox-wide respawn time is marked ≈).
 
 From the site you can also **Sync now**, **scout anyone** (search a gamertag, or tap a
 name in a scoreboard / teammate / rival list) and **load a full history**. A scout pulls

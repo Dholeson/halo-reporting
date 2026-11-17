@@ -1,0 +1,1111 @@
+{
+ "compiled": "2026-11-17",
+ "modes": {
+  "Slayer": {
+   "rankedRules": "Ranked Arena and the standalone Ranked Slayer playlist (4v4): first to 50 kills, 12:00 limit, one round. Starting weapon has been the Bandit Evo since the Season 5 ranked update (late 2023); it was the BR75 before that. Motion tracker off, friendly fire on, and a suicide or betrayal costs the team 1 point (HCS 2025 handbook; confirmed by your data, where about 1 team in 10 ends with a score below its kill count). Respawn is about 8 s of dead time per death, measured from your own ranked matches and stable every season since 2022. Median length is about 8.5 min. Same-family ranked variants: Ranked Doubles 2v2 to 25, Ranked Squad Slayer 6v6 to 75 (rotational, 2025), Ranked Team Snipers to 50, and Ranked Tactical Slayer. HCS 2023-2025 used the same 50 / 12:00. No overtime appears in the data.",
+   "mechanics": [
+    "Score equals kills. Suicides (grenades, falls) and betrayals take a point away, so careless deaths cost the team directly.",
+    "There is no radar. Information comes from sound, the kill feed, teammates' pings and a Threat Sensor if the map has one. Pinging an enemy who is then killed by a teammate earns a Callout Assist.",
+    "Power items (Overshield, Active Camo, Rockets, Sniper, Skewer, Hammer and so on) spawn on fixed pads that show a countdown. Overshield and Camo are 'power equipment': a player can pick one up, carry it and fire it later, so an enemy may be banking one for the next fight.",
+    "In Ranked/HCS a weapon rack turns red once its weapon is taken. Its refill countdown starts only after that original weapon has despawned, so keeping a rack weapon delays its replacement.",
+    "Spawns steer away from enemies and toward teammates. Over-pushing or splitting up can flip enemy spawns behind you.",
+    "Fusion coils do not come back in Ranked once destroyed (Dec 2022 backend change)."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 8,
+     "notes": "Measured from your data (dead time per death about 7.7-8.0 s every season). After you kill two enemies, you have about 8 s with extra numbers."
+    },
+    {
+     "what": "Match time limit",
+     "seconds": 720,
+     "notes": "Rarely reached. Median game is about 8 min."
+    },
+    {
+     "what": "Power weapon / Overshield / Camo pad",
+     "seconds": null,
+     "notes": "Map-specific, usually 120-240 s. The countdown shows above the pad. See general.respawns."
+    },
+    {
+     "what": "Overshield after activation",
+     "seconds": 40,
+     "notes": "Approximate (guides, not re-verified). The extra shield layer drains on its own and does not recharge, so fight while it lasts."
+    },
+    {
+     "what": "Active Camo duration",
+     "seconds": 30,
+     "notes": "Approximate (guides, not re-verified). Shooting and other actions make you more visible."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Play the numbers window",
+     "text": "Each kill takes an enemy out for about 8 s. When your team is up two or more players, move together right away to the next strong spot or power item. When you're down two, back off to cover near a teammate and wait for respawns instead of taking a 1v2."
+    },
+    {
+     "title": "Fight within trade distance",
+     "text": "Stay close enough that a teammate can shoot whoever kills you: overlapping sightlines, a couple of seconds apart. A traded death roughly breaks even; an untraded one is a free point. If most of your deaths are solo, you're over-extending."
+    },
+    {
+     "title": "Be early to power",
+     "text": "Note the time when the enemy grabs Overshield, Camo or a power weapon. Be set up near that pad 10-15 s before it returns, with full shields and a teammate. If you can't win the pad, hold an angle on it and punish whoever picks it up."
+    },
+    {
+     "title": "Protect a lead, chase a deficit",
+     "text": "Up 5+ kills late, stop taking even duels. Hold power positions and make them cross open ground to you. Behind late, you need fights: push in pairs to force spawns to move and make them come to you."
+    },
+    {
+     "title": "Reset before you re-peek",
+     "text": "After any exchange, break line of sight and let shields come back before the next duel. Re-peeking while one-shot is the most common wasted life. Use the kill feed to count how many enemies are actually alive before you commit."
+    }
+   ],
+   "soloQ": [
+    "Ping every enemy you see. Random teammates react to pings, and you earn callout assists when they finish the kill.",
+    "Attach yourself to the teammate who is doing best and play as their trade partner instead of running your own route.",
+    "Watch the kill feed. When two enemies have just died, push with whoever is nearest even without voice comms."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2025/01/HCS_2025_Program_Handbook_v2.5.2.docx.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2025 Program Handbook v2.5.2.docx.pdf"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2023/02/HCS_2023_Program_Handbook_v1.0-1.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2023 Program Handbook v1.0 1.pdf"
+    },
+    {
+     "url": "https://www.halowaypoint.com/halo-infinite/ugc/modes/88c22b1f-2d64-48b9-bab1-26fe4721fb23",
+     "title": "halowaypoint.com: 88c22b1f 2d64 48b9 bab1 26fe4721fb23"
+    },
+    {
+     "url": "https://halopedia.org/Bandit_Evo",
+     "title": "halopedia.org: Bandit Evo"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/ranked-update-season-5-2",
+     "title": "halowaypoint.com: ranked update season 5 2"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/11284528984084-Halo-Infinite-Update-December-6-2022",
+     "title": "support.halowaypoint.com: 11284528984084 Halo Infinite Update December 6 2022"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/26608497528596-Equipment-in-Halo-Infinite",
+     "title": "support.halowaypoint.com: 26608497528596 Equipment in Halo Infinite"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Capture the Flag": {
+   "rankedRules": "Ranked Arena 4v4, 12:00 limit, respawn about 10 s (your data). 'CTF 3 Captures' runs on most maps (Fortress, Forbidden, Origin, Empyrean, Serenity, Argyle). 'CTF 5 Captures' runs on Aquarius. This split has been in place since late 2023. Season 1 Ranked CTF was 5 captures on every map, and HCS 2024 used 3 or 5 depending on the map with 12:00. You can only score while your own flag is at home. If time expires while a flag that would change the result is away from base, sudden death keeps the game going until it's back (Apr 2022 patch). If the score is tied at 12:00, an overtime period follows, up to about 5 min in your data, and the next capture wins. Still tied after that means a draw. Ranked Squad Battle (6v6 rotational, 2025) adds Multi-Flag (first to 3) and One Flag (teams alternate attack and defense, first to 3 round wins).",
+   "mechanics": [
+    "The flag carrier can't fire weapons. They can melee, and can drop the flag (hold the weapon-swap button) to fight or toss it.",
+    "Your own flag must be home to score. If both flags are out, nothing can score until a carrier dies or a flag is returned.",
+    "A dropped flag counts down to an automatic return. The owning team standing on it speeds the return, and an enemy picking it up again restarts the countdown. BTB uses 60 s (raised from 40). The Arena value was not verified.",
+    "A loose flag can be pulled in with the Grappleshot or pushed with the Repulsor. Dropping or tossing it moves it across gaps or to a teammate.",
+    "A stolen flag is marked on the HUD, so defenders can see the carrier's route.",
+    "Overtime starts as a new tied 'round'. The stats API records it as RoundsTied plus an extra round."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Your data, every season. Two kills give about 10 s to grab and clear the first chokepoint."
+    },
+    {
+     "what": "Regulation time",
+     "seconds": 720,
+     "notes": "About 40% of your 3-cap games reach the time limit."
+    },
+    {
+     "what": "Overtime when tied",
+     "seconds": 300,
+     "notes": "Inferred from your data: games that tied twice end about 5 min after regulation. Next capture wins."
+    },
+    {
+     "what": "Dropped-flag auto return (BTB)",
+     "seconds": 60,
+     "notes": "Official BTB figure. The Arena value is not verified. Standing on your flag speeds the return."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Kill before you pull",
+     "text": "Grab the flag only after winning a fight. Two enemy deaths give about 10 s of respawn time, which is your window to pick it up and get past the first danger point. Pulling into a full defense usually just gives them a free return."
+    },
+    {
+     "title": "Keep home covered",
+     "text": "You can't cap while your own flag is gone, so a team that sends everyone forward stalls itself. Keep one player positioned to stop or chase an enemy pull, ideally with a longer-range weapon watching the enemy's exit route."
+    },
+    {
+     "title": "Escort ahead and behind",
+     "text": "One teammate runs the carrier's route a few seconds ahead and clears corners. Another trails the carrier to trade whoever shoots them. A carrier who gets caught can drop the flag to fight back, then pick it up again."
+    },
+    {
+     "title": "Move the flag with tools",
+     "text": "Toss the flag forward across gaps or to a teammate, and use the Grappleshot or Repulsor on a loose flag. On defense, stand on your dropped flag to speed its return and fight from there instead of chasing its escorts."
+    },
+    {
+     "title": "Manage the clock",
+     "text": "Leading late, protect your flag room and give up no pulls. A flag that is away when time hits zero keeps sudden death running. Trailing, start a pull before time runs out. A tie goes to overtime, where one cap wins it."
+    }
+   ],
+   "soloQ": [
+    "In solo queue everyone runs at the enemy flag. Be the player who watches your flag and the middle route. Stopping a pull is worth as much as a capture.",
+    "When a teammate grabs the flag, drop what you're doing, move to their route and ping enemies ahead of them.",
+    "Don't pull alone into a full team. Wait for a teammate's kill or a two-down window."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2024/07/HCS_2024_Program_Handbook_v2.2.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2024 Program Handbook v2.2.pdf"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2025/01/HCS_2025_Program_Handbook_v2.5.2.docx.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2025 Program Handbook v2.5.2.docx.pdf"
+    },
+    {
+     "url": "https://www.halopedia.org/Capture_the_Flag",
+     "title": "halopedia.org: Capture the Flag"
+    },
+    {
+     "url": "https://www.windowscentral.com/halo-infinite-april-5-2022-patch-update",
+     "title": "windowscentral.com: halo infinite april 5 2022 patch update"
+    },
+    {
+     "url": "https://www.player.one/halo-infinite-april-5-update-changes-sudden-death-rules-ctf-146701",
+     "title": "player.one: halo infinite april 5 update changes sudden death rules ctf 146701"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/btb-update",
+     "title": "halowaypoint.com: btb update"
+    },
+    {
+     "url": "https://gamerjournalist.com/halo-infinite-drop-flag/",
+     "title": "gamerjournalist.com: halo infinite drop flag"
+    },
+    {
+     "url": "https://www.gamepur.com/guides/how-to-drop-the-flag-in-halo-infinite-capture-the-flag",
+     "title": "gamepur.com: how to drop the flag in halo infinite capture the flag"
+    },
+    {
+     "url": "https://kotaku.com/halo-infinite-ctf-capture-ranked-playlist-behemoth-1848434469",
+     "title": "kotaku.com: halo infinite ctf capture ranked playlist behemoth 1848434469"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Oddball": {
+   "rankedRules": "Ranked Arena 4v4: best of 3 rounds (first to 2). A round is 100 points, scored at 1 point per second of holding the ball. Each round has a 5:00 'objective clock' that, per HCS 2023-2024 settings and Halopedia, runs only while nobody holds the ball. Rounds therefore rarely end on time: about 3% of your ranked Oddball games had a round decided on the clock, with the team ahead winning it. Respawn about 10 s. Recent maps: Recharge, Live Fire, Streets, Lattice, Vacancy. Matches run long: median about 12 min, up to about 23 min, which fits a clock that stops while the ball is held. The stats API shows SkullScoringTicks equal to the score, i.e. seconds held.",
+   "mechanics": [
+    "The carrier can't shoot. They can melee and can drop or throw the ball with weapon swap. The ball is marked on the HUD for both teams.",
+    "Holding the ball freezes the round clock. The clock only drains while the ball is loose.",
+    "A ball that goes out of bounds respawns at its home spot after a few seconds. A ball left lying around also resets after a while (time not verified).",
+    "Points are seconds held. Kills only matter as a way to win or protect possession."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Your data, every season."
+    },
+    {
+     "what": "Possession needed to win a round",
+     "seconds": 100,
+     "notes": "Total hold time, need not be continuous."
+    },
+    {
+     "what": "Round objective clock",
+     "seconds": 300,
+     "notes": "Counts down only while the ball is not held."
+    },
+    {
+     "what": "Out-of-bounds ball reset",
+     "seconds": 5,
+     "notes": "Approximate, from 2021 reporting; not re-verified."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Pick a setup before the pickup",
+     "text": "Decide where the ball is going before you grab it: a spot with cover, few entrances and teammates nearby. Walking it across open ground loses it."
+    },
+    {
+     "title": "The carrier hides, the team fights",
+     "text": "The carrier can't shoot, so teammates should stand at the entry points 10-20 m out, facing where pushes come from. Don't stack on the carrier; one grenade then hits everyone."
+    },
+    {
+     "title": "Pass before you die",
+     "text": "When the carrier is about to fall, toss the ball back toward teammates or somewhere the enemy can't reach quickly. Knocking it off the map sends it back to the center, which can deny an enemy pickup."
+    },
+    {
+     "title": "Count to 100",
+     "text": "The score is seconds held. Once the enemy is in the 70s, everyone has to go for the ball now. When you're in the 80s, play to survive and pass the ball between teammates instead of fighting."
+    },
+    {
+     "title": "Win the drop, not the kill",
+     "text": "When a carrier dies the ball lands right there. The next few seconds are about picking it up or covering it, not chasing kills."
+    }
+   ],
+   "soloQ": [
+    "If nobody takes the ball, take it and walk it to your teammates rather than holding it in the open.",
+    "If a random teammate has it, guard the most likely push lane 10-20 m out and ping attackers.",
+    "Don't play it like Slayer. Kills that don't lead to a pickup or a defended hold don't score."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2024/08/HCS-Major-Salt-Lake-City-2024-Official-Rules-v1.1.pdf",
+     "title": "wpassets.halowaypoint.com: HCS Major Salt Lake City 2024 Official Rules v1.1.pdf"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2024/09/HaloWC-2024-Official-Rules-v1.pdf",
+     "title": "wpassets.halowaypoint.com: HaloWC 2024 Official Rules v1.pdf"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2023/02/HCS_2023_Program_Handbook_v1.0-1.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2023 Program Handbook v1.0 1.pdf"
+    },
+    {
+     "url": "https://www.halopedia.org/Oddball",
+     "title": "halopedia.org: Oddball"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/season-2-modes-preview",
+     "title": "halowaypoint.com: season 2 modes preview"
+    },
+    {
+     "url": "https://kotaku.com/halo-infinite-players-keep-jumping-off-the-edge-to-win-1848214260",
+     "title": "kotaku.com: halo infinite players keep jumping off the edge to win 1848214260"
+    },
+    {
+     "url": "https://forums.halowaypoint.com/t/why-does-the-oddball-not-reset/31104",
+     "title": "forums.halowaypoint.com: 31104"
+    },
+    {
+     "url": "https://gamertweak.com/throw-drop-oddball-halo-infinite",
+     "title": "gamertweak.com: throw drop oddball halo infinite"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "King of the Hill": {
+   "rankedRules": "Ranked Arena 4v4: first to 4 hills. A team scores a hill by filling its own control meter with 40 s of uncontested time. Clean 4-hill wins in your data show exactly 160 team scoring ticks in every season from Season 5 (late 2023) through 2026. A 35 s figure was reported in 2022, and the non-ranked Squad Battle KOTH used 35 s per hill and first to 3 before switching to classic timed scoring (first to 180) in Sept 2025. There is no hill-move timer: the hill moves only after someone scores it. Ranked uses a fixed hill order on each map. A 5:00 objective clock runs only while the hill is empty (HCS 2024 settings: 4 to win, 5:00); about 1 game in 25 in your data ends on it. Respawn about 10 s. Recent maps: Recharge, Solitude, Live Fire, Lattice, Vacancy.",
+   "mechanics": [
+    "Taking an empty hill is quick. Any enemy inside pauses your meter, and every enemy has to be cleared before it moves again.",
+    "A 2022 community report says the meter fills at the same rate however many teammates are in the hill (not re-verified).",
+    "Both teams' meters reset only when the hill is scored and moves (Halopedia). Partial progress on the current hill is not lost when you're pushed off.",
+    "Ranked hill order is fixed per map, so the next hill can be learned and pre-rotated."
+   ],
+   "timers": [
+    {
+     "what": "Hill control meter",
+     "seconds": 40,
+     "notes": "Uncontested seconds needed to score one hill in Ranked (derived from your data)."
+    },
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Your data. A 3-kill wipe gives about 10 s of free meter, a quarter of a hill."
+    },
+    {
+     "what": "Objective clock",
+     "seconds": 300,
+     "notes": "Drains only while nobody is in the hill. Games still run 10-17 min."
+    },
+    {
+     "what": "Hill relocation",
+     "seconds": null,
+     "notes": "No timer. The hill moves only on a score, to the next spot in the fixed Ranked order."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Hold with one, kill with three",
+     "text": "One player in the hill fills the meter. The other three hold the angles that see into the hill so contesters die before they step in."
+    },
+    {
+     "title": "Pre-rotate in Ranked",
+     "text": "The hill order is fixed, so learn it per map. When your meter is around 30 of 40 s, send one player to the next hill to take its best spots while the rest finish the current one."
+    },
+    {
+     "title": "Contest one body at a time",
+     "text": "A single enemy in the hill pauses their meter. When they are close to scoring, step in one at a time with a staggered timing so they can't wipe all four of you together."
+    },
+    {
+     "title": "Cash in respawn windows",
+     "text": "After a multi-kill near the hill, everyone collapses into or around it. 10 s of uncontested time is a quarter of a hill; chasing kills elsewhere wastes it."
+    },
+    {
+     "title": "Every second counts",
+     "text": "Your meter keeps its progress until the hill is scored. Brief touches when the enemy is out of position still add up, so tag the hill whenever it's safe."
+    }
+   ],
+   "soloQ": [
+    "If your teammates are all standing in the hill, take the overlook. If nobody is in it, step in.",
+    "Ping the next hill location as your meter nears full so randoms rotate with you.",
+    "Avoid dying far from the hill chasing a kill. Your life matters most when it can contest."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://www.halowaypoint.com/news/season-2-modes-preview",
+     "title": "halowaypoint.com: season 2 modes preview"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/4407649063316-Guide-to-Halo-Infinite-Multiplayer-Game-Mode-Rules",
+     "title": "support.halowaypoint.com: 4407649063316 Guide to Halo Infinite Multiplayer Game Mode Rules"
+    },
+    {
+     "url": "https://www.halopedia.org/King_of_the_Hill",
+     "title": "halopedia.org: King of the Hill"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2024/09/HaloWC-2024-Official-Rules-v1.pdf",
+     "title": "wpassets.halowaypoint.com: HaloWC 2024 Official Rules v1.pdf"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2024/08/HCS-Major-Salt-Lake-City-2024-Official-Rules-v1.1.pdf",
+     "title": "wpassets.halowaypoint.com: HCS Major Salt Lake City 2024 Official Rules v1.1.pdf"
+    },
+    {
+     "url": "https://docs.google.com/document/d/1U3ghn-W6YLoSj2tMqiw1vsRy_Gqf4hDs1UrbEw-RkDo/export?format=pdf",
+     "title": "docs.google.com: export"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Strongholds": {
+   "rankedRules": "Ranked Arena 4v4: three zones, first to 250, no time limit. None of your ~300 ranked games ended on time; the longest ran about 19.5 min. Owning 2 zones scores 1 point per second. Owning all 3 scores faster: your data shows team scores up to 1.8x their scoring seconds, which fits 2 points per second for a full lock (inferred, not from an official source). A zone takes about 7 s of uncontested presence to capture (HCS 2025 handbook; not re-verified), and the capture pauses while an enemy is inside. Respawn about 10 s. Recent maps: Recharge, Live Fire, Lattice (Streets rarely). HCS 2023-2025 used the same settings.",
+   "mechanics": [
+    "One zone scores nothing. The whole mode is about majority control.",
+    "All three zones doubles your rate but spreads your team thin, and tends to push enemy spawns to awkward places, often behind you.",
+    "Captures and neutralizes stop while the zone is contested.",
+    "There is no clock pressure, so a team behind can always come back by holding 2 zones."
+   ],
+   "timers": [
+    {
+     "what": "Zone capture",
+     "seconds": 7,
+     "notes": "HCS 2025 handbook, not re-verified. Paused while contested."
+    },
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Your data."
+    },
+    {
+     "what": "Majority time needed to win from 0 (2 zones)",
+     "seconds": 250,
+     "notes": "About 125 s if you hold all three (inferred rate). Use the gap to work out how long you have to flip a zone."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Two zones, not three",
+     "text": "Secure your home zone and the middle. Push the third only right after a multi-kill. Losing a held zone to chase the third costs more than the extra point per second gains."
+    },
+    {
+     "title": "Defend from the edges",
+     "text": "Stand where you can shoot anyone walking into your zone, not inside it. Step in only to stop a capture. A capture takes about 7 s, so there's time to rotate if you see or hear it start."
+    },
+    {
+     "title": "Do the score math",
+     "text": "The race is linear. If the enemy holds two zones and needs 50, you have under a minute to break one. Trading lives to flip a zone is worth it, and trading lives for nothing isn't."
+    },
+    {
+     "title": "Three-cap with a plan",
+     "text": "Taking all three moves enemy spawns. If you go for it, keep one player on your home zone so a respawn wave can't walk back into it."
+    },
+    {
+     "title": "Push zones together",
+     "text": "Use the ~10 s respawn window after a 2-3 kill trade to flip a zone as a group instead of trickling in one at a time."
+    }
+   ],
+   "soloQ": [
+    "Check the zone HUD. If two teammates are on one zone, go to the one that's unguarded or flipping.",
+    "Defend the zones your team already owns before chasing kills. Losing one is a full point-per-second swing.",
+    "Ping the zone you're heading to so randoms know it's covered."
+   ],
+   "confidence": "high",
+   "sources": [
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2025/01/HCS_2025_Program_Handbook_v2.5.2.docx.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2025 Program Handbook v2.5.2.docx.pdf"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2024/05/HCS_2024_Program_Handbook_v2.0.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2024 Program Handbook v2.0.pdf"
+    },
+    {
+     "url": "https://www.gamerguides.com/halo-infinite/guide/multiplayer/game-modes/how-to-play-the-strongholds-game-mode",
+     "title": "gamerguides.com: how to play the strongholds game mode"
+    },
+    {
+     "url": "https://halopedia.org/Strongholds",
+     "title": "halopedia.org: Strongholds"
+    },
+    {
+     "url": "https://forerunner.gg/article/halo-infinite-maps-settings-rules",
+     "title": "forerunner.gg: halo infinite maps settings rules"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/4407649063316-Guide-to-Halo-Infinite-Multiplayer-Game-Mode-Rules",
+     "title": "support.halowaypoint.com: 4407649063316 Guide to Halo Infinite Multiplayer Game Mode Rules"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Assault": {
+   "rankedRules": "'Assault: Neutral Bomb Ranked' in Ranked Arena (4v4), added in the Spring Update (Feb 2025). Maps: Aquarius and Fortress, plus Serenity later. One bomb spawns neutral in the middle. Carry it into the enemy's arming zone, arm it, and keep it from being disarmed until it detonates. First to 3, 12:00 limit (the HCS 2025 handbook's Neutral Bomb block is also 3 / 12:00). Respawn about 10 s in Ranked, per your data; one handbook excerpt mentions 6 s for HCS, unverified. About 70% of your games end on time, usually 1-0 or 2-1. A tie at 12:00 goes to overtime, about 3 extra minutes in your data, and a game still tied after that is a draw. Ranked Squad Battle (6v6 rotational, 2025) used Neutral Bomb Squad (first to 3) and One Bomb Squad, where teams alternate attack and defense and the first to 3 round wins takes it. Your ranked Neutral Bomb games run from Feb 2025 to Mar 2026, so its place in the rotation varies by season.",
+   "mechanics": [
+    "Arming only works inside the enemy's arming zone, and the carrier has to commit there to arm. Defenders can disarm a bomb that has been armed.",
+    "After a Feb 2025 backend fix, overtime no longer ends just because the carrier steps into the arming zone.",
+    "Fortress Ranked had its arming zone enlarged and an Overshield spawn added (Halo Support, 2025) because arming there was too hard.",
+    "Like other objectives, the carrier is a priority target. Teammates should clear the zone before the carrier arrives."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Your data (Ranked). Two kills give about 10 s to escort and arm."
+    },
+    {
+     "what": "Time limit",
+     "seconds": 720,
+     "notes": "Many games end on time."
+    },
+    {
+     "what": "Overtime when tied",
+     "seconds": 180,
+     "notes": "Inferred from your data: tied games end about 3 min after regulation."
+    },
+    {
+     "what": "Arm / fuse / disarm",
+     "seconds": null,
+     "notes": "Not verified from any source. Time them in a custom game before showing numbers."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Win the middle first",
+     "text": "The bomb spawns neutral in the middle. Take that fight first, then push toward the enemy arming zone only with a numbers lead of at least two kills."
+    },
+    {
+     "title": "Carrier goes in last",
+     "text": "Teammates clear the arming area and hold its entrances. The carrier arrives once the angles are covered, so the arm doesn't get interrupted."
+    },
+    {
+     "title": "Defend the bomb, not the doorway",
+     "text": "Once it's armed, back off to cover with sightlines onto the bomb. Defenders have to stand on it to disarm, which makes them easy targets."
+    },
+    {
+     "title": "Defense: carrier first",
+     "text": "Ping and focus whoever has the bomb. After the kill, guard the dropped bomb instead of chasing the escorts."
+    },
+    {
+     "title": "Play the scoreline",
+     "text": "First to 3 in 12 minutes usually ends 1-0 or 2-1 on time. Once ahead late, turtle your own arming zone. A tie goes to a short overtime."
+    }
+   ],
+   "soloQ": [
+    "If the bomb is loose and nobody is taking it, pick it up and bring it to your teammates instead of running it alone.",
+    "When all your teammates push, stay back near your own arming zone. One defender there stops a quick enemy arm.",
+    "Ping the enemy carrier every time you see them."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/34335369079700-Halo-Infinite-Spring-Update-2025-Patch-Notes",
+     "title": "support.halowaypoint.com: 34335369079700 Halo Infinite Spring Update 2025 Patch Notes"
+    },
+    {
+     "url": "https://wpassets.halowaypoint.com/wp-content/2025/01/HCS_2025_Program_Handbook_v2.5.2.docx.pdf",
+     "title": "wpassets.halowaypoint.com: HCS 2025 Program Handbook v2.5.2.docx.pdf"
+    },
+    {
+     "url": "https://x.com/HaloSupport/status/1891922775885091260",
+     "title": "x.com: 1891922775885091260"
+    },
+    {
+     "url": "https://x.com/HaloSupport/status/1902074874400796877",
+     "title": "x.com: 1902074874400796877"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/assault",
+     "title": "halowaypoint.com: assault"
+    },
+    {
+     "url": "https://www.halopedia.org/Assault",
+     "title": "halopedia.org: Assault"
+    },
+    {
+     "url": "https://www.halowaypoint.com/halo-infinite/ugc/modes/424f4f11-cd72-430a-a071-a80b5824f3e2",
+     "title": "halowaypoint.com: 424f4f11 cd72 430a a071 a80b5824f3e2"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Extraction": {
+   "rankedRules": "Classic Extraction (Season 5, Oct 2023), 4v4: one neutral site is active at a time. A player plants an extraction device by holding interact without interruption, then the team protects it until the extraction completes; launch coverage says about 60 s. An enemy can convert the device by holding interact, which flips ownership and restarts the timer. Each completed extraction is 1 point, and then the site moves. The Ranked variant was first to 4 with a 10 s respawn. It was in Ranked Arena in Season 5; all of your ranked Extraction games are from Dec 2023. S&D Extraction (Operation: Reclaimer, 2025) is a separate 4v4 round mode. It is first to 6 round wins (best of 11), with one life per round and Bandit Evo starts. Each round opens with a 30 s buy phase paid for with points from kills, extractions and disarms. Rounds are 90 s, with two sites, and teams swap attack and defense every round. Defenders get 60 s to disarm a deployed site, and wiping the other team also wins the round. A ranked S&D queue was reported later in 2025 (entry requirements not verified).",
+   "mechanics": [
+    "Planting and converting both need an uninterrupted hold, so whoever is planting or converting can't fight back.",
+    "Converting doesn't just stop the enemy point. It takes the device over for your team and restarts the timer.",
+    "The stats API tracks SuccessfulExtractions, ExtractionConversionsCompleted/Denied and ExtractionInitiationsCompleted/Denied per player, which makes good per-player objective stats.",
+    "S&D rounds are short with no respawns. One early pick usually decides a round, and the buy phase means losing rounds also cost you equipment."
+   ],
+   "timers": [
+    {
+     "what": "Device extraction time (classic)",
+     "seconds": 60,
+     "notes": "From launch coverage, not re-verified. Conversion restarts it."
+    },
+    {
+     "what": "Player respawn delay (classic)",
+     "seconds": 10,
+     "notes": "Your data, Season 5 ranked."
+    },
+    {
+     "what": "S&D round length",
+     "seconds": 90,
+     "notes": "Official launch post (Mar 2025); may have changed since."
+    },
+    {
+     "what": "S&D buy phase",
+     "seconds": 30,
+     "notes": "Official launch post (Mar 2025); may have changed since."
+    },
+    {
+     "what": "S&D defender disarm window",
+     "seconds": 60,
+     "notes": "From launch coverage, not re-verified."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Clear, then plant",
+     "text": "Planting locks you in place. Kill or chase off whoever is near the site first, and plant with a teammate watching the most likely entrance."
+    },
+    {
+     "title": "Guard the device from cover",
+     "text": "After the plant, spread out to positions that look at the device instead of standing on it. Converters have to stand still in the open, so make them pay for it."
+    },
+    {
+     "title": "Convert late, not early",
+     "text": "A conversion restarts the timer in your favor. Wait until defenders have committed or been traded, then convert, instead of feeding one at a time into a held site."
+    },
+    {
+     "title": "Get to the next site early",
+     "text": "The site moves after every extraction. Send one player toward the likely next site while the rest finish the current one."
+    },
+    {
+     "title": "S&D: trade in pairs and manage money",
+     "text": "With one life, take fights in pairs so every death gets traded. Save points on rounds you are likely to lose. When the enemy deploys, retake together inside the 60 s disarm window rather than one at a time."
+    }
+   ],
+   "soloQ": [
+    "When randoms rush the site, cover them from range instead of joining the scrum.",
+    "In S&D, don't be the first player to peek alone. Hold back and take the trade when a teammate makes contact.",
+    "Ping the site you're heading to and any enemy you see planting or converting."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.halowaypoint.com/news/extraction-overview-season-5",
+     "title": "halowaypoint.com: extraction overview season 5"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/19892918820244-Halo-Infinite-Season-5-Reckoning-Patch-Notes",
+     "title": "support.halowaypoint.com: 19892918820244 Halo Infinite Season 5 Reckoning Patch Notes"
+    },
+    {
+     "url": "https://mp1st.com/news/halo-infinite-season-5-resurrects-extraction-game-mode",
+     "title": "mp1st.com: halo infinite season 5 resurrects extraction game mode"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/reclaimer-operation-launch",
+     "title": "halowaypoint.com: reclaimer operation launch"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/seek-and-deploy-extraction",
+     "title": "halowaypoint.com: seek and deploy extraction"
+    },
+    {
+     "url": "https://www.ghacks.net/2025/03/03/new-sd-extraction-mode-brings-tactical-bomb-defusal-gameplay-to-halo-infinite/",
+     "title": "ghacks.net: new sd extraction mode brings tactical bomb defusal gameplay to halo infinite"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/39737155177492-Halo-Infinite-Fall-Update-2025-Patch-Notes",
+     "title": "support.halowaypoint.com: 39737155177492 Halo Infinite Fall Update 2025 Patch Notes"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Total Control": {
+   "rankedRules": "Not in Ranked Arena. Played in Big Team Battle (12v12) and Squad Battle (6v6). There are three zones, and a team scores only while it owns all three at once with none contested. After a score the zones move to new locations. First to 3. From your data, time limits are about 15:00 in BTB and about 12:00 in Squad Battle, and respawn is about 10 s.",
+   "mechanics": [
+    "Owning two zones scores nothing. Only a full three-zone lock scores.",
+    "One enemy alive inside any zone blocks the point, so a single player can stall a dominant team.",
+    "Zones move after every point, so map position resets each time.",
+    "In BTB, vehicles and power weapons decide who can clear zones quickly."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Your data, Squad and BTB (about 10-10.5 s)."
+    },
+    {
+     "what": "Time limit (BTB)",
+     "seconds": 900,
+     "notes": "Inferred from timed-out games in your data."
+    },
+    {
+     "what": "Time limit (Squad Battle)",
+     "seconds": 720,
+     "notes": "Inferred from your data."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Hold two, swarm the third",
+     "text": "Leave one defender on each zone you own and send everyone else to the last one together. Taking it one player at a time just gets you killed one at a time."
+    },
+    {
+     "title": "One body denies",
+     "text": "On defense you don't need to win the fight. You need one player alive in one zone. Hide in a corner of the zone and survive rather than trading in the open."
+    },
+    {
+     "title": "Pre-rotate after each point",
+     "text": "The zones relocate after every score. The team that reaches the new zones first usually takes them, so move the moment a point is scored."
+    },
+    {
+     "title": "Clear zones with power",
+     "text": "Use vehicles, power weapons and grenades to clear a zone's corners. Enemies hiding inside are the only thing stopping your point."
+    }
+   ],
+   "soloQ": [
+    "Be the player who stays on the zone your team just took. Randoms almost never guard captured zones.",
+    "Watch the zone HUD. When your team owns two, go to the third, and when the enemy owns two, go deny one."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://www.halopedia.org/Total_Control",
+     "title": "halopedia.org: Total Control"
+    },
+    {
+     "url": "https://gamerguides.com/halo-infinite/guide/multiplayer/game-modes/how-to-play-the-total-control-game-mode",
+     "title": "gamerguides.com: how to play the total control game mode"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/4407649063316-Guide-to-Halo-Infinite-Multiplayer-Game-Mode-Rules",
+     "title": "support.halowaypoint.com: 4407649063316 Guide to Halo Infinite Multiplayer Game Mode Rules"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Elimination": {
+   "rankedRules": "Not in the core Ranked Arena. It appears in rotational and social playlists (for example Arena Objective, Dec 2024). It was also half of 'Ranked Survivors', a ranked rotational of Attrition and Elimination from the Winter Update 2022 that has since been retired. Elimination is round-based with no normal respawn inside a round. A downed teammate can be revived by a teammate who reaches their revive marker and holds interact; the reviver can't move or shoot meanwhile and takes reduced damage. In the one Arena:Elimination game in your data the winner took 5 rounds to 1 in about 5.5 min, which points to short rounds and first to 5. The stats API records AlliesRevived, TimesRevivedByAlly, KillsAsLastPlayerStanding and RoundsSurvived. The sibling mode Attrition is best of 3 with a shared team life pool. Revives continue until the pool runs out, and a shrinking damage zone forces late-round fights.",
+   "mechanics": [
+    "There are no free respawns. Each death removes a player until someone revives them, so trading matters more than in any other mode.",
+    "Revives need a teammate to physically reach the fallen player's marker. Fighting far from your team makes you impossible to revive.",
+    "Last-player-standing situations happen every round. The API even counts kills made as the last player standing.",
+    "In Attrition a closing zone damages anyone outside it, which forces positioning late in a round."
+   ],
+   "timers": [
+    {
+     "what": "Respawn",
+     "seconds": null,
+     "notes": "No respawn inside a round. Players return only through revives."
+    },
+    {
+     "what": "Revive hold",
+     "seconds": null,
+     "notes": "Not verified; custom games can change it."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Stay revivable",
+     "text": "Fight within a few seconds of a teammate so that if you go down someone can reach your marker. Dying alone in a corner is a permanent loss for the round."
+    },
+    {
+     "title": "Deny the revive",
+     "text": "After a kill, keep an angle on the spot where the enemy fell. A teammate who comes to revive is stuck in place and an easy second kill."
+    },
+    {
+     "title": "Pairs, never solo peeks",
+     "text": "With one life per round, peek together so any loss is instantly traded. Don't take 1v1s across open ground."
+    },
+    {
+     "title": "Play the last-player clutch",
+     "text": "When you're the last one alive, use cover and time. Pick fights one enemy at a time and revive a teammate only when it's safe."
+    }
+   ],
+   "soloQ": [
+    "Stick to whichever teammate is closest. Being near someone is worth more than a better angle alone.",
+    "Revive teammates when the area is clear. A revived random is better than none."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.halowaypoint.com/news/playlist-schedule-winter-update",
+     "title": "halowaypoint.com: playlist schedule winter update"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/ranked-rotationals-update",
+     "title": "halowaypoint.com: ranked rotationals update"
+    },
+    {
+     "url": "https://shacknews.com/article/128398/how-attrition-works-halo-infinite",
+     "title": "shacknews.com: how attrition works halo infinite"
+    },
+    {
+     "url": "https://shacknews.com/article/128400/how-to-revive-halo-infinite",
+     "title": "shacknews.com: how to revive halo infinite"
+    },
+    {
+     "url": "https://www.gamespot.com/articles/halo-infinite-looks-like-its-bringing-back-elimination-mode-with-a-twist/1100-6498169/",
+     "title": "gamespot.com: 1100 6498169"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Fiesta": {
+   "rankedRules": "Social only, never ranked. Fiesta Slayer is 4v4, first to 50, 12:00 limit, and every spawn gives a random primary, secondary and equipment. Respawn is about 8 s (your data). Super Fiesta (May 2023 update) gives campaign weapon variants and fully upgraded campaign equipment, plus 2 frag grenades on every spawn, and turns off all weapon pads, racks and equipment pads, so your loadout is all you get. The stats API also files Fiesta CTF/BTB variants and Husky Raid (a CTF variant) under Fiesta; respawn there is about 7-8 s in your data.",
+   "mechanics": [
+    "Your weapons are random each life and are gone when you die.",
+    "In regular Fiesta you can still pick up dropped weapons. Super Fiesta has no map pickups at all.",
+    "Super Fiesta guarantees 2 frags per spawn, so grenades are a big share of the damage."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 8,
+     "notes": "Your data (about 7.3-8.0 s)."
+    },
+    {
+     "what": "Match time limit",
+     "seconds": 720,
+     "notes": "Slayer variants."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Spend your loadout",
+     "text": "If you spawn with a power weapon, go use it right away. It disappears when you die, so playing it safe wastes it."
+    },
+    {
+     "title": "Pick fights your kit wins",
+     "text": "With short-range kit, close distance through cover and corners. With long-range kit, hold sightlines and don't wander into rooms."
+    },
+    {
+     "title": "Throw the free frags",
+     "text": "In Super Fiesta every life comes with two frags. Open fights with them, since they come back with you on the next spawn."
+    },
+    {
+     "title": "Trade like Slayer",
+     "text": "It is still kill-based with fast respawns. Stay near teammates so deaths get avenged, and loot a stronger dropped weapon when it's safe."
+    }
+   ],
+   "soloQ": [
+    "Pair up with a teammate whose loadout covers your weakness, such as your shotgun with their rifle.",
+    "Don't spend a whole life chasing one kill with a bad weapon. Drop back toward teammates and loot."
+   ],
+   "confidence": "medium",
+   "sources": [
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/15218713612564-Halo-Infinite-Update-May-10-2023",
+     "title": "support.halowaypoint.com: 15218713612564 Halo Infinite Update May 10 2023"
+    },
+    {
+     "url": "https://gamerguides.com/halo-infinite/guide/season-1-heroes-of-reach/events/fracture-tenrai-slayer-fiesta-game-mode",
+     "title": "gamerguides.com: fracture tenrai slayer fiesta game mode"
+    },
+    {
+     "url": "https://www.halowaypoint.com/halo-infinite/multiplayer",
+     "title": "halowaypoint.com: multiplayer"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "VIP": {
+   "rankedRules": "Social 4v4 (returned with Operation: Fleetcom, July 2024): first to 10 points, or most points at 12:00. Killing the enemy VIP is how you score. The VIP can take more damage, glows, and has a waypoint visible to both teams. When a VIP dies, a new one is picked from that team (the exact succession rule is not verified; the API shows each player is VIP many times a game). Respawn is about 10 s (small sample in your data). Your two games ended 10-8 and 10-6 in about 7 min. Note that the API's VipKills count can exceed the team score, so it is not a one-to-one score record.",
+   "mechanics": [
+    "Normal kills do not score. They buy time and space to reach or protect a VIP.",
+    "The VIP is always waypointed, so the enemy always knows where your point is.",
+    "The API tracks VipKills, KillsAsVip, TimesSelectedAsVip and LongestTimeAsVip. A Fleetcom medal rewards surviving 2 min as VIP."
+   ],
+   "timers": [
+    {
+     "what": "Player respawn delay",
+     "seconds": 10,
+     "notes": "Small sample (n=15 player-games)."
+    },
+    {
+     "what": "Match time limit",
+     "seconds": 720,
+     "notes": "Official rules (Fleetcom launch post)."
+    },
+    {
+     "what": "VIP survival medal",
+     "seconds": 120,
+     "notes": "Surviving 2 min as VIP earns a medal."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Bodyguard formation",
+     "text": "Keep the VIP behind cover with teammates standing between them and the enemy's likely lines. The VIP's waypoint draws pushes, so set crossfires where those pushes arrive."
+    },
+    {
+     "title": "Focus the enemy VIP",
+     "text": "When the enemy VIP is exposed, everyone shoots them. A kill on any other player is worth nothing on the scoreboard."
+    },
+    {
+     "title": "VIP fights from the back",
+     "text": "The VIP has extra durability and can shoot, but staying alive is the job. Take only fights you've already won, and fall back when shields break."
+    }
+   ],
+   "soloQ": [
+    "If you're the VIP, stay with the biggest group of teammates and away from open lanes.",
+    "If you're not, move toward your VIP and screen them. Randoms tend to ignore their VIP."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://www.halowaypoint.com/news/vip-halo-infinite",
+     "title": "halowaypoint.com: vip halo infinite"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/fleetcom-operation-launch",
+     "title": "halowaypoint.com: fleetcom operation launch"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/4407649063316-Guide-to-Halo-Infinite-Multiplayer-Game-Mode-Rules",
+     "title": "support.halowaypoint.com: 4407649063316 Guide to Halo Infinite Multiplayer Game Mode Rules"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/articles/28737969381780-Halo-Infinite-Fleetcom-Operation-Update-Patch-Notes",
+     "title": "support.halowaypoint.com: 28737969381780 Halo Infinite Fleetcom Operation Update Patch Notes"
+    },
+    {
+     "url": "https://gamersocialclub.ca/2024/07/24/halo-infinite-operation-fleetcomto-introduce-classic-game-mode/",
+     "title": "gamersocialclub.ca: halo infinite operation fleetcomto introduce classic game mode"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  },
+  "Escalation": {
+   "rankedRules": "Social, added in Season 3 (Mar 2023) with Arena team 4v4, FFA and BTB variants. The whole team climbs a shared ladder of loadouts, levelling up every few team kills; the final tier is reported to be the Oddball, and kills with it win. After a level-up there is a short window (about 10 s) before the new loadout is forced. The team score shown is the level reached: your three games all ended 11-10. Respawn is short, about 5 s in your data (small sample). Ladder length and kills per level are from launch coverage and not re-verified.",
+   "mechanics": [
+    "Everyone on a team has the same loadout, and it changes as the team levels up.",
+    "Early levels include power weapons and later ones are weaker or awkward, ending in Oddball melee.",
+    "Your deaths are their progress, so feeding hurts more than in Slayer."
+   ],
+   "timers": [
+    {
+     "what": "Level-up swap window",
+     "seconds": 10,
+     "notes": "Approximate, from Season 3 patch notes. After it, the new loadout is forced."
+    },
+    {
+     "what": "Player respawn delay",
+     "seconds": 5,
+     "notes": "Your data (about 4.6-5.0 s, small sample)."
+    }
+   ],
+   "principles": [
+    {
+     "title": "Exploit strong tiers",
+     "text": "On power-weapon levels, push hard and fast, because those kills come easily. On weak levels, play near teammates and take only good fights."
+    },
+    {
+     "title": "Don't hand out levels",
+     "text": "Every death you take advances the other team. When they're one or two kills from leveling, play safe and deny."
+    },
+    {
+     "title": "Oddball tier: ambush",
+     "text": "The final tier is melee with the ball. Group up, wait around corners and doorways, and never cross open ground where you can be shot before you reach anyone."
+    }
+   ],
+   "soloQ": [
+    "Stay with the group. Team kills move everyone up, so helping a teammate finish a kill counts.",
+    "Late in the match, don't be the free kill that pushes the enemy onto the Oddball tier."
+   ],
+   "confidence": "low",
+   "sources": [
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/13604235246356-Halo-Infinite-Season-3-Echoes-Within-Patch-Notes",
+     "title": "support.halowaypoint.com: 13604235246356 Halo Infinite Season 3 Echoes Within Patch Notes"
+    },
+    {
+     "url": "https://www.gamerevolution.com/guides/936785-halo-infinite-escalation-slayer-how-to-play-new-game-mode",
+     "title": "gamerevolution.com: 936785 halo infinite escalation slayer how to play new game mode"
+    },
+    {
+     "url": "https://updatecrazy.com/halo-infinite-update-patch-notes-march-15-2023/",
+     "title": "updatecrazy.com: halo infinite update patch notes march 15 2023"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ]
+  }
+ },
+ "general": {
+  "respawns": [
+   {
+    "item": "Player respawn: Slayer-type modes (Ranked Slayer, Doubles, Snipers, Squad Slayer, Fiesta)",
+    "seconds": 8,
+    "notes": "Measured from your ~25k player-match records. Dead time per death is 7.4-8.1 s every season from 2022 to 2026. A kill buys about 8 s of numbers advantage.",
+    "confidence": "high"
+   },
+   {
+    "item": "Player respawn: objective modes (CTF, Oddball, KOTH, Strongholds, Neutral Bomb, Extraction, Total Control, VIP)",
+    "seconds": 10,
+    "notes": "Measured from your data, 9.8-10.5 s in every season. The HCS 2025 handbook's Oddball and KOTH blocks list 10 s.",
+    "confidence": "high"
+   },
+   {
+    "item": "Player respawn: Escalation Slayer",
+    "seconds": 5,
+    "notes": "Your data, small sample.",
+    "confidence": "medium"
+   },
+   {
+    "item": "Overshield (power equipment)",
+    "seconds": 150,
+    "notes": "Map-specific. 2:00 at launch; the Dec 2022 patch notes list 2:00 -> 2:30, scope unclear. A film-based measurement of the non-ranked Catalyst center pad (KOTH) found a fixed 120 s cycle from match start, so read the pad countdown rather than trust one global number. It can be picked up and triggered later; once active it drains and does not recharge.",
+    "confidence": "low"
+   },
+   {
+    "item": "Active Camo (power equipment)",
+    "seconds": 120,
+    "notes": "Map-specific. Launch-era per-map tables show 2:00 on most maps; some maps were later moved to 2:30. It can be held and triggered later, and lasts roughly 30 s.",
+    "confidence": "low"
+   },
+   {
+    "item": "M41 SPNKr Rocket Launcher",
+    "seconds": 150,
+    "notes": "The Dec 2022 notes list 3:00 -> 2:30; the scope may be map-specific. Launch-era tables showed 2:00-3:00 depending on map. Not re-verified for recent seasons.",
+    "confidence": "low"
+   },
+   {
+    "item": "S7 Sniper Rifle",
+    "seconds": 180,
+    "notes": "The Dec 2022 notes list 2:00 -> 3:00; the scope may be map-specific. Not re-verified for recent seasons.",
+    "confidence": "low"
+   },
+   {
+    "item": "Skewer",
+    "seconds": 180,
+    "notes": "Fixed-timer power weapon, for example on Live Fire. The 3:00 figure is from a launch-era table and is not re-verified.",
+    "confidence": "low"
+   },
+   {
+    "item": "Gravity Hammer / Energy Sword",
+    "seconds": 240,
+    "notes": "A July 2021 preview listed the Hammer at every 4 min, and a launch-era table has 4:00 for both. Not re-verified for recent ranked maps.",
+    "confidence": "low"
+   },
+   {
+    "item": "Weapon rack (non-power weapons) in Ranked/HCS",
+    "seconds": null,
+    "notes": "Since Feb 2023 a rack goes red when its weapon is taken, and its countdown (a light bar on the rack) starts only after the original weapon despawns or runs dry. Once counting, standard weapons take about 30 s: fan guides say so, and a film-based measurement found a 30 s peak on weapon pads.",
+    "confidence": "medium"
+   },
+   {
+    "item": "Fusion coils (Ranked)",
+    "seconds": null,
+    "notes": "They do not respawn in Ranked after being destroyed (Dec 2022 backend change). They still respawn in non-ranked modes.",
+    "confidence": "medium"
+   }
+  ],
+  "padNotes": "Yes, Infinite shows item timers in the world. Power weapon and equipment pads show an on-screen countdown above the pad. Since the May 2023 update the item spawns when that countdown reaches 0; a known issue says it can lag 1-2 s. Weapon racks show a light-bar countdown. In Ranked/HCS a rack turns red once its weapon is taken, and the countdown only starts after that original weapon has despawned. Your Personal AI also announces when power items become available. Overshield and Active Camo are 'power equipment': they can be picked up, carried and used later, so knowing who took one matters. Community guides describe three kinds of pad timer: a countdown that starts when the item is picked up, one that starts only after the taken item runs dry or despawns (red racks), and a fixed cycle from match start that ignores pickups. A film-based measurement of one Overshield pad (Catalyst) showed an exact 120 s cycle, which fits the fixed kind. Which kind each ranked pad uses is not verified, so check in a custom game before counting from the pickup. Timers on pads you can see are already on screen, so a companion screen adds most value by: (1) remembering when the enemy took an item you can't see and counting it down, (2) showing the respawn window after kills (about 8 s in Slayer, about 10 s in objective modes), and (3) mode clocks (KOTH 40 s meter, Oddball 100 s per round, Strongholds 1 or 2 points per second, CTF overtime). Exact pad times are map-specific and changed in Dec 2022, so per-map values should come from a map-specific source or an in-game check, not from a single global table.",
+  "sources": [
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/15218713612564-Halo-Infinite-Update-May-10-2023",
+    "title": "support.halowaypoint.com: 15218713612564 Halo Infinite Update May 10 2023"
+   },
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/4410503691796-Halo-Infinite-Multiplayer-Known-Issues",
+    "title": "support.halowaypoint.com: 4410503691796 Halo Infinite Multiplayer Known Issues"
+   },
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/13170516947860",
+    "title": "support.halowaypoint.com: 13170516947860"
+   },
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/11284528984084-Halo-Infinite-Update-December-6-2022",
+    "title": "support.halowaypoint.com: 11284528984084 Halo Infinite Update December 6 2022"
+   },
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/26608497528596-Equipment-in-Halo-Infinite",
+    "title": "support.halowaypoint.com: 26608497528596 Equipment in Halo Infinite"
+   },
+   {
+    "url": "https://www.gamesradar.com/halo-infinite-beta-12-little-details-you-may-have-missed",
+    "title": "gamesradar.com: halo infinite beta 12 little details you may have missed"
+   },
+   {
+    "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=2661245554",
+    "title": "steamcommunity.com: filedetails"
+   },
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/4407649063316-Guide-to-Halo-Infinite-Multiplayer-Game-Mode-Rules",
+    "title": "support.halowaypoint.com: 4407649063316 Guide to Halo Infinite Multiplayer Game Mode Rules"
+   },
+   {
+    "url": "https://support.halowaypoint.com/hc/en-us/articles/17920041655188-Halo-Infinite-Multiplayer-Playlists",
+    "title": "support.halowaypoint.com: 17920041655188 Halo Infinite Multiplayer Playlists"
+   },
+   {
+    "url": "https://github.com/JGtm/LevelUp",
+    "title": "LevelUp: map callouts, objectives and pads read from the game's map files"
+   },
+   {
+    "url": "",
+    "title": "Your match history in Debrief (medals, scores, timings)"
+   }
+  ]
+ }
+}

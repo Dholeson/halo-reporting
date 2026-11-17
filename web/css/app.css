@@ -821,6 +821,11 @@ body.focus main { max-width: 1600px; padding: max(10px, env(safe-area-inset-top)
 .ig-recent { display: grid; gap: 4px; }
 .ig-recent .link-btn { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-weight: 600; text-align: left; }
 .ig-sum { color: var(--text-2); font-size: 14px; }
+details.ig-sum summary { cursor: pointer; list-style: none; }
+details.ig-sum summary::-webkit-details-marker { display: none; }
+details.ig-sum summary::after { content: " More"; color: var(--accent); font-size: 12.5px; font-weight: 650; white-space: nowrap; }
+details.ig-sum[open] summary::after { content: " Less"; }
+details.ig-sum p { margin-top: 6px; }
 .ig-rules { font-size: 14.5px; font-weight: 600; }
 .ig-list { display: grid; gap: 8px; padding: 0; }
 .ig-list li { list-style: none; display: grid; gap: 1px; }
@@ -846,7 +851,10 @@ body.focus main { max-width: 1600px; padding: max(10px, env(safe-area-inset-top)
 
 /* map schematic */
 .mz { margin: 0; display: grid; gap: 8px; }
-.mz svg { width: 100%; height: auto; max-height: 62vh; display: block; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.mz svg { width: 100%; height: auto; max-height: 62vh; display: block; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px solid var(--border); cursor: zoom-in; }
+.mz-zoom { margin-left: auto; }
+.mz.big { position: fixed; inset: 0; z-index: 80; background: var(--bg); padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); grid-template-rows: minmax(0, 1fr) auto; }
+.mz.big svg { max-height: none; height: 100%; cursor: zoom-out; }
 .mz-link { stroke: var(--axis); stroke-width: .55; stroke-linecap: round; }
 .mz-link.soft { stroke-dasharray: 1.2 1.1; }
 .mz-zone circle { fill: var(--text-2); stroke: var(--surface-2); stroke-width: .5; }
@@ -855,13 +863,15 @@ body.focus main { max-width: 1600px; padding: max(10px, env(safe-area-inset-top)
 .mz-zone.side-blue circle { fill: var(--div-pos); }
 .mz-zone.k-high-ground circle, .mz-zone.k-tower circle { fill: var(--text); }
 .mz-zone.k-hazard circle { fill: var(--bad); }
-.mz-zone text { font-size: 2.6px; font-weight: 650; fill: var(--text); paint-order: stroke; stroke: var(--surface-2); stroke-width: .7px; stroke-linejoin: round; }
-.mz-zone.k-base text { font-size: 2.9px; font-weight: 800; }
+.mz-zl { font-size: 2.8px; font-weight: 650; fill: var(--text); paint-order: stroke; stroke: var(--surface-2); stroke-width: .7px; stroke-linejoin: round; }
+.mz-zl.k-base { font-size: 3.1px; font-weight: 800; }
+.mz-zl.approx { font-style: italic; fill: var(--text-2); }
+.mz-lead { stroke: var(--muted); stroke-width: .25; }
 .mz-spawn path, .mz-spawn circle, .mz-spawn rect { stroke: var(--surface-2); stroke-width: .4; }
 .mz-spawn.k-power-weapon path { fill: var(--s2); }
 .mz-spawn.k-power-up circle { fill: var(--accent); }
 .mz-spawn rect { fill: var(--s3); }
-.mz-spawn text { font-size: 2.2px; font-weight: 700; fill: var(--text-2); paint-order: stroke; stroke: var(--surface-2); stroke-width: .6px; }
+.mz-sl { font-size: 2.4px; font-weight: 700; fill: var(--text-2); paint-order: stroke; stroke: var(--surface-2); stroke-width: .6px; stroke-linejoin: round; }
 .mz-obj circle { fill: var(--text); stroke: var(--surface-2); stroke-width: .6; }
 .mz-obj.red circle { fill: var(--div-neg); }
 .mz-obj.blue circle { fill: var(--div-pos); }
@@ -876,9 +886,28 @@ body.focus main { max-width: 1600px; padding: max(10px, env(safe-area-inset-top)
 .mz-legend .lg-eq { background: var(--s3); border-radius: 2px; }
 .mz-legend .lg-red { background: var(--div-neg); }
 .mz-legend .lg-blue { background: var(--div-pos); }
-.mz-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-.mz-list ul { padding: 0; display: grid; gap: 4px; margin-top: 4px; }
-.mz-list li { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 14px; }
+.mz-zone.approx circle { fill: var(--surface-2); stroke: var(--text-2); stroke-width: .45; stroke-dasharray: .55 .45; }
+.mz-legend .lg-approx { background: transparent; border: 1.5px dashed var(--text-2); width: 9px; height: 9px; }
+.mz-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+.mz-list ul { padding: 0; display: grid; gap: 6px; margin-top: 4px; }
+.mz-list li { list-style: none; font-size: 14px; }
+.mz-li, .mz-list summary { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+.mz-list summary { cursor: pointer; list-style: none; }
+.mz-list summary::-webkit-details-marker { display: none; }
+.mz-list summary::after { content: "▸"; font-size: 10px; color: var(--muted); }
+.mz-list details[open] summary::after { content: "▾"; }
+.mz-list .note { font-size: 12px; }
+.mz-list details p { margin: 4px 0 2px; font-size: 13px; color: var(--text-2); }
+.ig-loose summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.ig-loose summary::-webkit-details-marker { display: none; }
+.ig-loose summary::after { content: "▸"; font-size: 10px; color: var(--muted); }
+.ig-loose details[open] summary::after { content: "▾"; }
+.ig-loose p { margin-top: 4px; font-size: 13px; color: var(--text-2); }
+.ig-src { margin-top: 2px; }
+.ig-src ul { padding: 0 0 0 2px; display: grid; gap: 4px; margin-top: 6px; }
+.ig-src li { list-style: none; font-size: 12.5px; color: var(--text-2); }
+.ig-src a { color: var(--accent); text-decoration: none; }
+.ig-src a:hover { text-decoration: underline; }
 .badge.k-power-weapon { background: color-mix(in srgb, var(--s2) 22%, transparent); color: var(--text); }
 .badge.k-power-up { background: var(--accent-soft); color: var(--accent); }
 

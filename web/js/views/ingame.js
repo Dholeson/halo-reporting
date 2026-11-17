@@ -224,6 +224,42 @@ function checkAfterMatch(ctx, m, map, fam) {
 
 // ---------- map and mode playbooks ----------
 const famKey = (f) => String(f || "").toLowerCase();
+/** Tap the drawing (or Enlarge) to see it full screen; tap again, Close or Esc to go back. */
+function wireZoom(root) {
+  const fig = root.querySelector(".mz");
+  if (!fig) return;
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "btn mz-zoom";
+  const set = (on) => {
+    fig.classList.toggle("big", on);
+    btn.innerHTML = on ? `${icon("close")}Close` : `${icon("expand")}Enlarge`;
+    btn.setAttribute("aria-pressed", String(on));
+    if (on) document.addEventListener("keydown", esc_, { once: true });
+  };
+  const esc_ = (e) => { if (e.key === "Escape") set(false); else if (fig.classList.contains("big")) document.addEventListener("keydown", esc_, { once: true }); };
+  btn.addEventListener("click", () => set(!fig.classList.contains("big")));
+  fig.querySelector("svg").addEventListener("click", () => set(!fig.classList.contains("big")));
+  fig.querySelector(".mz-legend").append(btn);
+  set(false);
+}
+/** The map summary's first sentence, the rest behind a tap: in a match the drawing matters more. */
+function summaryHtml(text) {
+  if (!text) return "";
+  const m = String(text).match(/^(.+?[.!?])\s+(.+)$/s);
+  return m ? `<details class="ig-sum"><summary>${esc(m[1])}</summary><p>${esc(m[2])}</p></details>` : `<p class="ig-sum">${esc(text)}</p>`;
+}
+/** Where the notes came from, behind a tap. Links open outside the app. */
+function sourcesHtml(list, checked) {
+  if (!list?.length) return "";
+  return `<details class="data ig-src"><summary>Sources (${list.length})${checked ? ` · checked ${esc(checked)}` : ""}</summary><ul>${list.map((s) => `<li>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title || s.url)}</a>` : esc(s.title)}</li>`).join("")}</ul></details>`;
+}
+// The sandbox-wide respawn for a power item, when the item is unambiguous ("Sniper", not "Overshield or Camo").
+const POWER_ITEMS = [/overshield/i, /camo/i, /sniper|\bs7\b/i, /rocket|spnkr/i, /skewer/i, /hammer/i, /sword/i];
+function sandboxSecs(item, general) {
+  const hits = POWER_ITEMS.filter((re) => re.test(item));
+  if (hits.length !== 1) return null;
+  return (general || []).find((g) => g.seconds && !/^player respawn/i.test(g.item) && hits[0].test(g.item))?.seconds || null;
+}
 const forMode = (list, fam) => (list || []).filter((x) => !x.modes?.length || x.modes.some((m) => famKey(m) === famKey(fam) || famKey(fam).includes(famKey(m)) || famKey(m) === "all"));
 
 function fillBooks(el, books, map, fam) {
@@ -236,21 +272,30 @@ function fillBooks(el, books, map, fam) {
     const objs = (book.objectives || []).filter((o) => famKey(o.mode) === famKey(fam) || famKey(fam).includes(famKey(o.mode)));
     const spawns = forMode(book.spawns, fam);
     const tips = forMode(book.tips, fam);
-    const drawn = book.layoutConfidence && book.layoutConfidence !== "low";
+    const drawn = book.layoutConfidence && book.layoutConfidence !== "low" && (book.zones || []).length >= 3;
+    // power items the research knows about but couldn't place on the drawing
+    const loose = spawns.filter((s) => !s.zone && /^power/.test(s.kind || ""));
     mapEl.innerHTML = `
-      <div class="ig-card o-map"><div class="ig-h">${icon("maps")}${esc(map)} <span class="note">${drawn ? "schematic, not to scale" : "callouts"}</span></div>
-        ${book.summary ? `<p class="ig-sum">${esc(book.summary)}</p>` : ""}
-        ${drawn ? mapSchematic(book, { fam, objectives: objs, spawns }) : calloutList(book, { objectives: objs, spawns })}
+      <div class="ig-card o-map"><div class="ig-h">${icon("maps")}${esc(map)}${drawn || book.zones?.length ? ` <span class="note">${drawn ? "schematic, not to scale" : "callouts"}</span>` : ""}</div>
+        ${summaryHtml(book.summary)}
+        ${drawn ? mapSchematic(book, { fam, objectives: objs, spawns }) : book.zones?.length ? calloutList(book, { objectives: objs, spawns }) : `<p class="note">Callouts for ${esc(map)} aren't recorded yet.</p>`}
+        ${loose.length ? `<div class="ig-h sub">${icon("bolt")}Also on this map</div><ul class="ig-list ig-loose">${loose.map((s) => `<li><details><summary><b>${esc(s.item)}</b><span class="note">spot not known yet</span></summary>${s.notes ? `<p>${esc(s.notes)}</p>` : ""}</details></li>`).join("")}</ul>` : ""}
+        ${sourcesHtml(book.sources, book.checked)}
       </div>
       ${objs.length ? `<div class="ig-card o-obj"><div class="ig-h">${icon("flag")}${esc(fam)} objectives</div><ul class="ig-list">${objs.sort((a, b) => (a.order ?? 99) - (b.order ?? 99)).map((o) => `<li><b>${esc(o.label)}</b><span>${esc(o.zone)}${o.notes ? ` · ${esc(o.notes)}` : ""}</span></li>`).join("")}</ul></div>` : ""}
       ${tips.length ? `<div class="ig-card o-tips"><div class="ig-h">${icon("tip")}On ${esc(map)}</div><ul class="ig-list ig-tips">${tips.slice(0, 6).map((t) => `<li><span>${esc(t.text)}</span></li>`).join("")}</ul></div>` : ""}`;
+    wireZoom(mapEl);
   } else {
     mapEl.innerHTML = `<div class="ig-card o-map"><div class="ig-h">${icon("maps")}${esc(map)}</div><p class="note">No map notes for ${esc(map)} yet. Your numbers and the ${esc(fam)} playbook still apply.</p></div>`;
   }
-  // timers: this map's spawns with a respawn time, then the sandbox defaults
+  // timers: only for power items this map actually has. A known respawn time wins; otherwise the
+  // sandbox-wide figure for that item, marked approximate. Pads whose item varies get no timer.
   const timers = [];
-  for (const s of forMode(book?.spawns, fam)) if (s.respawnSec) timers.push({ id: `${s.item}@${s.zone}`, label: s.item, where: s.zone, secs: s.respawnSec, kind: s.kind });
-  for (const g of books.general?.respawns || []) if (g.seconds && !timers.some((t) => t.label.toLowerCase() === g.item.toLowerCase())) timers.push({ id: g.item, label: g.item, where: g.notes || "", secs: g.seconds, kind: "power-up" });
+  for (const s of forMode(book?.spawns, fam)) {
+    if (!/^power/.test(s.kind || "")) continue;
+    const secs = s.respawnSec || sandboxSecs(s.item, books.general?.respawns);
+    if (secs) timers.push({ id: `${s.item}@${s.zone}`, label: s.short || s.item, where: s.zone || "", secs, kind: s.kind, approx: !s.respawnSec });
+  }
   // mode playbook
   modeEl.innerHTML = `
     ${timers.length ? `<div class="ig-card o-timers"><div class="ig-h">${icon("hourglass")}Timers <span class="note">tap when it's taken</span></div><div class="ig-timers" id="ig-timers">${timers.map(timerHtml).join("")}</div></div>` : ""}
@@ -258,6 +303,7 @@ function fillBooks(el, books, map, fam) {
       ${mode.rankedRules ? `<p class="ig-rules">${esc(mode.rankedRules)}</p>` : ""}
       ${mode.principles?.length ? `<ol class="ig-plan">${mode.principles.slice(0, 5).map((p) => `<li><b>${esc(p.title)}</b><span>${esc(p.text)}</span></li>`).join("")}</ol>` : ""}
       ${mode.soloQ?.length ? `<div class="ig-h sub">${icon("people")}Solo queue</div><ul class="ig-list ig-tips">${mode.soloQ.slice(0, 3).map((t) => `<li><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+      ${sourcesHtml(mode.sources)}
     </div>` : `<div class="ig-card o-mode"><div class="ig-h">${icon("trophy")}${esc(fam)}</div><p class="note">No playbook for ${esc(fam)} yet.</p></div>`}`;
   wireTimers(modeEl);
 }
@@ -268,8 +314,10 @@ let timerFor = "";
 let tickHandle = null;
 let audio = null;
 const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s % 60))).padStart(2, "0")}`;
+const idleClock = (s, approx) => `${approx ? "≈" : ""}${fmtClock(s)}`;
 function timerHtml(t) {
-  return `<button class="ig-timer" type="button" data-timer="${esc(t.id)}" data-secs="${t.secs}" data-kind="${esc(t.kind || "")}"><span class="tl">${esc(t.label)}</span><span class="tw">${esc(t.where || "")}</span><b class="tc num">${fmtClock(t.secs)}</b><i class="tbar"></i></button>`;
+  const where = [t.where, t.approx ? "time approximate" : ""].filter(Boolean).join(" · ");
+  return `<button class="ig-timer" type="button" data-timer="${esc(t.id)}" data-secs="${t.secs}" data-kind="${esc(t.kind || "")}"${t.approx ? ' data-approx="1"' : ""}><span class="tl">${esc(t.label)}</span><span class="tw">${esc(where)}</span><b class="tc num">${idleClock(t.secs, t.approx)}</b><i class="tbar"></i></button>`;
 }
 function wireTimers(root) {
   root.querySelectorAll("[data-timer]").forEach((b) => b.addEventListener("click", () => {
@@ -295,9 +343,9 @@ function paint() {
   for (const b of document.querySelectorAll("[data-timer]")) {
     const st = timerState.get(b.dataset.timer), total = +b.dataset.secs;
     const c = b.querySelector(".tc"), bar = b.querySelector(".tbar");
-    if (!st) { b.classList.remove("on", "soon", "up"); c.textContent = fmtClock(total); bar.style.transform = "scaleX(0)"; continue; }
+    if (!st) { b.classList.remove("on", "soon", "up"); c.textContent = idleClock(total, b.dataset.approx); bar.style.transform = "scaleX(0)"; continue; }
     const left = (st.end - Date.now()) / 1000;
-    if (left <= -15) { timerState.delete(b.dataset.timer); b.classList.remove("on", "soon", "up"); c.textContent = fmtClock(total); bar.style.transform = "scaleX(0)"; continue; }
+    if (left <= -15) { timerState.delete(b.dataset.timer); b.classList.remove("on", "soon", "up"); c.textContent = idleClock(total, b.dataset.approx); bar.style.transform = "scaleX(0)"; continue; }
     running = true;
     b.classList.add("on");
     b.classList.toggle("soon", left > 0 && left <= 10);

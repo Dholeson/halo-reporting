@@ -1,0 +1,3856 @@
+{
+ "compiled": "2026-11-17",
+ "note": "Compiled from community guides, map-data catalogs on GitHub and your own match history, cross-checked where sources allowed. Facts in our own words; schematics are original diagrams of relative positions, not to scale.",
+ "maps": {
+  "Empyrean": {
+   "map": "Empyrean",
+   "aka": [
+    "Empyrean - Ranked"
+   ],
+   "summary": "The official map art shows an indoor, multi-level arena under a huge arched hangar roof, with stacked platforms joined by stairs and catwalks. Its floor plan could not be verified for this playbook. In ranked it plays as a power-weapon map: since Feb 2025, a typical Ranked Slayer game here has about 12 power-weapon kills (about 1 kill in 7), against none on Aquarius, Recharge, Streets or Solitude, and sniper medals turn up in nearly every game. Ranked CTF here is slow and low-scoring: more than half of full games reach the 12-minute limit, and 2-1 is the most common final score.",
+   "symmetric": null,
+   "layoutConfidence": "low",
+   "zones": [],
+   "links": [],
+   "spawns": [
+    {
+     "item": "Sniper weapon (model not confirmed)",
+     "kind": "power-weapon",
+     "zone": "",
+     "notes": "Inferred from medals in your games on the current ranked variant (Feb 2025 to Oct 2026). Snipe or No Scope medals appeared in all 49 Ranked Slayer games (about 3.8 Snipe medals a game) and in 28 of 29 ranked CTF games. Ranked maps with no power weapons (Aquarius, Recharge, Streets) give none. Ranked Team Snipers on this same map variant gives a lot of them, which shows the medals come from sniper kills. Pad location and respawn time are not verified.",
+     "modes": [
+      "Slayer",
+      "Capture the Flag"
+     ],
+     "short": "Sniper"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "Capture the Flag",
+     "label": "Flag stands",
+     "mark": "⚑",
+     "zone": "One in each team's base (exact spot not verified)",
+     "notes": "Ranked plays CTF 3 Captures here: two flags, first to 3 captures, 12:00 time limit. You have 44 full ranked CTF games on Empyrean (Dec 2023 to Jul 2026). In 23 or 24 of them the game ran to the time limit, and in 21 no team reached 3 captures. The most common final score was 2-1 (13 games), then 3-1 (8 games)."
+    }
+   ],
+   "tips": [
+    {
+     "text": "Power weapons swing Slayer here more than on almost any other ranked map. Since Feb 2025 there have been about 12 power-weapon kills a game, roughly 1 kill in 7, against none on Aquarius, Recharge, Streets or Solitude. Contest the pickups as a team. When the other team has one up, stay off its sightlines until it's used up instead of feeding it kills.",
+     "modes": [
+      "Slayer"
+     ]
+    },
+    {
+     "text": "Assume a sniper is out every game: sniper medals showed up in all 49 of your recent Ranked Slayer games here and in 28 of 29 CTF games. Once it's been picked up, cross long open lanes quickly or not at all. When you kill the holder, pick the sniper up yourself so it doesn't go straight back to their side.",
+     "modes": [
+      "Slayer",
+      "Capture the Flag"
+     ]
+    },
+    {
+     "text": "Play Empyrean CTF for the clock. More than half of your full ranked CTF games here reached 12:00 (23 or 24 of 44), against roughly a quarter to a third on Fortress, Forbidden and Origin, and 2-1 was the most common final score. One capture is often decisive, so with a late lead keep two players home and make the other team come through you.",
+     "modes": [
+      "Capture the Flag"
+     ]
+    },
+    {
+     "text": "Power-weapon kills come faster here than on the other 3-capture maps: about 12 per 10 minutes, against 8 to 10 on Fortress, Forbidden and Origin. Push the flag when your team is holding the power weapon, not into an enemy who just picked one up.",
+     "modes": [
+      "Capture the Flag"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Interference": {
+   "map": "Interference",
+   "aka": [],
+   "summary": "An asymmetric 4v4 Forge arena map built around a sunken Pit with a drill in the middle. Upper walkways (Junction, Catwalk, Long Hall, the raised Yard deck and the Drill Platform deck) cross over the Pit and the ground floor, so the middle is fought on two levels and many callouts are stacked. Ranked plays it as Slayer, with a power sniper in play.",
+   "symmetric": false,
+   "layoutConfidence": "medium",
+   "zones": [
+    {
+     "name": "Yard",
+     "kind": "room",
+     "x": 39.2,
+     "y": 78.1,
+     "level": "ground",
+     "notes": "Largest named area: open ground along the south side, from Lookout across to Bottom Nest. A KOTH hill sits in its southern part, and Catwalk passes above part of it."
+    },
+    {
+     "name": "Yard (upper)",
+     "kind": "lane",
+     "x": 55.6,
+     "y": 65.5,
+     "level": "upper",
+     "notes": "A raised deck the game also calls 'Yard', over the south-east corner of the Pit. It joins Catwalk, Junction, Bridge and Top Nest."
+    },
+    {
+     "name": "Load Zone",
+     "kind": "room",
+     "x": 20.5,
+     "y": 47.5,
+     "level": "ground",
+     "notes": "Big ground-floor area on the west side, directly under Long Hall. Holds a Strongholds zone in its north part (partly under Long Hall and East Bridge) and a round KOTH hill in its south part, under the south end of Long Hall."
+    },
+    {
+     "name": "Pit",
+     "kind": "low-ground",
+     "x": 48.9,
+     "y": 60.3,
+     "level": "pit (lowest)",
+     "notes": "Sunken middle of the map, below the main floor, with the drill standing in it. Junction, Catwalk, the raised Yard deck and the Drill Platform deck pass above it."
+    },
+    {
+     "name": "Cargo",
+     "kind": "room",
+     "x": 64.2,
+     "y": 26.9,
+     "level": "ground",
+     "notes": "Long ground-floor hall across the north side, from under the Tower east to Bunker. Its Strongholds zone covers most of the hall and its KOTH hill sits at the west end, overlapping the zone. Raised spots ring it: Tower, West Bridge, Bunker, Platform and the Drill Platform deck."
+    },
+    {
+     "name": "Security",
+     "kind": "room",
+     "x": 17.6,
+     "y": 18.5,
+     "level": "ground, with a raised east half",
+     "notes": "Room in the north-west corner; its east half is a step higher, and the KOTH hill sits on that raised floor. Pipes perch above its east side; Load Zone opens to the south."
+    },
+    {
+     "name": "Lookout",
+     "kind": "room",
+     "x": 10.1,
+     "y": 70.5,
+     "level": "ground, raised at its north end",
+     "notes": "Strip along the west edge from Load Zone down to Yard, with a raised piece at its north end, a step below East Bridge."
+    },
+    {
+     "name": "Engine",
+     "kind": "room",
+     "x": 79.6,
+     "y": 47.8,
+     "level": "ground + upper deck",
+     "notes": "East side of the map: a ground floor plus an upper deck that connects to Platform and the east end of Junction. Underpass and the Bunker stairs are next to it."
+    },
+    {
+     "name": "Tower",
+     "kind": "tower",
+     "x": 48.9,
+     "y": 18.8,
+     "level": "raised; top floor among the highest spots",
+     "notes": "Tall structure on the north edge between Security and Cargo, with a lower floor and a top floor that is one of the highest named spots. Borders Security, the Tower stairs and West Bridge, and stands over the west end of Cargo."
+    },
+    {
+     "name": "Drill Platform",
+     "kind": "mid",
+     "x": 42.1,
+     "y": 38.9,
+     "level": "upper deck (also the drill base in the Pit)",
+     "notes": "Raised deck on the north-west side of the drill, above Tunnel, joining Long Hall, Junction and the west end of Cargo. The same callout covers the drill's base down in the Pit, where the oddball spawns."
+    },
+    {
+     "name": "Long Hall",
+     "kind": "lane",
+     "x": 24.5,
+     "y": 38.5,
+     "level": "upper",
+     "notes": "Upper walkway running north-south directly above Load Zone, with branches to East Bridge and the Drill Platform deck; Catwalk continues from its south end."
+    },
+    {
+     "name": "Catwalk",
+     "kind": "lane",
+     "x": 34.6,
+     "y": 72.5,
+     "level": "upper",
+     "notes": "U-shaped upper walkway around the south-west of the Pit: from the south end of Long Hall, along above part of Yard, then up to Junction and the raised Yard deck."
+    },
+    {
+     "name": "Underpass",
+     "kind": "lane",
+     "x": 66.5,
+     "y": 38.5,
+     "level": "ground",
+     "notes": "Ground-floor passage on the east side of the Pit, from Cargo south to Under Bridge, running under Platform, Tree House and the east end of Junction."
+    },
+    {
+     "name": "East Bridge",
+     "kind": "lane",
+     "x": 11,
+     "y": 32,
+     "level": "upper",
+     "notes": "Upper walkway on the west edge despite its name, partly above Load Zone. Joins Long Hall; Security and the raised end of Lookout sit a level lower at its two ends."
+    },
+    {
+     "name": "Top Nest",
+     "kind": "high-ground",
+     "x": 64.5,
+     "y": 89.5,
+     "level": "upper",
+     "notes": "Raised south-east corner, directly above Bottom Nest. Holds a Strongholds zone. On its own level it connects to Bridge and the raised Yard deck."
+    },
+    {
+     "name": "Junction",
+     "kind": "mid",
+     "x": 54.2,
+     "y": 53.9,
+     "level": "upper",
+     "notes": "Upper walkway across the middle of the Pit, from the Drill Platform deck to the upper deck of Engine; it also meets Catwalk, Bridge, the raised Yard deck and Tree House. The KOTH hill covers its east half, beside the top of the drill."
+    },
+    {
+     "name": "Bunker",
+     "kind": "room",
+     "x": 87.3,
+     "y": 19.7,
+     "level": "upper",
+     "notes": "Raised room in the north-east corner, reached by the Bunker stairs from Cargo and along West Bridge; it sits partly above the east end of Cargo."
+    },
+    {
+     "name": "Stairs (Bunker)",
+     "kind": "lane",
+     "x": 94.5,
+     "y": 30,
+     "level": "ground to upper",
+     "notes": "In game this callout reads just 'Stairs'. The staircase in the north-east corner, climbing from the east end of Cargo, by Engine, up to Bunker."
+    },
+    {
+     "name": "Stairs (Tower)",
+     "kind": "lane",
+     "x": 38.5,
+     "y": 26.1,
+     "level": "ground",
+     "notes": "In game this callout reads just 'Stairs'. Short steps on the north side linking the west end of Cargo with Security, Beacon and the Tower."
+    },
+    {
+     "name": "Under Bridge",
+     "kind": "lane",
+     "x": 68.5,
+     "y": 68.5,
+     "level": "ground",
+     "notes": "Ground-floor passage directly under Bridge, east of the Pit, between Underpass and Bottom Nest; it also opens west onto Yard."
+    },
+    {
+     "name": "Platform",
+     "kind": "high-ground",
+     "x": 70.9,
+     "y": 34.2,
+     "level": "upper",
+     "notes": "Upper deck east of centre, over Underpass and along the south edge of Cargo. Joins Engine's upper deck and overhangs the south-east corner of the Cargo hill."
+    },
+    {
+     "name": "Bottom Nest",
+     "kind": "room",
+     "x": 66.5,
+     "y": 78,
+     "level": "ground",
+     "notes": "Ground-floor room in the south-east corner, directly under Top Nest; it opens onto Yard and Under Bridge."
+    },
+    {
+     "name": "West Bridge",
+     "kind": "lane",
+     "x": 70,
+     "y": 14.7,
+     "level": "upper",
+     "notes": "Upper walkway along the north edge, a level above the north side of Cargo, from the Tower to Bunker; it is on the east side despite its name."
+    },
+    {
+     "name": "Flank Steak",
+     "kind": "lane",
+     "x": 33.3,
+     "y": 7.3,
+     "level": "ground",
+     "notes": "Narrow strip along the far north edge, behind the east end of Security and the Tower. Its connections aren't in the data."
+    },
+    {
+     "name": "Bridge",
+     "kind": "lane",
+     "x": 63,
+     "y": 62,
+     "level": "upper",
+     "notes": "Short upper bridge east of the Pit, directly above Under Bridge, linking Junction and the raised Yard deck with Top Nest."
+    },
+    {
+     "name": "Tunnel",
+     "kind": "lane",
+     "x": 40.5,
+     "y": 47.2,
+     "level": "ground",
+     "notes": "Short ground-floor passage from Load Zone toward the Pit, under the Drill Platform deck."
+    },
+    {
+     "name": "Pipes",
+     "kind": "high-ground",
+     "x": 28.8,
+     "y": 14.4,
+     "level": "top",
+     "notes": "Small raised perch above the east side of Security, next to Beacon."
+    },
+    {
+     "name": "Tree House",
+     "kind": "high-ground",
+     "x": 63.3,
+     "y": 44.5,
+     "level": "top",
+     "notes": "Small high perch above Underpass, off the east end of Junction."
+    },
+    {
+     "name": "Hatch",
+     "kind": "mid",
+     "x": 52.3,
+     "y": 49.1,
+     "level": "just below the upper level",
+     "notes": "Small spot on top of the drill in the middle of the Pit, a little lower than Junction. The oddball spawns directly beneath it."
+    },
+    {
+     "name": "Beacon",
+     "kind": "other",
+     "x": 34,
+     "y": 18.7,
+     "level": "ground",
+     "notes": "Tiny spot between Security and the Tower stairs, beside Pipes but a level lower."
+    },
+    {
+     "name": "Charlie",
+     "kind": "other",
+     "x": 70.6,
+     "y": 60,
+     "level": "top",
+     "notes": "Tiny raised spot where Engine, Underpass and Under Bridge meet."
+    }
+   ],
+   "links": [
+    {
+     "from": "Beacon",
+     "to": "Pipes",
+     "kind": "level change"
+    },
+    {
+     "from": "Beacon",
+     "to": "Security",
+     "kind": "walk"
+    },
+    {
+     "from": "Beacon",
+     "to": "Stairs (Tower)",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Nest",
+     "to": "Under Bridge",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Nest",
+     "to": "Yard",
+     "kind": "walk"
+    },
+    {
+     "from": "Bridge",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Bridge",
+     "to": "Top Nest",
+     "kind": "walk"
+    },
+    {
+     "from": "Bridge",
+     "to": "Yard (upper)",
+     "kind": "walk"
+    },
+    {
+     "from": "Bunker",
+     "to": "Cargo",
+     "kind": "level change"
+    },
+    {
+     "from": "Bunker",
+     "to": "Stairs (Bunker)",
+     "kind": "walk"
+    },
+    {
+     "from": "Bunker",
+     "to": "West Bridge",
+     "kind": "walk"
+    },
+    {
+     "from": "Cargo",
+     "to": "Drill Platform",
+     "kind": "level change"
+    },
+    {
+     "from": "Cargo",
+     "to": "Engine",
+     "kind": "walk"
+    },
+    {
+     "from": "Cargo",
+     "to": "Platform",
+     "kind": "level change"
+    },
+    {
+     "from": "Cargo",
+     "to": "Stairs (Bunker)",
+     "kind": "walk"
+    },
+    {
+     "from": "Cargo",
+     "to": "Stairs (Tower)",
+     "kind": "walk"
+    },
+    {
+     "from": "Cargo",
+     "to": "Tower",
+     "kind": "level change"
+    },
+    {
+     "from": "Cargo",
+     "to": "Underpass",
+     "kind": "walk"
+    },
+    {
+     "from": "Cargo",
+     "to": "West Bridge",
+     "kind": "level change"
+    },
+    {
+     "from": "Catwalk",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Catwalk",
+     "to": "Long Hall",
+     "kind": "walk"
+    },
+    {
+     "from": "Catwalk",
+     "to": "Lookout",
+     "kind": "level change"
+    },
+    {
+     "from": "Catwalk",
+     "to": "Yard (upper)",
+     "kind": "walk"
+    },
+    {
+     "from": "Drill Platform",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Drill Platform",
+     "to": "Long Hall",
+     "kind": "walk"
+    },
+    {
+     "from": "Drill Platform",
+     "to": "Pit",
+     "kind": "walk"
+    },
+    {
+     "from": "East Bridge",
+     "to": "Long Hall",
+     "kind": "walk"
+    },
+    {
+     "from": "East Bridge",
+     "to": "Lookout",
+     "kind": "level change"
+    },
+    {
+     "from": "East Bridge",
+     "to": "Security",
+     "kind": "level change"
+    },
+    {
+     "from": "Engine",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Engine",
+     "to": "Platform",
+     "kind": "walk"
+    },
+    {
+     "from": "Engine",
+     "to": "Stairs (Bunker)",
+     "kind": "walk"
+    },
+    {
+     "from": "Engine",
+     "to": "Underpass",
+     "kind": "walk"
+    },
+    {
+     "from": "Junction",
+     "to": "Tree House",
+     "kind": "level change"
+    },
+    {
+     "from": "Junction",
+     "to": "Yard (upper)",
+     "kind": "walk"
+    },
+    {
+     "from": "Load Zone",
+     "to": "Lookout",
+     "kind": "walk"
+    },
+    {
+     "from": "Load Zone",
+     "to": "Security",
+     "kind": "walk"
+    },
+    {
+     "from": "Load Zone",
+     "to": "Tunnel",
+     "kind": "walk"
+    },
+    {
+     "from": "Load Zone",
+     "to": "Yard",
+     "kind": "walk"
+    },
+    {
+     "from": "Long Hall",
+     "to": "Security",
+     "kind": "level change"
+    },
+    {
+     "from": "Lookout",
+     "to": "Yard",
+     "kind": "walk"
+    },
+    {
+     "from": "Pipes",
+     "to": "Security",
+     "kind": "level change"
+    },
+    {
+     "from": "Security",
+     "to": "Stairs (Tower)",
+     "kind": "walk"
+    },
+    {
+     "from": "Security",
+     "to": "Tower",
+     "kind": "walk"
+    },
+    {
+     "from": "Stairs (Tower)",
+     "to": "Tower",
+     "kind": "walk"
+    },
+    {
+     "from": "Top Nest",
+     "to": "Yard (upper)",
+     "kind": "walk"
+    },
+    {
+     "from": "Tower",
+     "to": "West Bridge",
+     "kind": "level change"
+    },
+    {
+     "from": "Under Bridge",
+     "to": "Underpass",
+     "kind": "walk"
+    },
+    {
+     "from": "Under Bridge",
+     "to": "Yard",
+     "kind": "walk"
+    },
+    {
+     "from": "Pit",
+     "to": "Tunnel",
+     "kind": "level change"
+    },
+    {
+     "from": "Pit",
+     "to": "Yard",
+     "kind": "level change"
+    },
+    {
+     "from": "Pit",
+     "to": "Underpass",
+     "kind": "level change"
+    },
+    {
+     "from": "Pit",
+     "to": "Under Bridge",
+     "kind": "level change"
+    },
+    {
+     "from": "Hatch",
+     "to": "Junction",
+     "kind": "level change"
+    }
+   ],
+   "spawns": [
+    {
+     "item": "Power sniper rifle (likely the S7 Sniper)",
+     "kind": "power-weapon",
+     "zone": "",
+     "notes": "In play in Ranked Slayer on all three map versions: 77 of your 83 Ranked Slayer games here had power-weapon kills (about 4 a game), and every one of those games also had power-sniper medals (Snipe or No Scope). Also in Ranked Doubles (a No Scope in each of your 3 games). Ranked Tactical Slayer had none (3 games). Its pad and timer aren't in the extracted map data, so no spot is drawn; read the pad countdown in game.",
+     "modes": [
+      "Slayer"
+     ],
+     "short": "Sniper"
+    },
+    {
+     "item": "Overshield",
+     "kind": "power-up",
+     "zone": "",
+     "notes": "Indirect evidence: the Achilles Spine medal (melee kill from behind on an overshielded enemy) appears in 6 of your games here: 4 Ranked Slayer (2024-25 versions), 1 Ranked Strongholds (Jun 2024) and 1 Ranked Doubles on the current version. Pad location and timer unknown; no spot is drawn.",
+     "modes": [
+      "Slayer",
+      "Strongholds"
+     ],
+     "short": "Overshield"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Load Zone",
+     "notes": "North part of Load Zone, ground floor; Long Hall and East Bridge run over it. Letter unconfirmed."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Cargo",
+     "notes": "Most of the Cargo hall, ground floor; overlaps the Cargo hill spot. Letter unconfirmed."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Top Nest",
+     "notes": "Upstairs in the south-east corner, over Bottom Nest; farthest from the other two. Letter unconfirmed."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Yard",
+     "notes": "South part of Yard, ground floor."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Cargo",
+     "notes": "West end of the Cargo hall; Platform overhangs one corner."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Load Zone",
+     "notes": "Round hill in the south part of Load Zone, under the end of Long Hall."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Junction",
+     "notes": "On the walkway over the Pit, beside the top of the drill."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Security",
+     "notes": "On the raised east half of Security."
+    },
+    {
+     "mode": "Oddball",
+     "label": "Ball spawn",
+     "mark": "●",
+     "zone": "Hatch",
+     "notes": "At the foot of the drill in the middle of the Pit, below floor level, under the Hatch. The callout down there is Drill Platform."
+    }
+   ],
+   "tips": [
+    {
+     "text": "Ranked Slayer here has a power sniper: 77 of your 83 games had power-weapon kills, every one with sniper medals (Snipe or No Scope). Its pad isn't in this data, so learn it in a custom game, and track who has it before you cross Yard, the biggest area.",
+     "modes": [
+      "Slayer"
+     ]
+    },
+    {
+     "text": "Callouts stack: Long Hall is over Load Zone, Bridge over Under Bridge, Top Nest over Bottom Nest, Platform and Tree House over Underpass, and Junction, Catwalk and the Drill Platform deck cross the Pit. On a call, check above and below before across.",
+     "modes": []
+    },
+    {
+     "text": "Two hubs: Cargo on the ground floor borders nine named areas, and Junction upstairs links Drill Platform, Catwalk, Bridge, the raised Yard deck, Engine's deck and Tree House. Lost track of the enemy? Check those two first.",
+     "modes": []
+    },
+    {
+     "text": "Load Zone and Cargo are the closest pair of zones. Top Nest, upstairs in the far south-east corner, is farther from both; up there it joins Bridge and the raised Yard deck, and Bottom Nest is directly below it.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "The ground-floor objectives have walkways overhead: Long Hall above the Load Zone zone and hill (East Bridge over the zone's west edge), Platform over a corner of the Cargo hill, and West Bridge and the Tower along the Cargo zone. Keep one player up top.",
+     "modes": [
+      "Strongholds",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Hill order isn't known. Junction is central, about equally close to the Cargo, Yard and Load Zone hills, while Security is about twice as far and at the far end from Yard. Unsure where the next hill is? Wait near Junction.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "The ball spawns at the foot of the drill in the Pit, under the Hatch. The Junction walkway and the Drill Platform deck are right above it, so set up there to cover the pickup.",
+     "modes": [
+      "Oddball"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://github.com/JGtm/LevelUp",
+     "title": "LevelUp: map callouts, objectives and pads read from the game's map files"
+    },
+    {
+     "url": "https://github.com/GravlLift/halo-infinite-maps",
+     "title": "halo-infinite-maps: objective and weapon-pad catalog"
+    },
+    {
+     "url": "https://github.com/acurtis166/SPNKr",
+     "title": "SPNKr: Halo Infinite API client (medal and asset data)"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Lattice": {
+   "map": "Lattice",
+   "aka": [
+    "Lattice - Ranked"
+   ],
+   "summary": "Lattice is an asymmetric 4v4 Forge arena map built on a north-south spine. A wide, low North Courtyard leads through a low tunnel under the center, beneath the power-up pedestal and the raised Ball Platform, into the sunken Center Pit. High walkways wrap the pit: the West and Diagonal Walkways up to the Ball Platform, the South Ledge with the map's only power-weapon pad (a power sniper in ranked), and the SE Platform and East Catwalk. Mid-level areas line both flanks (NW Plaza and West Room in the west, East Room and East Lane in the east), and hills and zones sit on every side, so rotations are long. The area names here are descriptive labels, not the game's own callouts.",
+   "symmetric": false,
+   "layoutConfidence": "medium",
+   "zones": [
+    {
+     "name": "North Courtyard",
+     "kind": "low-ground",
+     "x": 71.2,
+     "y": 21,
+     "level": "low (lowest floor on the map)",
+     "notes": "Wide, open low area across the north with large cover blocks in the middle. The North Slope rises on its west side, its east arm runs south as the East Lane, and the Center Tunnel opens off its south edge."
+    },
+    {
+     "name": "North Pillar",
+     "kind": "low-ground",
+     "x": 59.5,
+     "y": 15.7,
+     "level": "low",
+     "notes": "Small round pillar in the west part of the courtyard. The first ranked KOTH hill is the square around it."
+    },
+    {
+     "name": "North Slope",
+     "kind": "lane",
+     "x": 45.6,
+     "y": 19.8,
+     "level": "low to mid (slope)",
+     "notes": "Slope that climbs from the courtyard's west side up to the NW Plaza."
+    },
+    {
+     "name": "NW Plaza",
+     "kind": "room",
+     "x": 32.5,
+     "y": 36.2,
+     "level": "mid",
+     "notes": "Open mid-level area in the north-west with a slanted block near its middle. KOTH hill 5 and a Strongholds zone cover the same ground here."
+    },
+    {
+     "name": "West Edge",
+     "kind": "lane",
+     "x": 6.9,
+     "y": 50.6,
+     "level": "mid",
+     "notes": "Raised strip down the far west side, running from the NW Plaza to a ramp onto the West Walkway."
+    },
+    {
+     "name": "West Room",
+     "kind": "room",
+     "x": 20,
+     "y": 54.3,
+     "level": "mid",
+     "notes": "Mid-level room on the west side, built around a round central pillar. KOTH hill 3 wraps the pillar, and a weapon rack sits on the room's north wall."
+    },
+    {
+     "name": "West Walkway",
+     "kind": "high-ground",
+     "x": 18.8,
+     "y": 69.1,
+     "level": "high",
+     "notes": "High walkway across the west side. It continues east into the Diagonal Walkway, and the SW Rooms are a drop below it."
+    },
+    {
+     "name": "Diagonal Walkway",
+     "kind": "high-ground",
+     "x": 37.5,
+     "y": 63.6,
+     "level": "high",
+     "notes": "High walkway along the Center Pit's north-west side, running up to the Ball Platform. The pit is a drop below it."
+    },
+    {
+     "name": "Ball Platform",
+     "kind": "high-ground",
+     "x": 50.1,
+     "y": 58.8,
+     "level": "high",
+     "notes": "Raised platform at the head of the Center Pit, where the Diagonal Walkway ends. Oddball's ball spawns here, and the Center Tunnel runs underneath."
+    },
+    {
+     "name": "Center Pedestal",
+     "kind": "mid",
+     "x": 53.9,
+     "y": 46.5,
+     "level": "mid (slightly raised)",
+     "notes": "Small, round raised pedestal on the Center Plateau that holds the map's only power-up pad. The Center Tunnel passes beneath it."
+    },
+    {
+     "name": "Center Plateau",
+     "kind": "mid",
+     "x": 63.8,
+     "y": 42,
+     "level": "mid",
+     "notes": "Broad mid-level floor across the middle, between the NW Plaza and the east side. The Center Pedestal sits in its west part."
+    },
+    {
+     "name": "Center Tunnel",
+     "kind": "lane",
+     "x": 54.1,
+     "y": 37.7,
+     "level": "low",
+     "notes": "Low passage read from the map's walkable mesh. It leaves the North Courtyard's south edge, runs under the Center Pedestal and the Ball Platform, and comes out at the north end of the Center Pit. Not checked in game. The point marks its north mouth."
+    },
+    {
+     "name": "Center Pit",
+     "kind": "low-ground",
+     "x": 39.1,
+     "y": 77.2,
+     "level": "low",
+     "notes": "Sunken floor in the south-center, the lowest ground in the south half. Strongholds' neutral zone covers most of it. The Diagonal Walkway and Ball Platform rise over its north side and the South Ledge over its south side. A weapon rack sits on its east wall."
+    },
+    {
+     "name": "South Yard",
+     "kind": "mid",
+     "x": 58.8,
+     "y": 71.6,
+     "level": "mid",
+     "notes": "Mid-level floor between the Center Pit and the East Catwalk, with a few cover blocks. It opens north onto the Center Plateau and ramps up to the south-east onto the SE Platform."
+    },
+    {
+     "name": "SW Rooms",
+     "kind": "room",
+     "x": 21.2,
+     "y": 82.7,
+     "level": "mid",
+     "notes": "Mid-level rooms in the south-west, below the West Walkway. They climb up to the SW Corner."
+    },
+    {
+     "name": "SW Corner",
+     "kind": "high-ground",
+     "x": 11.2,
+     "y": 94.4,
+     "level": "high",
+     "notes": "Raised south-west corner where the South Ledge begins. It has a weapon rack."
+    },
+    {
+     "name": "South Ledge",
+     "kind": "high-ground",
+     "x": 39.1,
+     "y": 93,
+     "level": "high",
+     "notes": "Long high walkway along the south edge, above the Center Pit's south side. The map's only power-weapon pad (a power sniper in ranked) is halfway along it, and KOTH hill 4 is the long strip around that pad."
+    },
+    {
+     "name": "SE Platform",
+     "kind": "high-ground",
+     "x": 61.3,
+     "y": 86.4,
+     "level": "high",
+     "notes": "High platform in the south-east that joins the South Ledge to the East Catwalk. It has a weapon rack at its west end, and a ramp leads down to the north-west into the South Yard."
+    },
+    {
+     "name": "East Catwalk",
+     "kind": "high-ground",
+     "x": 71.9,
+     "y": 63,
+     "level": "high",
+     "notes": "Narrow high walkway that runs north from the SE Platform toward the middle, with a rack at its south end. The East Room hill sits right beside it."
+    },
+    {
+     "name": "East Room",
+     "kind": "room",
+     "x": 79.4,
+     "y": 69.1,
+     "level": "mid",
+     "notes": "Mid-level area on the east side, beside the East Catwalk. KOTH hill 2 sits at its west edge, and the East Lane ramps up into it from the north."
+    },
+    {
+     "name": "East Lane",
+     "kind": "low-ground",
+     "x": 85.6,
+     "y": 43.2,
+     "level": "low",
+     "notes": "Low lane down the east side, running south from the North Courtyard. The east Strongholds zone is a strip along it."
+    },
+    {
+     "name": "East Edge",
+     "kind": "lane",
+     "x": 93.8,
+     "y": 46.9,
+     "level": "mid",
+     "notes": "Raised strip along the far east beside the East Lane. Its rack sits right next to the east Strongholds zone."
+    }
+   ],
+   "links": [
+    {
+     "from": "North Courtyard",
+     "to": "North Pillar",
+     "kind": "walk"
+    },
+    {
+     "from": "North Courtyard",
+     "to": "North Slope",
+     "kind": "ramp"
+    },
+    {
+     "from": "North Slope",
+     "to": "NW Plaza",
+     "kind": "walk"
+    },
+    {
+     "from": "North Courtyard",
+     "to": "Center Tunnel",
+     "kind": "low passage"
+    },
+    {
+     "from": "Center Tunnel",
+     "to": "Center Pit",
+     "kind": "low passage"
+    },
+    {
+     "from": "North Courtyard",
+     "to": "East Lane",
+     "kind": "walk"
+    },
+    {
+     "from": "NW Plaza",
+     "to": "West Room",
+     "kind": "walk"
+    },
+    {
+     "from": "NW Plaza",
+     "to": "West Edge",
+     "kind": "walk"
+    },
+    {
+     "from": "NW Plaza",
+     "to": "Center Plateau",
+     "kind": "walk"
+    },
+    {
+     "from": "West Edge",
+     "to": "West Walkway",
+     "kind": "ramp"
+    },
+    {
+     "from": "West Walkway",
+     "to": "Diagonal Walkway",
+     "kind": "walk"
+    },
+    {
+     "from": "Diagonal Walkway",
+     "to": "Ball Platform",
+     "kind": "walk"
+    },
+    {
+     "from": "Diagonal Walkway",
+     "to": "Center Pit",
+     "kind": "drop"
+    },
+    {
+     "from": "Ball Platform",
+     "to": "Center Pit",
+     "kind": "drop"
+    },
+    {
+     "from": "West Walkway",
+     "to": "SW Rooms",
+     "kind": "drop"
+    },
+    {
+     "from": "SW Rooms",
+     "to": "SW Corner",
+     "kind": "ramp"
+    },
+    {
+     "from": "SW Corner",
+     "to": "South Ledge",
+     "kind": "walk"
+    },
+    {
+     "from": "South Ledge",
+     "to": "SE Platform",
+     "kind": "walk"
+    },
+    {
+     "from": "South Ledge",
+     "to": "Center Pit",
+     "kind": "level change"
+    },
+    {
+     "from": "SE Platform",
+     "to": "East Catwalk",
+     "kind": "walk"
+    },
+    {
+     "from": "SE Platform",
+     "to": "South Yard",
+     "kind": "ramp"
+    },
+    {
+     "from": "South Yard",
+     "to": "Center Plateau",
+     "kind": "walk"
+    },
+    {
+     "from": "South Yard",
+     "to": "Center Pit",
+     "kind": "level change"
+    },
+    {
+     "from": "Center Plateau",
+     "to": "Center Pedestal",
+     "kind": "step up"
+    },
+    {
+     "from": "East Catwalk",
+     "to": "East Room",
+     "kind": "drop"
+    },
+    {
+     "from": "East Lane",
+     "to": "East Room",
+     "kind": "ramp"
+    },
+    {
+     "from": "East Room",
+     "to": "East Edge",
+     "kind": "ramp"
+    },
+    {
+     "from": "East Lane",
+     "to": "East Edge",
+     "kind": "level change"
+    },
+    {
+     "from": "SW Rooms",
+     "to": "Center Pit",
+     "kind": "level change"
+    }
+   ],
+   "spawns": [
+    {
+     "item": "Power sniper rifle",
+     "kind": "power-weapon",
+     "zone": "South Ledge",
+     "notes": "The map file has one power-weapon pad, halfway along the South Ledge and inside KOTH hill 4's footprint. Your ranked lobbies here averaged about 1.6 Snipe and 0.8 No Scope medals per game across both teams; both are awarded only for power sniper rifles. They showed up in all four modes and in every season from Aug 2025 to Sep 2026, and 88 of 96 ranked games had power-weapon kills. The exact rifle model and its respawn time aren't verified, so read the countdown over the pad.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Sniper"
+    },
+    {
+     "item": "Power-up pad (item not identified)",
+     "kind": "power-up",
+     "zone": "Center Pedestal",
+     "notes": "The map file marks one power-up pad, on the raised Center Pedestal. Which power-up it holds wasn't identified, and your games suggest it isn't Active Camo or Overshield in ranked: across 96 ranked games there were 259 back-smack kills but no Sneak King or Achilles Spine medals, which need a camouflaged or overshielded victim. It may be switched off in ranked.",
+     "modes": [],
+     "short": "Power-up"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "West Room",
+     "notes": "On the room's north wall. Contents not identified. Off the Rack medals in all four modes show the racks are live.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "SW Corner",
+     "notes": "At the west end of the South Ledge. Contents not identified.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Center Pit",
+     "notes": "On the pit's east wall, near its north-east corner below the Ball Platform. Contents not identified.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "SE Platform",
+     "notes": "At the platform's west end, where the South Ledge meets it. Contents not identified.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "East Catwalk",
+     "notes": "At the catwalk's south end. Contents not identified.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "East Edge",
+     "notes": "Right next to the east Strongholds zone. Contents not identified.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ],
+     "short": "Weapon rack"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 1",
+     "mark": "1",
+     "zone": "North Pillar",
+     "order": 1,
+     "notes": "Square hill around the small pillar in the low North Courtyard. It came first in the ranked order in all three decoded ranked films."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 2",
+     "mark": "2",
+     "zone": "East Room",
+     "order": 2,
+     "notes": "Mid-level hill at the west edge of the East Room, right beside the high East Catwalk."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 3",
+     "mark": "3",
+     "zone": "West Room",
+     "order": 3,
+     "notes": "Large hill around the West Room's central pillar."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 4",
+     "mark": "4",
+     "zone": "South Ledge",
+     "order": 4,
+     "notes": "Long, narrow hill along the high South Ledge with the power sniper pad at its center."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 5",
+     "mark": "5",
+     "zone": "NW Plaza",
+     "order": 5,
+     "notes": "Same ground as the NW Strongholds zone. After this hill, the order most likely starts again at Hill 1, then Hill 2 (not confirmed)."
+    },
+    {
+     "mode": "Oddball",
+     "label": "Ball spawn",
+     "mark": "●",
+     "zone": "Ball Platform",
+     "notes": "The map's only ball spawn, on the raised platform at the head of the Center Pit."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "NW zone",
+     "mark": "Z",
+     "zone": "NW Plaza",
+     "notes": "Covers the same ground as KOTH hill 5. The map file links it to team index 0. Its in-game letter (A/B/C) isn't confirmed."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Pit zone",
+     "mark": "Z",
+     "zone": "Center Pit",
+     "notes": "The neutral zone. It covers most of the pit floor, below the walkways that ring it. Its letter isn't confirmed."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "East zone",
+     "mark": "Z",
+     "zone": "East Lane",
+     "notes": "A north-south strip along the low East Lane, with a rack just above it on the East Edge. The map file links it to team index 1. Its letter isn't confirmed."
+    }
+   ],
+   "tips": [
+    {
+     "text": "Ranked hill order: 1 North Pillar, 2 East Room, 3 West Room, 4 South Ledge, 5 NW Plaza, then most likely back to 1. Hills 6 and 7 do come up: 8 of your 28 ranked KOTH games here went 4-3. Each hill needs 40 s of your team's time in it, and every move except 5 to 1 crosses most of the map, so send one player toward the next hill once the current one is well along.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Two quick transitions to learn. From hill 1 in the North Courtyard, run down the East Lane, which ramps straight up into the East Room for hill 2. From hill 5 on the NW Plaza, go down the North Slope into the courtyard for hill 1.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Hill 4 is a long strip on the high South Ledge, with the sniper pad in its middle. While hill 3 in the West Room is being played, watch that pad's countdown. If the sniper is due when the hill moves, the team that reaches the ledge first gets both.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Expect a power sniper in every mode. 88 of your 96 ranked Lattice games had power-weapon kills, and power-sniper-only medals (Snipe, No Scope) turned up in all four modes and every season. The map's only power-weapon pad is halfway along the South Ledge, so call out who picks it up and avoid long, open crossings while the enemy has it.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "Don't plan around a power-up. The map file puts a power-up pad on the Center Pedestal, but none of your 96 ranked Lattice lobbies earned Sneak King or Achilles Spine. Those back-smack medals need a camouflaged or overshielded victim, and they show up regularly on ranked maps that use those power-ups.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Oddball",
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "The neutral Strongholds zone fills the floor of the Center Pit, the low point of the south half. The Ball Platform and Diagonal Walkway stand over its north side and the South Ledge over its south side. Clear those walkways before you drop in to capture, and expect attackers to drop in from them.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "Measured in a straight line, the NW Plaza zone and the Pit zone are the closest pair; the East Lane zone sits alone on the far east. Holding NW plus Pit keeps your team compact, while East plus Pit is the most stretched pair on the map. The NW zone is also the same ground as KOTH hill 5.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "The ball spawns on the Ball Platform at the head of the Center Pit. The West and Diagonal Walkways reach it at the same height, and the low Center Tunnel from the North Courtyard comes out in the pit just below it, so the opening fight can arrive from above and from below.",
+     "modes": [
+      "Oddball"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://github.com/JGtm/LevelUp",
+     "title": "LevelUp: map callouts, objectives and pads read from the game's map files"
+    },
+    {
+     "url": "https://github.com/GravlLift/halo-infinite-maps",
+     "title": "halo-infinite-maps: objective and weapon-pad catalog"
+    },
+    {
+     "url": "https://github.com/JGtm/halo-infinite-film-decoder",
+     "title": "halo-infinite-film-decoder: objective order from match films"
+    },
+    {
+     "url": "https://github.com/acurtis166/SPNKr",
+     "title": "SPNKr: Halo Infinite API client (medal and asset data)"
+    },
+    {
+     "url": "https://github.com/nuzzles/halo_api",
+     "title": "halo_api: Halo Infinite API models"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Live Fire": {
+   "map": "Live Fire",
+   "aka": [
+    "Live Fire - Ranked",
+    "Live Fire Ranked",
+    "Snow Fire"
+   ],
+   "summary": "Live Fire is a small, asymmetric training-ground arena. One team starts in the wide House and the other on the raised Tower across the map, with the Hallway bridge (power-weapon pad) running between them and the Tunnel underneath it. The open Turbine field on the top side holds the power-up and is fought over from Overlook/Grad Board on the House side and from Brutes/Platform on the Tower side, while Green Building sits on the map edge beside House. Most fights funnel through Hallway/Tunnel and Turbine; House and Green pair up naturally, and the Tower is a dominant but exposed perch.",
+   "symmetric": false,
+   "layoutConfidence": "medium",
+   "zones": [
+    {
+     "name": "House",
+     "kind": "base",
+     "x": 14,
+     "y": 50,
+     "notes": "The wide building on one side of the map and one team's starting side. Strongholds A. Exits lead to Green Building, up toward Overlook/Sandbags and Turbine, and down into the Tunnel. House Window and House Elbow are HUD sub-callouts of it. Orientation convention: House west, Tower east, Turbine north."
+    },
+    {
+     "name": "Tower",
+     "kind": "tower",
+     "x": 86,
+     "y": 40,
+     "level": "top",
+     "notes": "A perch on a raised platform across the map from House and the other team's starting side. Strongholds C. It sees Hallway, Turbine and Nest but can be shot from every direction. Its stairs can be reached from Canal and from Brutes."
+    },
+    {
+     "name": "Hallway",
+     "kind": "lane",
+     "x": 50,
+     "y": 46,
+     "level": "upper (bridge)",
+     "notes": "The above-ground middle route between House and Tower, with the power-weapon pad at its center. It is open at both ends, and a small opening drops into the Tunnel."
+    },
+    {
+     "name": "Tunnel",
+     "kind": "low-ground",
+     "x": 50,
+     "y": 57,
+     "level": "lower",
+     "notes": "Runs under Hallway as the below-ground route from House to Tower, with branches to Green Building and Turbine. The Oddball spawns here. It is cramped and grenades decide fights in it."
+    },
+    {
+     "name": "Turbine",
+     "kind": "mid",
+     "x": 46,
+     "y": 14,
+     "notes": "A big open field on the top side of the map. The power-up pad sits on or in the middle of the turbine, near the Brutes. Connects to House, Tunnel and Brutes. A BR75 rack was added here in Ranked in February 2025."
+    },
+    {
+     "name": "Brutes",
+     "kind": "other",
+     "x": 65,
+     "y": 22,
+     "notes": "A field of headless Brute-armour training dummies between Turbine and the Tower's platform. It gives the Tower side cover during Turbine fights and is a flank route onto the Tower stairs."
+    },
+    {
+     "name": "Platform",
+     "kind": "high-ground",
+     "x": 79,
+     "y": 29,
+     "level": "raised",
+     "notes": "The raised platform the Tower stands on, reached from House's side through the Brutes. The Tower team uses it as cover facing Turbine."
+    },
+    {
+     "name": "Overlook",
+     "kind": "high-ground",
+     "x": 26,
+     "y": 26,
+     "level": "raised",
+     "notes": "A House-side perch with sandbags (guides also call it 'Sandbags') that looks over Turbine. Tower players watch it, and it is exposed to Hallway. You can jump up to it from Grad Board. Its exact spot is estimated.",
+     "approx": true
+    },
+    {
+     "name": "Grad Board",
+     "kind": "other",
+     "x": 23,
+     "y": 38,
+     "notes": "The HUD name; guides call it the Scoreboard, which is very likely the same spot. It is next to House and works as a step up to Sandbags/Overlook. In January 2024 the ranked House-area hill was nudged toward it. Its exact spot is estimated.",
+     "approx": true
+    },
+    {
+     "name": "House Elbow",
+     "kind": "room",
+     "x": 18,
+     "y": 66,
+     "notes": "Also called Garage. It is one of the two main ways enemies push into House and has a tactical-rifle rack. Its exact spot is estimated (assumed to be on the Green side of House).",
+     "approx": true
+    },
+    {
+     "name": "Green Building",
+     "kind": "room",
+     "x": 37,
+     "y": 81,
+     "notes": "A building on the map edge next to House. Strongholds B. A Tunnel branch comes out here. In Ranked a Quantum Translocator spawns behind it ('Back Green')."
+    },
+    {
+     "name": "Yard",
+     "kind": "other",
+     "x": 22,
+     "y": 80,
+     "notes": "The outdoor area beside Green Building, on the opposite side of the map from Turbine. The ranked plasma-grenade spawn ('Front Green') is in the Repulsor's original spot here."
+    },
+    {
+     "name": "Green Bend",
+     "kind": "hazard",
+     "x": 44,
+     "y": 94,
+     "notes": "A corner behind Green Building with a ledge off the map. A small tunnel leads from here toward the B zone."
+    },
+    {
+     "name": "Nest",
+     "kind": "other",
+     "x": 68,
+     "y": 67,
+     "notes": "A connector between Green Building and Tower, across a bridge from the Tower and in view of it. Has a tactical-rifle rack."
+    },
+    {
+     "name": "Canal",
+     "kind": "low-ground",
+     "x": 87,
+     "y": 60,
+     "notes": "A low channel next to the Tower. Some guides treat it as that team's spawn area, and the Tower stairs can be reached from here. Guides warn not to fall in. It is a guide name, not a HUD callout, and its exact spot is estimated.",
+     "approx": true
+    }
+   ],
+   "links": [
+    {
+     "from": "House",
+     "to": "Hallway",
+     "kind": "path"
+    },
+    {
+     "from": "Hallway",
+     "to": "Tower",
+     "kind": "path"
+    },
+    {
+     "from": "House",
+     "to": "Tunnel",
+     "kind": "path"
+    },
+    {
+     "from": "Tunnel",
+     "to": "Tower",
+     "kind": "path"
+    },
+    {
+     "from": "Hallway",
+     "to": "Tunnel",
+     "kind": "drop"
+    },
+    {
+     "from": "Tunnel",
+     "to": "Green Building",
+     "kind": "path"
+    },
+    {
+     "from": "Tunnel",
+     "to": "Turbine",
+     "kind": "path"
+    },
+    {
+     "from": "House",
+     "to": "Green Building",
+     "kind": "path"
+    },
+    {
+     "from": "House",
+     "to": "House Elbow",
+     "kind": "path"
+    },
+    {
+     "from": "House",
+     "to": "Overlook",
+     "kind": "path"
+    },
+    {
+     "from": "Grad Board",
+     "to": "Overlook",
+     "kind": "jump"
+    },
+    {
+     "from": "House",
+     "to": "Turbine",
+     "kind": "path"
+    },
+    {
+     "from": "Turbine",
+     "to": "Brutes",
+     "kind": "path"
+    },
+    {
+     "from": "Brutes",
+     "to": "Platform",
+     "kind": "path"
+    },
+    {
+     "from": "Platform",
+     "to": "Tower",
+     "kind": "path"
+    },
+    {
+     "from": "Brutes",
+     "to": "Tower",
+     "kind": "stairs"
+    },
+    {
+     "from": "Canal",
+     "to": "Tower",
+     "kind": "stairs"
+    },
+    {
+     "from": "Tower",
+     "to": "Nest",
+     "kind": "bridge"
+    },
+    {
+     "from": "Nest",
+     "to": "Green Building",
+     "kind": "path"
+    },
+    {
+     "from": "Green Building",
+     "to": "Green Bend",
+     "kind": "tunnel"
+    },
+    {
+     "from": "Green Building",
+     "to": "Yard",
+     "kind": "path"
+    },
+    {
+     "from": "Tower",
+     "to": "Hallway",
+     "kind": "sightline"
+    },
+    {
+     "from": "Tower",
+     "to": "Turbine",
+     "kind": "sightline"
+    },
+    {
+     "from": "Tower",
+     "to": "Overlook",
+     "kind": "sightline"
+    },
+    {
+     "from": "Overlook",
+     "to": "Turbine",
+     "kind": "sightline"
+    }
+   ],
+   "spawns": [
+    {
+     "item": "S7 Sniper or Skewer (power-weapon pad)",
+     "kind": "power-weapon",
+     "zone": "Hallway",
+     "respawnSec": 180,
+     "notes": "The pad is in the middle of Hallway. Launch-era guides, including ranked pad lists, name the Sniper or Skewer, and no 2024-2025 ranked change list mentions it being changed. The 3:00 timer is the S7 respawn set in December 2022; the Skewer's timer was not confirmed.",
+     "modes": [
+      "Slayer",
+      "Oddball",
+      "Strongholds",
+      "King of the Hill"
+     ],
+     "short": "Sniper / Skewer"
+    },
+    {
+     "item": "Active Camo",
+     "kind": "power-up",
+     "zone": "Turbine",
+     "respawnSec": 150,
+     "notes": "In the ranked variant since 9 January 2024, where it replaced the Overshield and respawns every 2:30. The launch/unranked pad could roll an Overshield or Camo. Its first-spawn time was not confirmed. The Fall 2025 update made Camo last longer. A 2024 Ranked Slayer note may conflict (see conflicts).",
+     "modes": [
+      "Slayer",
+      "Oddball",
+      "Strongholds",
+      "King of the Hill"
+     ],
+     "short": "Camo"
+    },
+    {
+     "item": "BR75 Battle Rifle",
+     "kind": "weapon",
+     "zone": "Turbine",
+     "notes": "Added to ranked Live Fire in the Spring Update (4 February 2025).",
+     "modes": [
+      "Slayer",
+      "Oddball",
+      "Strongholds",
+      "King of the Hill"
+     ],
+     "short": "BR75"
+    },
+    {
+     "item": "Quantum Translocator",
+     "kind": "equipment",
+     "zone": "Green Building",
+     "notes": "Added behind Green Building ('Back Green') in the January 2024 ranked update. In Ranked, the next piece of equipment only starts to respawn after the current one is used up or despawns.",
+     "modes": [
+      "Slayer",
+      "Oddball",
+      "Strongholds",
+      "King of the Hill"
+     ],
+     "short": "Translocator"
+    },
+    {
+     "item": "Drop Wall",
+     "kind": "equipment",
+     "zone": "Brutes",
+     "notes": "Placed by the Brutes in launch-era guides. It isn't mentioned in the 2024+ ranked change lists, so confirm it in game.",
+     "modes": [],
+     "short": "Drop Wall"
+    },
+    {
+     "item": "Plasma Grenades",
+     "kind": "grenade",
+     "zone": "Yard",
+     "notes": "Since January 2024 the ranked variant spawns them at 'Front Green', the Repulsor's original spot by Green Building. Launch layouts had them on Platform.",
+     "modes": [
+      "Slayer",
+      "Oddball",
+      "Strongholds",
+      "King of the Hill"
+     ],
+     "short": "Plasmas"
+    },
+    {
+     "item": "Tactical rifle (BR75 or VK78 Commando)",
+     "kind": "weapon",
+     "zone": "Nest",
+     "notes": "From launch-era pad lists. Since October 2025 the Vestige Carbine is also on the ranked variant, but its exact rack wasn't stated.",
+     "modes": [],
+     "short": "BR / Commando"
+    },
+    {
+     "item": "Tactical rifle (BR75 or VK78 Commando)",
+     "kind": "weapon",
+     "zone": "House Elbow",
+     "notes": "From launch-era pad lists; Dot Esports lists a Commando at House Elbow (Garage).",
+     "modes": [],
+     "short": "BR / Commando"
+    },
+    {
+     "item": "Heatwave (or CQS48 Bulldog)",
+     "kind": "weapon",
+     "zone": "Tunnel",
+     "notes": "A close-range rack that suits the Tunnel. From launch-era sources.",
+     "modes": [],
+     "short": "Heatwave"
+    },
+    {
+     "item": "Sidearm (Disruptor or Plasma Pistol)",
+     "kind": "weapon",
+     "zone": "Canal",
+     "notes": "From launch-era sources; Dot Esports marks the Disruptor or Plasma Pistol as the ranked roll.",
+     "modes": [],
+     "short": "Sidearm"
+    },
+    {
+     "item": "Sidearm (Plasma Pistol, Mangler or Disruptor)",
+     "kind": "weapon",
+     "zone": "Overlook",
+     "notes": "At the Overlook sandbags. From launch-era sources.",
+     "modes": [],
+     "short": "Sidearm"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "Strongholds",
+     "label": "A",
+     "mark": "A",
+     "zone": "House",
+     "notes": "Inside and around House. Pairs naturally with B."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "B",
+     "mark": "B",
+     "zone": "Green Building",
+     "notes": "On the map edge next to House. You can contest it from the building's exposed side or through the small tunnel from Green Bend."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "C",
+     "mark": "C",
+     "zone": "Tower",
+     "notes": "Alone on the far side of the map, with strong sightlines but open on every side. Ranked plays to 250, and you only score while holding at least two zones; a contested zone stops your points."
+    },
+    {
+     "mode": "Oddball",
+     "label": "Ball spawn",
+     "mark": "●",
+     "zone": "Tunnel",
+     "notes": "In the center of the Tunnel under Hallway, the map's single central ball spawn. Ranked rounds go to 100 points, best of three rounds (per Halopedia)."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill by House (toward Grad Board/Scoreboard)",
+     "mark": "H",
+     "zone": "House",
+     "notes": "One ranked hill is in the House area, and in January 2024 it was nudged toward the Scoreboard. Ranked hills come up in a fixed order on each map, but Live Fire's full list and order weren't found. The first hill goes live about 5 s in. You win a hill by filling its control meter, and HCS settings play to 4 hills."
+    }
+   ],
+   "tips": [
+    {
+     "text": "Hold A (House) and B (Green Building) together as one block. They sit side by side with covered paths between them, while C is alone on the Tower across the map. Only send someone at C to break their scoring or to pull their spawns.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "To retake B, don't run through the front of Green Building into a stacked zone. Contest it from the building's exposed side, or come through the small tunnel from the Green Bend corner.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "The ball appears in the middle of the Tunnel under Hallway. Send all four at the start of the round, but grenade the Tunnel before you commit, because it's a tight choke where a couple of nades win the fight.",
+     "modes": [
+      "Oddball"
+     ]
+    },
+    {
+     "text": "Players on top of the Tower usually face Hallway and Overlook. Don't duel them from below; climb the Tower stairs from the Canal side or the Brutes side and catch them from behind.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "When you hold House, expect the main pushes through Garage (House Elbow) and Sandbags, and the sneaky ones from Turbine or up out of the Tunnel. Keep eyes on both main doors and check the flank when the enemy goes quiet.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "In the ranked variant the Turbine pad is Active Camo on a 2:30 cycle. Note when it was taken and set up before it's due: from Sandbags/Grad Board on the House side, or from Brutes/Platform on the Tower side.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Hallway is open at both ends. Once you grab the Sniper or Skewer, drop through the small opening into the Tunnel instead of walking back out the way you came in.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Ranked hills come up in the same fixed order every game, and the first one is live about 5 seconds in. Learn Live Fire's order (one hill sits by House near Grad Board) and start moving to the next hill as soon as the current one is won.",
+     "modes": [
+      "King of the Hill"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://www.halopedia.org/Live_Fire",
+     "title": "Halopedia: Live Fire"
+    },
+    {
+     "url": "https://liquipedia.net/halo/Live_Fire/Infinite",
+     "title": "Liquipedia: Live Fire (Infinite)"
+    },
+    {
+     "url": "https://dotesports.com/halo/news/halo-infinite-live-fire-map-guide",
+     "title": "Dot Esports: Halo Infinite Live Fire map guide"
+    },
+    {
+     "url": "https://www.gamerguides.com/halo-infinite/guide/maps/arena/live-fire",
+     "title": "GamerGuides: Live Fire (Arena maps)"
+    },
+    {
+     "url": "https://www.gfinityesports.com/halo-infinite/live-fire-callouts/",
+     "title": "GFinity Esports: Live Fire callouts and weapon locations"
+    },
+    {
+     "url": "https://thegamescabin.com/live-fire-map-guide-halo-infinite/",
+     "title": "The Games Cabin: Live Fire map guide"
+    },
+    {
+     "url": "https://progameguides.com/halo/all-weapon-spawn-locations-on-live-fire-in-halo-infinite-multiplayer/",
+     "title": "Pro Game Guides: All weapon spawn locations on Live Fire"
+    },
+    {
+     "url": "https://gamerant.com/halo-infinite-best-weapon-spawn-live-fire/",
+     "title": "Game Rant: Best weapon spawn on Live Fire"
+    },
+    {
+     "url": "https://kotaku.com/halo-infinite-players-keep-jumping-off-the-edge-to-win-1848214260",
+     "title": "Kotaku: Halo Infinite players keep jumping off the edge to win"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/january-9-ranked-arena-updates",
+     "title": "Halo Waypoint: January 9 Ranked Arena Updates (2024)"
+    },
+    {
+     "url": "https://x.com/HCS/status/1745550442237763743",
+     "title": "Halo Esports on X (Jan 2024 ranked map updates)"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/34335369079700-Halo-Infinite-Spring-Update-2025-Patch-Notes",
+     "title": "Halo Support: Spring Update 2025 patch notes"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/spring-update-2025-halo-infinite",
+     "title": "Halo Waypoint: Spring Update 2025"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/operation-shadows-ranked-update",
+     "title": "Halo Waypoint: Operation Shadows ranked update"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Origin": {
+   "map": "Origin",
+   "aka": [
+    "Origin - Ranked"
+   ],
+   "summary": "Origin is a 4v4 Ranked Arena map that has hosted Slayer and 3-capture CTF since February 2025. In your games, its ranked version has a long-range power weapon whose kills earn sniper medals. Fewer fights end in melee or grenades than on your other main ranked maps, and its CTF games trade flags more than any other 3-cap map you play. Callouts and item locations are not recorded yet.",
+   "symmetric": null,
+   "layoutConfidence": "low",
+   "zones": [],
+   "links": [],
+   "spawns": [],
+   "objectives": [],
+   "tips": [
+    {
+     "text": "Origin's ranked version has a long-range power weapon. Its kills earn sniper medals (Snipe, No Scope), and in your lobbies it accounts for about 7 kills a game in Slayer, roughly 1 kill in 13. Those medals show up just as often in CTF. Recharge, Streets, Aquarius and Solitude show no power-weapon kills at all, so on Origin find out who is holding it before you cross open ground.",
+     "modes": [
+      "Slayer",
+      "Capture the Flag"
+     ]
+    },
+    {
+     "text": "Fewer fights end in a punch or a grenade here. In your complete Origin Slayer games, 11% of kills were melee and 4% were grenades. On Recharge, Streets, Aquarius, Live Fire and Solitude it was 12-17% melee and 5-6% grenades. Plan to win the gunfight itself rather than counting on a melee or a nade to finish it.",
+     "modes": [
+      "Slayer"
+     ]
+    },
+    {
+     "text": "Origin is your most back-and-forth 3-cap map. 18 of 48 full games went to 2-2 and ended 3-2; on Forbidden, Fortress and Empyrean that is about 1 game in 5. Games here also averaged about 12 flag steals and 7 returns, the most of those four maps. After you score, keep a defender home, because a one-capture lead is often erased.",
+     "modes": [
+      "Capture the Flag"
+     ]
+    },
+    {
+     "text": "Plan for the clock. 18 of 48 full Origin CTF games reached 12:00, and 6 were tied there and went to overtime: about 1 in 8, against about 1 in 17 on Forbidden, Fortress and Empyrean. A capture won all 6 overtimes. When it's level in the last minute, protect your own flag first and only pull as a group.",
+     "modes": [
+      "Capture the Flag"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://github.com/acurtis166/SPNKr",
+     "title": "SPNKr: Halo Infinite API client (medal and asset data)"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Recharge": {
+   "map": "Recharge",
+   "aka": [
+    "Recharge - Ranked",
+    "Recharge Ranked"
+   ],
+   "summary": "Recharge is an indoor, asymmetric 4v4 arena set in an abandoned Axys hydro/water-treatment plant. It has three floors and a loop around the outside that changes height as it goes. One spawn side is the Whirlpool Dam/Elevator area and the other is the Long Hall/Hydro side. Between them sit the sunken Pit, where the power-up spawns, and the raised Batteries platform beside it, whose battery columns move up and down. A mid-floor Bridge and the Attic/Maintenance Bay top level look down on almost all of it. Games usually open with a fight over the Pit power-up. After that, the team that holds Control Room and the top level rotates more easily and can lock down Batteries.",
+   "symmetric": false,
+   "layoutConfidence": "low",
+   "zones": [
+    {
+     "name": "Pit",
+     "kind": "low-ground",
+     "x": 50,
+     "y": 52,
+     "level": "bottom floor",
+     "notes": "The lowest open area in the middle of the map, directly under Batteries. The power-up pad (Overshield/Active Camo) is here. Both Elevator and Platform drop into it, so it is also the low crossing between the two sides. The KOTH 'Bottom Middle' hill is most likely the Pit floor.",
+     "area": "Middle"
+    },
+    {
+     "name": "Batteries",
+     "kind": "mid",
+     "x": 50,
+     "y": 32,
+     "level": "middle floor (raised over the Pit)",
+     "notes": "Upper-middle platform with four big battery columns that rise and sink, so the cover keeps changing. Holds Strongholds B, the Oddball spawn and the first KOTH hill. The corner toward Whirlpool Dam has the Grappleshot and the old Shock Rifle/Hydra rack. A back opening leads into Orange Pipes.",
+     "area": "Middle"
+    },
+    {
+     "name": "Attic",
+     "kind": "high-ground",
+     "x": 50,
+     "y": 14,
+     "level": "top floor",
+     "notes": "Top level above the back of Batteries. Together with Maintenance Bay it looks down on Batteries, Bridge, Pit, Storage and Overhang. Control Room's upper floor can see it. Position is estimated.",
+     "approx": true,
+     "area": "Top floor"
+    },
+    {
+     "name": "Maintenance Bay",
+     "kind": "high-ground",
+     "x": 63,
+     "y": 12,
+     "level": "top floor (inner part of Attic)",
+     "notes": "Inner part of Attic and the eastern half of the upper hallway behind Batteries, which runs on to Long Hall. A strong overwatch spot. Launch-era guides list a tactical-rifle rack here.",
+     "approx": true,
+     "area": "Top floor"
+    },
+    {
+     "name": "Orange Pipes",
+     "kind": "lane",
+     "x": 35,
+     "y": 12,
+     "level": "upper hallway",
+     "notes": "Narrow hallway behind Batteries between Whirlpool Dam and Maintenance Bay. It has only two ways in and frag grenades just inside, which makes it a top spot for holding the Oddball.",
+     "approx": true,
+     "area": "Top floor"
+    },
+    {
+     "name": "Whirlpool Dam",
+     "kind": "room",
+     "x": 17,
+     "y": 24,
+     "level": "round multi-level room",
+     "notes": "Round room with a whirlpool in the floor, on the same spawn side as Elevator. It opens straight onto Batteries and into Orange Pipes. In social, an SMG rack sits between its two doors.",
+     "area": "Whirlpool / Elevator side"
+    },
+    {
+     "name": "Whirlpool Ledge",
+     "kind": "high-ground",
+     "x": 22,
+     "y": 17,
+     "level": "upper edge of Whirlpool Dam",
+     "notes": "In-game callout name only. No source gives the exact spot; it is drawn at the raised edge of the Whirlpool room.",
+     "approx": true,
+     "area": "Whirlpool / Elevator side"
+    },
+    {
+     "name": "Elevator",
+     "kind": "spawn",
+     "x": 15,
+     "y": 60,
+     "level": "lift; bottom to upper floor",
+     "notes": "Lift area on the Whirlpool side and one team's starting spawn. Strongholds A is at the top. A low path leads into the Pit and another reaches Control Room. Its KOTH hill was removed in Jan 2024.",
+     "area": "Whirlpool / Elevator side"
+    },
+    {
+     "name": "Control Room",
+     "kind": "room",
+     "x": 40,
+     "y": 80,
+     "level": "two floors",
+     "notes": "Two-storey room between the A and C sides, next to the Elevator room. The ground floor links to Elevator and the Pit. The upper floor watches the Pit, Batteries and Attic. Holding it makes side-to-side rotations quick.",
+     "area": "Middle"
+    },
+    {
+     "name": "Storage",
+     "kind": "room",
+     "x": 65,
+     "y": 82,
+     "level": "stairs, lower to middle floor",
+     "notes": "Stair room on the outer loop between Hydro and Control Room. The position is inferred from the order of the weapon walkthrough. Launch-era guides list a pistol/Plasma Pistol rack here. Maintenance Bay can see into it.",
+     "approx": true,
+     "area": "Hydro / Long Hall side"
+    },
+    {
+     "name": "Overhang",
+     "kind": "high-ground",
+     "x": 70,
+     "y": 70,
+     "level": "upper",
+     "notes": "Raised spot within sight of Attic and Maintenance Bay, with a pistol pickup in one guide. Position is estimated near Storage.",
+     "approx": true,
+     "area": "Hydro / Long Hall side"
+    },
+    {
+     "name": "Hydro",
+     "kind": "room",
+     "x": 84,
+     "y": 58,
+     "level": "multi-level, big blue piston",
+     "notes": "C-side room and spawn area, paired with Long Hall, and home of Strongholds C. In the social map, a separate platform at the back holds the Sword/Hammer; you reach it by a ramp around the blue piston. The room has a drop/chasm facing that platform.",
+     "area": "Hydro / Long Hall side"
+    },
+    {
+     "name": "Long Hall",
+     "kind": "spawn",
+     "x": 84,
+     "y": 24,
+     "level": "middle floor corridor",
+     "notes": "Long corridor on the C side (aka 'C Hallway') and one team's starting spawn. It links Hydro and Platform to the middle and meets the upper Maintenance Bay hallway. It was KOTH hill 2 until May 2023.",
+     "area": "Hydro / Long Hall side"
+    },
+    {
+     "name": "Platform",
+     "kind": "mid",
+     "x": 69,
+     "y": 44,
+     "level": "middle floor",
+     "notes": "'C Plat'. A platform on the C side between Long Hall and the Pit; it connects down to the Pit. It is KOTH hill 4 in the Jan 2024 order (it became a hill in May 2023).",
+     "approx": true,
+     "area": "Hydro / Long Hall side"
+    },
+    {
+     "name": "Blue Pipes",
+     "kind": "room",
+     "x": 64,
+     "y": 64,
+     "level": "lower floor (estimated)",
+     "notes": "Room with blue pipework and the Repulsor in its centre on the social map. It is KOTH hill 2 since Jan 2024. No source places it; it is drawn between the Pit and lower Hydro.",
+     "approx": true,
+     "area": "Hydro / Long Hall side"
+    },
+    {
+     "name": "Bridge",
+     "kind": "lane",
+     "x": 56,
+     "y": 46,
+     "level": "middle floor",
+     "notes": "Middle-floor bridge that runs between two opposite corners and sees most of the map. It is exposed to Attic/Maintenance Bay. Which corners it joins is not confirmed.",
+     "approx": true,
+     "area": "Middle"
+    },
+    {
+     "name": "Sneaky",
+     "kind": "lane",
+     "x": 31,
+     "y": 30,
+     "level": "upper (estimated)",
+     "notes": "Narrow side path tied to the Attic/Batteries routes, with frag grenades in a ranked-era guide. Position is estimated.",
+     "approx": true,
+     "area": "Whirlpool / Elevator side"
+    },
+    {
+     "name": "Maintenance Elbow Stairs",
+     "kind": "other",
+     "x": 75,
+     "y": 15,
+     "level": "stairs off the upper hallway",
+     "notes": "In-game callout name only. Drawn as the bend in the stairs between Maintenance Bay and Long Hall; position is estimated.",
+     "approx": true,
+     "area": "Top floor"
+    },
+    {
+     "name": "Turbine",
+     "kind": "other",
+     "x": 40,
+     "y": 62,
+     "level": "lower/middle (unknown)",
+     "notes": "Name used in official ranked notes: KOTH hill 3, and a jump added here in Feb 2025. No source places it. It is drawn beside the Pit because one guide mentions a large blue turbine next to the Pit power-up. It could instead be the Whirlpool room.",
+     "approx": true,
+     "area": "Location not confirmed"
+    }
+   ],
+   "links": [
+    {
+     "from": "Whirlpool Dam",
+     "to": "Batteries",
+     "kind": "walk (direct)"
+    },
+    {
+     "from": "Whirlpool Dam",
+     "to": "Orange Pipes",
+     "kind": "hallway"
+    },
+    {
+     "from": "Orange Pipes",
+     "to": "Maintenance Bay",
+     "kind": "upper hallway behind Batteries"
+    },
+    {
+     "from": "Maintenance Bay",
+     "to": "Long Hall",
+     "kind": "upper hallway"
+    },
+    {
+     "from": "Maintenance Bay",
+     "to": "Attic",
+     "kind": "same area (Maintenance Bay is inside Attic)"
+    },
+    {
+     "from": "Batteries",
+     "to": "Orange Pipes",
+     "kind": "back opening"
+    },
+    {
+     "from": "Pit",
+     "to": "Batteries",
+     "kind": "jump up off a box"
+    },
+    {
+     "from": "Elevator",
+     "to": "Whirlpool Dam",
+     "kind": "same spawn side"
+    },
+    {
+     "from": "Elevator",
+     "to": "Pit",
+     "kind": "low route"
+    },
+    {
+     "from": "Elevator",
+     "to": "Control Room",
+     "kind": "walk (lower level)"
+    },
+    {
+     "from": "Control Room",
+     "to": "Pit",
+     "kind": "lower-level link"
+    },
+    {
+     "from": "Long Hall",
+     "to": "Hydro",
+     "kind": "walk"
+    },
+    {
+     "from": "Long Hall",
+     "to": "Platform",
+     "kind": "walk"
+    },
+    {
+     "from": "Platform",
+     "to": "Pit",
+     "kind": "walk/drop"
+    },
+    {
+     "from": "Hydro",
+     "to": "Storage",
+     "kind": "outer loop via stairs (inferred)"
+    },
+    {
+     "from": "Storage",
+     "to": "Control Room",
+     "kind": "outer loop (inferred)"
+    },
+    {
+     "from": "Control Room",
+     "to": "Batteries",
+     "kind": "sightline from upper floor"
+    },
+    {
+     "from": "Control Room",
+     "to": "Attic",
+     "kind": "sightline from upper floor"
+    },
+    {
+     "from": "Attic",
+     "to": "Pit",
+     "kind": "sightline"
+    },
+    {
+     "from": "Attic",
+     "to": "Batteries",
+     "kind": "sightline"
+    },
+    {
+     "from": "Maintenance Bay",
+     "to": "Bridge",
+     "kind": "sightline"
+    },
+    {
+     "from": "Maintenance Bay",
+     "to": "Storage",
+     "kind": "sightline"
+    },
+    {
+     "from": "Maintenance Bay",
+     "to": "Overhang",
+     "kind": "sightline"
+    },
+    {
+     "from": "Bridge",
+     "to": "Pit",
+     "kind": "sightline (overlooks centre)"
+    }
+   ],
+   "spawns": [
+    {
+     "item": "Power-up pad: Overshield or Active Camo",
+     "kind": "power-up",
+     "zone": "Pit",
+     "notes": "The location is solid. The type is not: the social map rotates Overshield and Camo, and a 2022 ranked guide says Camo, but no 2024-2026 source says which one Recharge - Ranked gives. Launch-era community tables listed a 2:00 timer, which is not verified for the current ranked variant.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ],
+     "short": "OS / Camo"
+    },
+    {
+     "item": "Shock Rifle",
+     "kind": "power-weapon",
+     "zone": "Batteries",
+     "notes": "Ranked-only. It used to sit on a rack in the corner of Batteries toward Whirlpool Dam. Since the Feb 4 2025 Spring Update it is on a timed power-weapon pad, the same treatment as Solitude. No source confirms where the pad is or its timer.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ],
+     "short": "Shock Rifle"
+    },
+    {
+     "item": "Grappleshot",
+     "kind": "equipment",
+     "zone": "Batteries",
+     "notes": "Upper part of Batteries near Whirlpool Dam (launch-era guides). Its presence in the current ranked variant is not confirmed. Since Jan 2024, ranked equipment respawns only after the previous one is used up or despawns.",
+     "modes": [],
+     "short": "Grapple"
+    },
+    {
+     "item": "Frag grenades",
+     "kind": "grenade",
+     "zone": "Orange Pipes",
+     "notes": "On the left as you enter. Handy for restocking while you hold the ball in this hallway. The source is a ranked-era guide; later rack changes may have moved it.",
+     "modes": [
+      "Oddball",
+      "Slayer",
+      "Strongholds",
+      "King of the Hill"
+     ],
+     "short": "Frags"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "Strongholds",
+     "label": "A",
+     "mark": "A",
+     "zone": "Elevator",
+     "notes": "At the top of the Elevator area, on the Whirlpool/Elevator spawn side."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "B",
+     "mark": "B",
+     "zone": "Batteries",
+     "notes": "Covers most of the Batteries platform in the middle. Attic and Maintenance Bay can fire down into it."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "C",
+     "mark": "C",
+     "zone": "Hydro",
+     "notes": "In Hydro, on the Long Hall/Hydro spawn side. Control Room sits between A and C."
+    },
+    {
+     "mode": "Oddball",
+     "label": "Ball spawn",
+     "mark": "●",
+     "zone": "Batteries",
+     "notes": "There is a single central ball spawn, on Batteries."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 1: Batteries",
+     "mark": "1",
+     "zone": "Batteries",
+     "order": 1,
+     "notes": "The ranked order has been fixed since Jan 9 2024. The first hill comes up about 5 s in and starts scoring with no wind-up (May 2023 change)."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 2: Blue Pipes",
+     "mark": "2",
+     "zone": "Blue Pipes",
+     "order": 2,
+     "notes": "The order is from the official note. The room's position on the drawing is an estimate."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 4: C Platform",
+     "mark": "4",
+     "zone": "Platform",
+     "order": 4,
+     "notes": "The C-side Platform ('C Plat'). It first became a hill in May 2023, replacing a Long Hall hill."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill 5: Bottom Middle",
+     "mark": "5",
+     "zone": "Pit",
+     "order": 5,
+     "notes": "The official name is 'Bottom Middle'. Matching it to the Pit floor is an inference: the Pit is the low centre of the map."
+    }
+   ],
+   "tips": [
+    {
+     "text": "The first fight is almost always over the Pit power-up. The Pit is the low centre, and enemies can shoot into it from Control Room's upper floor and from Attic/Maintenance Bay. Get a teammate onto one of those high spots before anyone drops in to grab it.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Once you have the power-up, leave the Pit by jumping up onto Batteries off the box. Walking out through the low exits keeps you under fire for longer.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Control Room is the hinge between the Elevator/Whirlpool side and the Hydro/Long Hall side. Hold it and you can rotate between the two spawn areas quickly, and its upper floor gives sightlines onto the Pit, Batteries and Attic.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Strongholds: A (top of Elevator) and C (Hydro) are fairly close, with Control Room between them, so holding A+C is a realistic plan. It tends to make the enemy spawn toward the middle and fight across Batteries for a home flag. Don't over-commit to B, because Attic and Maintenance Bay look straight down on it.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "Oddball: the ball appears on Batteries. Carry it into Orange Pipes, a narrow hallway with only two ways in, and post a teammate on each door. Two defenders there are very hard to push through, and there are frag grenades just inside the entrance to restock.",
+     "modes": [
+      "Oddball"
+     ]
+    },
+    {
+     "text": "KOTH (ranked order since Jan 2024): Batteries, then Blue Pipes, Turbine, C Platform and Bottom Middle (the Pit). The first hill goes live about 5 s in with no wind-up, so the opening push should head straight for Batteries. While C Platform is live, start moving bodies toward the Pit just below it.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "The four battery columns on Batteries keep rising and sinking, so cover there disappears mid-fight. Don't peek off the same column twice and expect it to still be there.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "The middle-floor Bridge runs corner to corner and sees most of the map. It is a good post for a BR or Shock Rifle covering the Pit and Batteries, but Attic and Maintenance Bay can hit you there, so clear the top level first.",
+     "modes": [
+      "Slayer",
+      "Strongholds",
+      "Oddball",
+      "King of the Hill"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://www.halopedia.org/Recharge",
+     "title": "Halopedia: Recharge"
+    },
+    {
+     "url": "https://liquipedia.net/halo/Recharge/Infinite",
+     "title": "Liquipedia Halo Wiki: Recharge (Infinite)"
+    },
+    {
+     "url": "https://dotesports.com/halo/news/halo-infinite-recharge-map-guide",
+     "title": "Dot Esports: Halo Infinite Recharge map guide"
+    },
+    {
+     "url": "https://www.gfinityesports.com/halo-infinite/recharge-callouts/",
+     "title": "Gfinity: Halo Infinite Recharge map callouts and weapon locations"
+    },
+    {
+     "url": "https://www.gamerguides.com/halo-infinite/guide/maps/arena/recharge",
+     "title": "Gamer Guides: Recharge - Arena - Maps"
+    },
+    {
+     "url": "https://progameguides.com/?p=187301",
+     "title": "Pro Game Guides: All weapon spawn locations on Recharge"
+    },
+    {
+     "url": "https://www.ludo.guide/guide/halo-infinite/maps/arena/recharge",
+     "title": "ludo.guide: Recharge"
+    },
+    {
+     "url": "https://thegamescabin.com/recharge-map-guide-halo-infinite/",
+     "title": "The Games Cabin: Recharge map guide"
+    },
+    {
+     "url": "https://kotaku.com/halo-infinite-players-keep-jumping-off-the-edge-to-win-1848214260",
+     "title": "Kotaku: Halo Infinite players keep jumping off the edge to win Oddball"
+    },
+    {
+     "url": "https://gamerant.com/halo-infinite-shock-rifle-spawns/",
+     "title": "Game Rant: Halo Infinite Shock Rifle spawns"
+    },
+    {
+     "url": "https://www.shacknews.com/article/128229/all-grappleshot-spawn-locations-halo-infinite",
+     "title": "Shacknews: All Grappleshot spawn locations"
+    },
+    {
+     "url": "https://support.halowaypoint.com/hc/en-us/articles/15218713612564-Halo-Infinite-Update-May-10-2023",
+     "title": "Halo Support: Halo Infinite Update May 10, 2023"
+    },
+    {
+     "url": "https://www.purexbox.com/news/2023/05/halo-infinites-latest-season-3-update-has-arrived-here-are-the-full-patch-notes",
+     "title": "PureXbox: Season 3 update full patch notes (May 2023)"
+    },
+    {
+     "url": "https://www.halowaypoint.com/news/january-9-ranked-arena-updates",
+     "title": "Halo Waypoint: January 9 Ranked Arena Updates (2024)"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Solitude": {
+   "map": "Solitude",
+   "aka": [
+    "Solitude - Ranked"
+   ],
+   "summary": "Solitude is a Forge-built 4v4 arena map with no mirror symmetry. Its middle is layered: a mid-height Bridge, home of the Active Camo pad, runs from Posters to Market over the sunken Bottom Mid corridor, with raised Top Nest and Ledge to either side, while Bottom Nest and Yard hold opposite corners. Current ranked has no power weapon, so fights flow through that middle and the objective rooms, and the camo timing is the main swing.",
+   "symmetric": false,
+   "layoutConfidence": "medium",
+   "zones": [
+    {
+     "name": "Bridge",
+     "kind": "mid",
+     "x": 44.9,
+     "y": 51.3,
+     "level": "middle",
+     "notes": "Mid-height walkway across the middle, from Posters to Market, over East Bend, Bottom Mid and Dip. Active Camo pad here."
+    },
+    {
+     "name": "Bottom Mid",
+     "kind": "mid",
+     "x": 45.7,
+     "y": 49.7,
+     "level": "lower",
+     "notes": "Lower corridor running under Bridge. Middle Strongholds zone, a ranked hill and a weapon rack."
+    },
+    {
+     "name": "Bottom Nest",
+     "kind": "room",
+     "x": 23.2,
+     "y": 34.8,
+     "level": "middle",
+     "notes": "Corner room with the power-weapon pad (no power weapon in current ranked), a Strongholds zone on that pad and a ranked hill."
+    },
+    {
+     "name": "Yard",
+     "kind": "room",
+     "x": 63.9,
+     "y": 74,
+     "level": "middle",
+     "notes": "Open area south of Market. A ranked hill and a Strongholds zone (under 2 m apart); weapon rack at its north edge; Ledge runs alongside."
+    },
+    {
+     "name": "West Alley",
+     "kind": "lane",
+     "x": 58.2,
+     "y": 37.7,
+     "level": "lower",
+     "notes": "Lane from Hotel and West Ramp down to Dip. Ranked hill and a weapon rack at its north end."
+    },
+    {
+     "name": "South Street",
+     "kind": "lane",
+     "x": 46,
+     "y": 83.8,
+     "level": "lower",
+     "notes": "Lower street between Underpass, South Bend and South Ramp. Ranked hill on its floor."
+    },
+    {
+     "name": "Top Nest",
+     "kind": "high-ground",
+     "x": 32.5,
+     "y": 40.4,
+     "level": "upper",
+     "notes": "Raised spot beside Bottom Nest, overhanging East Bend, next to the Posters end of Bridge."
+    },
+    {
+     "name": "Ledge",
+     "kind": "high-ground",
+     "x": 54.6,
+     "y": 65,
+     "level": "upper",
+     "notes": "Raised walkway beside Market and Yard, over Dip and the south end of Bottom Mid."
+    },
+    {
+     "name": "Market",
+     "kind": "room",
+     "x": 68.8,
+     "y": 54.5,
+     "level": "middle",
+     "notes": "Room between Cafe and Yard where Bridge, Ledge and West Balcony meet."
+    },
+    {
+     "name": "Cafe",
+     "kind": "room",
+     "x": 73.9,
+     "y": 41.1,
+     "level": "middle",
+     "notes": "Room between West Spawn and Market."
+    },
+    {
+     "name": "West Spawn",
+     "kind": "base",
+     "x": 80.8,
+     "y": 30.8,
+     "level": "middle",
+     "notes": "Base past Cafe; one of the two CTF flag stands in the map file."
+    },
+    {
+     "name": "South Base",
+     "kind": "base",
+     "x": 32.7,
+     "y": 90.2,
+     "level": "lower",
+     "notes": "Base at the south end by Loop, Window and South Ramp; the other CTF flag stand. Weapon rack at its edge by Window."
+    },
+    {
+     "name": "Long Stairs",
+     "kind": "lane",
+     "x": 37.1,
+     "y": 72.1,
+     "level": "lower to middle",
+     "notes": "Stairs from the south end of Bottom Mid (by Underpass and Junction) up to Hall and Window. Weapon rack."
+    },
+    {
+     "name": "Dip",
+     "kind": "low-ground",
+     "x": 56.4,
+     "y": 54.1,
+     "level": "lower",
+     "notes": "Low area beside Bottom Mid, under Ledge and West Platform. Weapon rack."
+    },
+    {
+     "name": "Posters",
+     "kind": "room",
+     "x": 21.3,
+     "y": 55.9,
+     "level": "middle",
+     "notes": "Room at the far end of Bridge from Market, between Bottom Nest and Loop, above Alley."
+    },
+    {
+     "name": "Hotel",
+     "kind": "room",
+     "x": 60.5,
+     "y": 12.9,
+     "level": "lower",
+     "notes": "Room on the north edge beside Bottom Base, Sneaky and West Ramp."
+    },
+    {
+     "name": "Bottom Base",
+     "kind": "low-ground",
+     "x": 45.7,
+     "y": 19.8,
+     "level": "lower",
+     "notes": "Lower floor at the north end of Bottom Mid, under Sneaky, next to Hotel."
+    },
+    {
+     "name": "East Basement",
+     "kind": "low-ground",
+     "x": 26.6,
+     "y": 19.8,
+     "level": "lower",
+     "notes": "Lower room in the north corner beside Bottom Nest and Bottom Base."
+    },
+    {
+     "name": "East Platform",
+     "kind": "other",
+     "x": 35.3,
+     "y": 29.7,
+     "level": "middle",
+     "notes": "Raised platform between Bottom Base and Bottom Nest."
+    },
+    {
+     "name": "Stage",
+     "kind": "room",
+     "x": 32.9,
+     "y": 62.7,
+     "level": "lower",
+     "notes": "Lower area between Posters, Long Stairs and East Bend."
+    },
+    {
+     "name": "Pillar",
+     "kind": "other",
+     "x": 39.6,
+     "y": 61.2,
+     "level": "lower (tall)",
+     "notes": "Tall column spot between Stage and Bottom Mid."
+    },
+    {
+     "name": "East Bend",
+     "kind": "low-ground",
+     "x": 34.7,
+     "y": 50.1,
+     "level": "lower",
+     "notes": "Low passage under the Posters end of Bridge, beside Bottom Mid."
+    },
+    {
+     "name": "Underpass",
+     "kind": "low-ground",
+     "x": 48.4,
+     "y": 75.3,
+     "level": "lower",
+     "notes": "Low passage from the south end of Bottom Mid to South Street, under Hall."
+    },
+    {
+     "name": "Hall",
+     "kind": "lane",
+     "x": 46.9,
+     "y": 74.4,
+     "level": "middle",
+     "notes": "Short passage between Yard and Long Stairs, above Underpass."
+    },
+    {
+     "name": "Window",
+     "kind": "other",
+     "x": 29,
+     "y": 78.4,
+     "level": "middle",
+     "notes": "Small spot between Loop, Long Stairs and South Base."
+    },
+    {
+     "name": "Loop",
+     "kind": "lane",
+     "x": 19.1,
+     "y": 78.5,
+     "level": "lower",
+     "notes": "Outer lane on the Posters side of the south half."
+    },
+    {
+     "name": "Junction",
+     "kind": "lane",
+     "x": 27.5,
+     "y": 72.7,
+     "level": "lower",
+     "notes": "Low crossing where Loop, Long Stairs, Alley and Stage meet."
+    },
+    {
+     "name": "Alley",
+     "kind": "lane",
+     "x": 23.2,
+     "y": 59.6,
+     "level": "lower",
+     "notes": "Low lane under Posters between Junction and East Bend."
+    },
+    {
+     "name": "South Bend",
+     "kind": "lane",
+     "x": 52.5,
+     "y": 90.8,
+     "level": "middle",
+     "notes": "Bend on the south edge between Yard and South Street. Weapon rack."
+    },
+    {
+     "name": "South Ramp",
+     "kind": "lane",
+     "x": 41.4,
+     "y": 90.8,
+     "level": "lower to middle",
+     "notes": "Ramp between South Street and South Base."
+    },
+    {
+     "name": "South Alley",
+     "kind": "lane",
+     "x": 23.8,
+     "y": 90.4,
+     "level": "lower",
+     "notes": "Lane beside South Base on the Loop side."
+    },
+    {
+     "name": "West Ramp",
+     "kind": "lane",
+     "x": 66.9,
+     "y": 30.4,
+     "level": "lower to middle",
+     "notes": "Ramp linking Hotel and West Alley with West Spawn and Cafe."
+    },
+    {
+     "name": "West Bridge",
+     "kind": "lane",
+     "x": 53.6,
+     "y": 41.1,
+     "level": "middle",
+     "notes": "Small bridge running north from Bridge alongside West Alley."
+    },
+    {
+     "name": "West Balcony",
+     "kind": "high-ground",
+     "x": 62,
+     "y": 44.4,
+     "level": "upper",
+     "notes": "Raised balcony between Cafe, Market and West Alley."
+    },
+    {
+     "name": "West Platform",
+     "kind": "other",
+     "x": 53.7,
+     "y": 55.1,
+     "level": "middle",
+     "notes": "Raised platform at the Market end of Bridge, over Dip."
+    },
+    {
+     "name": "Sneaky",
+     "kind": "lane",
+     "x": 54,
+     "y": 23.3,
+     "level": "middle",
+     "notes": "Small side route between Hotel and West Alley."
+    }
+   ],
+   "links": [
+    {
+     "from": "Cafe",
+     "to": "Market",
+     "kind": "walk"
+    },
+    {
+     "from": "Cafe",
+     "to": "West Alley",
+     "kind": "level change"
+    },
+    {
+     "from": "Cafe",
+     "to": "West Ramp",
+     "kind": "ramp"
+    },
+    {
+     "from": "Cafe",
+     "to": "West Spawn",
+     "kind": "walk"
+    },
+    {
+     "from": "Cafe",
+     "to": "West Balcony",
+     "kind": "level change"
+    },
+    {
+     "from": "Hotel",
+     "to": "West Ramp",
+     "kind": "walk"
+    },
+    {
+     "from": "Hotel",
+     "to": "Bottom Base",
+     "kind": "walk"
+    },
+    {
+     "from": "Hotel",
+     "to": "Sneaky",
+     "kind": "level change"
+    },
+    {
+     "from": "Ledge",
+     "to": "Market",
+     "kind": "level change"
+    },
+    {
+     "from": "Ledge",
+     "to": "Yard",
+     "kind": "level change"
+    },
+    {
+     "from": "Bridge",
+     "to": "Market",
+     "kind": "walk"
+    },
+    {
+     "from": "Bridge",
+     "to": "Posters",
+     "kind": "walk"
+    },
+    {
+     "from": "Bridge",
+     "to": "West Bridge",
+     "kind": "walk"
+    },
+    {
+     "from": "Bridge",
+     "to": "West Platform",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Nest",
+     "to": "Top Nest",
+     "kind": "level change"
+    },
+    {
+     "from": "Bottom Nest",
+     "to": "Posters",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Nest",
+     "to": "East Platform",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Nest",
+     "to": "East Basement",
+     "kind": "level change"
+    },
+    {
+     "from": "Loop",
+     "to": "Window",
+     "kind": "level change"
+    },
+    {
+     "from": "Loop",
+     "to": "Posters",
+     "kind": "level change"
+    },
+    {
+     "from": "Loop",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Loop",
+     "to": "South Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Market",
+     "to": "Yard",
+     "kind": "walk"
+    },
+    {
+     "from": "Market",
+     "to": "West Balcony",
+     "kind": "level change"
+    },
+    {
+     "from": "Yard",
+     "to": "Hall",
+     "kind": "walk"
+    },
+    {
+     "from": "Yard",
+     "to": "South Bend",
+     "kind": "walk"
+    },
+    {
+     "from": "Hall",
+     "to": "Long Stairs",
+     "kind": "stairs"
+    },
+    {
+     "from": "Long Stairs",
+     "to": "Window",
+     "kind": "stairs"
+    },
+    {
+     "from": "Long Stairs",
+     "to": "Stage",
+     "kind": "walk"
+    },
+    {
+     "from": "Long Stairs",
+     "to": "Underpass",
+     "kind": "walk"
+    },
+    {
+     "from": "Long Stairs",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Window",
+     "to": "South Base",
+     "kind": "level change"
+    },
+    {
+     "from": "Top Nest",
+     "to": "Posters",
+     "kind": "level change"
+    },
+    {
+     "from": "Stage",
+     "to": "Posters",
+     "kind": "level change"
+    },
+    {
+     "from": "Stage",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Stage",
+     "to": "Pillar",
+     "kind": "walk"
+    },
+    {
+     "from": "Stage",
+     "to": "East Bend",
+     "kind": "walk"
+    },
+    {
+     "from": "Alley",
+     "to": "Junction",
+     "kind": "walk"
+    },
+    {
+     "from": "Alley",
+     "to": "East Bend",
+     "kind": "walk"
+    },
+    {
+     "from": "Underpass",
+     "to": "South Street",
+     "kind": "walk"
+    },
+    {
+     "from": "Underpass",
+     "to": "Bottom Mid",
+     "kind": "walk"
+    },
+    {
+     "from": "Dip",
+     "to": "West Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Dip",
+     "to": "Bottom Mid",
+     "kind": "walk"
+    },
+    {
+     "from": "West Alley",
+     "to": "West Ramp",
+     "kind": "walk"
+    },
+    {
+     "from": "West Alley",
+     "to": "West Balcony",
+     "kind": "level change"
+    },
+    {
+     "from": "West Alley",
+     "to": "West Bridge",
+     "kind": "walk"
+    },
+    {
+     "from": "West Ramp",
+     "to": "West Spawn",
+     "kind": "walk"
+    },
+    {
+     "from": "South Bend",
+     "to": "South Ramp",
+     "kind": "ramp"
+    },
+    {
+     "from": "South Bend",
+     "to": "South Street",
+     "kind": "level change"
+    },
+    {
+     "from": "South Ramp",
+     "to": "South Street",
+     "kind": "walk"
+    },
+    {
+     "from": "South Ramp",
+     "to": "South Base",
+     "kind": "walk"
+    },
+    {
+     "from": "South Base",
+     "to": "South Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Pillar",
+     "to": "Bottom Mid",
+     "kind": "walk"
+    },
+    {
+     "from": "East Bend",
+     "to": "Bottom Mid",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Mid",
+     "to": "Bottom Base",
+     "kind": "walk"
+    },
+    {
+     "from": "Bottom Base",
+     "to": "East Basement",
+     "kind": "walk"
+    },
+    {
+     "from": "East Platform",
+     "to": "East Basement",
+     "kind": "level change"
+    }
+   ],
+   "spawns": [
+    {
+     "item": "Active Camo",
+     "kind": "power-up",
+     "zone": "Bridge",
+     "notes": "The map's only power-up pad, on Bridge just beside the spot above the Bottom Mid hill. Identified from your games: the camo-only medal (Sneak King) turns up on Solitude, the overshield-only medal (Achilles Spine) never does. Respawn time not verified; read the pad countdown.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Strongholds"
+     ],
+     "short": "Camo"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Bottom Mid",
+     "notes": "Long hill (about 3.4 x 9 m) on the lower floor under Bridge; the camo pad is about 4 m away. Rotation order not verified."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "West Alley",
+     "notes": "North end of West Alley by West Ramp, next to a weapon rack; about 9.5 m from the Bottom Mid hill. Rotation order not verified."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Bottom Nest",
+     "notes": "Inside Bottom Nest, about 4 m from the power pad, with Top Nest raised beside it. Rotation order not verified."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Yard",
+     "notes": "North part of Yard, under 2 m from the Yard Strongholds zone and about 9 m from the South Street hill. Rotation order not verified."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "South Street",
+     "notes": "Lower floor of South Street where Underpass comes out, below South Bend. Rotation order not verified."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Bottom Mid",
+     "notes": "Long zone (about 12.5 x 5.5 m) down the Bottom Mid corridor under Bridge; camo pad about 3 m away. Zone letter not verified."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Bottom Nest",
+     "notes": "Small round zone (about 2.2 m radius) on the Bottom Nest power pad. Zone letter not verified."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Yard",
+     "notes": "Round zone (about 3.1 m radius) in Yard, almost on the Yard hill spot. Zone letter not verified."
+    }
+   ],
+   "tips": [
+    {
+     "text": "Don't plan around a power weapon. In 162 ranked Slayer and KOTH games on the current 'Solitude - Ranked' file, nobody in your lobbies got a single power-weapon kill. Active Camo on Bridge, in the middle, is the one power item: note when the enemy takes it, and be on Bridge with a teammate as its pad countdown runs out.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "When you don't know where the next hill is, wait at Bottom Mid. That hill sits under Bridge about 4 m from the camo pad and is within roughly 16 m of every other hill. The outer hills come in pairs, Yard with South Street (about 9 m apart) and Bottom Nest with West Alley (about 17 m), and a move from one pair to the other is a 19-25 m trip.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Hold the middle zone plus the corner on your side. Bottom Nest and Yard are opposite corners about 26 m apart, roughly twice their 12-14 m distance to the long Bottom Mid zone, and the camo pad sits about 3 m from that middle zone on Bridge. Going for the far corner stretches your team across the whole map.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "Bottom Nest holds both a hill and a Strongholds zone (the zone sits on the power pad). The areas that touch it are Posters, East Platform, East Basement (lower) and Top Nest (higher), so those are the four directions to watch while you hold it.",
+     "modes": [
+      "King of the Hill",
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "Callouts stack on top of each other here. Bridge runs directly over East Bend, Bottom Mid and Dip, Ledge sits over Dip and the south end of Bottom Mid, and Top Nest overhangs East Bend. If you're on Bridge and hear 'Bottom Mid', the enemy is under you, not across from you.",
+     "modes": [
+      "Slayer",
+      "King of the Hill",
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "In Yard, the hill and the Strongholds zone are under 2 m apart, and Ledge, about 2 m higher, runs along one side. When the objective is in Yard, put someone on Ledge as well as on the floor.",
+     "modes": [
+      "King of the Hill",
+      "Strongholds"
+     ]
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://github.com/JGtm/LevelUp",
+     "title": "LevelUp: map callouts, objectives and pads read from the game's map files"
+    },
+    {
+     "url": "https://github.com/GravlLift/halo-infinite-maps",
+     "title": "halo-infinite-maps: objective and weapon-pad catalog"
+    },
+    {
+     "url": "https://github.com/acurtis166/SPNKr",
+     "title": "SPNKr: Halo Infinite API client (medal and asset data)"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ],
+   "checked": "2026-11-17"
+  },
+  "Streets": {
+   "map": "Streets",
+   "aka": [
+    "Streets - Ranked"
+   ],
+   "summary": "Streets is an asymmetric Mombasa back-alley map. The Station end (top of the schematic) has a square, a two-floor tower and a high balcony. The Subway end (bottom) has a balcony and a nest above the Plaza. Between them, Main Street and the Plaza are the lowest ground, with the raised Old Town and its Bar on the east and the Commercial District and Cafe on the west. Current Ranked (the 'Streets - Ranked' variant) has no power weapons, so fights turn on the center power-up on Main Street, the raised edges and the two ends. Area names are the game's own location labels.",
+   "symmetric": false,
+   "layoutConfidence": "high",
+   "zones": [
+    {
+     "name": "Subway",
+     "kind": "base",
+     "x": 44,
+     "y": 78.1,
+     "level": "ground",
+     "notes": "South end. Ground-level base; the Subway flag stand, a Strongholds zone and a hill all share one spot. Racks at its north end and on the balcony above."
+    },
+    {
+     "name": "Subway Bend",
+     "kind": "lane",
+     "x": 32,
+     "y": 77.3,
+     "level": "ground",
+     "notes": "Street curving around the west side of the Subway, up to Subway Stairs."
+    },
+    {
+     "name": "Subway Stairs",
+     "kind": "lane",
+     "x": 32,
+     "y": 61.4,
+     "level": "ground (stairs)",
+     "notes": "Stairs on the west edge of the Plaza linking Subway Bend, the Plaza and Commercial District."
+    },
+    {
+     "name": "Subway Balcony",
+     "kind": "high-ground",
+     "x": 41.3,
+     "y": 69.2,
+     "level": "upper",
+     "notes": "Upper floor over the north end of the Subway; has a rack."
+    },
+    {
+     "name": "Subway Nest",
+     "kind": "high-ground",
+     "x": 43.7,
+     "y": 64.3,
+     "level": "upper",
+     "notes": "Raised perch above the south edge of the Plaza, beside Subway Balcony."
+    },
+    {
+     "name": "Arc Street Bend",
+     "kind": "lane",
+     "x": 54,
+     "y": 79.3,
+     "level": "ground, short upper section",
+     "notes": "Street around the east side of the Subway; rack near its south end."
+    },
+    {
+     "name": "Arc Street",
+     "kind": "lane",
+     "x": 62.2,
+     "y": 69.9,
+     "level": "ground",
+     "notes": "South-east street from the corner of the Plaza toward Old Town; Subway-end equipment pad. The tiny \"Oscar's House\" nook sits at its west end."
+    },
+    {
+     "name": "Arc Street Hallway",
+     "kind": "room",
+     "x": 74.5,
+     "y": 65.9,
+     "level": "upper",
+     "notes": "Hallway at the east end of Arc Street, a level up, opening into Old Town; has a rack."
+    },
+    {
+     "name": "Plaza",
+     "kind": "mid",
+     "x": 43.5,
+     "y": 58.3,
+     "level": "ground (lowest)",
+     "notes": "Large street-level area between Main Street and the Subway."
+    },
+    {
+     "name": "Plaza Stairs",
+     "kind": "lane",
+     "x": 56.1,
+     "y": 52.6,
+     "level": "stairs",
+     "notes": "Stairs from the east side of the Plaza up to Old Town."
+    },
+    {
+     "name": "Main Street",
+     "kind": "mid",
+     "x": 44.5,
+     "y": 41.9,
+     "level": "ground (lowest)",
+     "notes": "Center street; with the Plaza, the lowest ground on the map. The center power-up pad is here."
+    },
+    {
+     "name": "Main Street Alley",
+     "kind": "lane",
+     "x": 34.2,
+     "y": 42.7,
+     "level": "ground",
+     "notes": "Side street just west of Main Street; the Oddball spawns here."
+    },
+    {
+     "name": "Commercial District",
+     "kind": "lane",
+     "x": 26.6,
+     "y": 41.3,
+     "level": "ground, rising north",
+     "notes": "Street along the west side, climbing toward the Cafe; has a rack and a hill spot."
+    },
+    {
+     "name": "Cafe",
+     "kind": "room",
+     "x": 22.1,
+     "y": 29,
+     "level": "raised",
+     "notes": "The Cafe, on the west side off Commercial District; has a rack."
+    },
+    {
+     "name": "West Alley",
+     "kind": "lane",
+     "x": 10.8,
+     "y": 31.6,
+     "level": "ground",
+     "notes": "Edge area west of the Cafe and Commercial District."
+    },
+    {
+     "name": "Commercial Alley",
+     "kind": "lane",
+     "x": 37.1,
+     "y": 15.7,
+     "level": "raised",
+     "notes": "Back street on the north-west behind the Station tower; Station-end equipment pad."
+    },
+    {
+     "name": "Station Square",
+     "kind": "base",
+     "x": 52.1,
+     "y": 23.3,
+     "level": "raised",
+     "notes": "North end. Square in front of the station with the Station flag stand and a hill spot; sits above Main Street."
+    },
+    {
+     "name": "Station Tower 2",
+     "kind": "tower",
+     "x": 43.1,
+     "y": 22.5,
+     "level": "upper",
+     "notes": "Upper floor of the tower on the west side of the square; holds a Strongholds zone and a rack. The game calls the ground floor below \"Station Tower 1\"."
+    },
+    {
+     "name": "Station Inside",
+     "kind": "room",
+     "x": 70.3,
+     "y": 19,
+     "level": "raised",
+     "notes": "Station interior on the north-east (includes the small \"Officer George's Desk\" spot); rack at its east edge."
+    },
+    {
+     "name": "Station Balcony",
+     "kind": "high-ground",
+     "x": 61.1,
+     "y": 25.3,
+     "level": "top",
+     "notes": "Highest named spot, above the east side of the square at the top of Old Town Stairs."
+    },
+    {
+     "name": "Old Town Stairs",
+     "kind": "lane",
+     "x": 67.6,
+     "y": 30.8,
+     "level": "stairs",
+     "notes": "Stairs joining Old Town to Station Square, Station Inside and Station Balcony."
+    },
+    {
+     "name": "Old Town Alley",
+     "kind": "lane",
+     "x": 55.3,
+     "y": 37.9,
+     "level": "raised",
+     "notes": "Raised alley between Main Street and Old Town."
+    },
+    {
+     "name": "Old Town",
+     "kind": "high-ground",
+     "x": 66.5,
+     "y": 49.7,
+     "level": "raised",
+     "notes": "Raised east street, about a level above Main Street; hill spot just outside the Bar."
+    },
+    {
+     "name": "Old Town Bar",
+     "kind": "room",
+     "x": 76.1,
+     "y": 46.1,
+     "level": "raised",
+     "notes": "Bar on the east edge at Old Town level; the neutral Strongholds zone."
+    },
+    {
+     "name": "East Alley",
+     "kind": "lane",
+     "x": 84.1,
+     "y": 21.4,
+     "level": "ground",
+     "notes": "Edge alley behind Station Inside on the north-east."
+    }
+   ],
+   "links": [
+    {
+     "from": "Subway",
+     "to": "Plaza",
+     "kind": "walk"
+    },
+    {
+     "from": "Subway",
+     "to": "Subway Bend",
+     "kind": "walk"
+    },
+    {
+     "from": "Subway",
+     "to": "Arc Street Bend",
+     "kind": "walk"
+    },
+    {
+     "from": "Subway",
+     "to": "Subway Balcony",
+     "kind": "level change"
+    },
+    {
+     "from": "Subway Balcony",
+     "to": "Subway Nest",
+     "kind": "walk"
+    },
+    {
+     "from": "Subway Nest",
+     "to": "Plaza",
+     "kind": "level change"
+    },
+    {
+     "from": "Subway Bend",
+     "to": "Subway Stairs",
+     "kind": "stairs"
+    },
+    {
+     "from": "Subway Stairs",
+     "to": "Plaza",
+     "kind": "stairs"
+    },
+    {
+     "from": "Subway Stairs",
+     "to": "Commercial District",
+     "kind": "stairs"
+    },
+    {
+     "from": "Plaza",
+     "to": "Main Street",
+     "kind": "walk"
+    },
+    {
+     "from": "Plaza",
+     "to": "Main Street Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Plaza",
+     "to": "Commercial District",
+     "kind": "walk"
+    },
+    {
+     "from": "Plaza",
+     "to": "Arc Street",
+     "kind": "walk"
+    },
+    {
+     "from": "Plaza",
+     "to": "Plaza Stairs",
+     "kind": "stairs"
+    },
+    {
+     "from": "Plaza Stairs",
+     "to": "Old Town",
+     "kind": "stairs"
+    },
+    {
+     "from": "Main Street",
+     "to": "Main Street Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Main Street",
+     "to": "Station Square",
+     "kind": "walk"
+    },
+    {
+     "from": "Main Street",
+     "to": "Old Town Alley",
+     "kind": "level change"
+    },
+    {
+     "from": "Main Street Alley",
+     "to": "Commercial District",
+     "kind": "walk"
+    },
+    {
+     "from": "Commercial District",
+     "to": "West Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Commercial District",
+     "to": "Cafe",
+     "kind": "walk"
+    },
+    {
+     "from": "Cafe",
+     "to": "West Alley",
+     "kind": "level change"
+    },
+    {
+     "from": "Commercial District",
+     "to": "Commercial Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Commercial District",
+     "to": "Station Square",
+     "kind": "walk"
+    },
+    {
+     "from": "Commercial Alley",
+     "to": "Station Square",
+     "kind": "walk"
+    },
+    {
+     "from": "Commercial Alley",
+     "to": "Station Tower 2",
+     "kind": "walk"
+    },
+    {
+     "from": "Station Square",
+     "to": "Station Tower 2",
+     "kind": "level change"
+    },
+    {
+     "from": "Station Square",
+     "to": "Station Inside",
+     "kind": "walk"
+    },
+    {
+     "from": "Station Square",
+     "to": "Station Balcony",
+     "kind": "level change"
+    },
+    {
+     "from": "Station Square",
+     "to": "Old Town Stairs",
+     "kind": "stairs"
+    },
+    {
+     "from": "Station Square",
+     "to": "Old Town Alley",
+     "kind": "level change"
+    },
+    {
+     "from": "Old Town Alley",
+     "to": "Old Town",
+     "kind": "walk"
+    },
+    {
+     "from": "Old Town",
+     "to": "Old Town Bar",
+     "kind": "walk"
+    },
+    {
+     "from": "Old Town",
+     "to": "Old Town Stairs",
+     "kind": "stairs"
+    },
+    {
+     "from": "Old Town Stairs",
+     "to": "Station Inside",
+     "kind": "stairs"
+    },
+    {
+     "from": "Old Town Stairs",
+     "to": "Station Balcony",
+     "kind": "stairs"
+    },
+    {
+     "from": "Old Town Stairs",
+     "to": "East Alley",
+     "kind": "stairs"
+    },
+    {
+     "from": "Station Inside",
+     "to": "East Alley",
+     "kind": "walk"
+    },
+    {
+     "from": "Old Town",
+     "to": "Arc Street",
+     "kind": "level change"
+    },
+    {
+     "from": "Old Town",
+     "to": "Arc Street Hallway",
+     "kind": "walk"
+    },
+    {
+     "from": "Arc Street",
+     "to": "Arc Street Hallway",
+     "kind": "level change"
+    },
+    {
+     "from": "Arc Street",
+     "to": "Arc Street Bend",
+     "kind": "walk"
+    }
+   ],
+   "spawns": [
+    {
+     "item": "Power-up",
+     "kind": "power-up",
+     "zone": "Main Street",
+     "notes": "The ranked map (Streets - Ranked) has a single center pad at street level. The map file marks it only as a generic power-up pad. Three things weren't confirmed: whether it holds Overshield or Active Camo, its respawn timer, and whether every ranked mode turns it on. Use the countdown shown over the pad.",
+     "modes": [],
+     "short": "Power-up"
+    },
+    {
+     "item": "Equipment pad",
+     "kind": "equipment",
+     "zone": "Commercial Alley",
+     "notes": "Station-end equipment spawn behind the tower. Equipment type not identified.",
+     "modes": [],
+     "short": "Equipment pad"
+    },
+    {
+     "item": "Equipment pad",
+     "kind": "equipment",
+     "zone": "Arc Street",
+     "notes": "Subway-end equipment spawn. Equipment type not identified.",
+     "modes": [],
+     "short": "Equipment pad"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Station Tower 2",
+     "notes": "Upper floor of the tower. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Station Inside",
+     "notes": "At the east edge of the station interior. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Cafe",
+     "notes": "In the Cafe. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Commercial District",
+     "notes": "Just south-east of the Commercial District hill spot. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Subway Balcony",
+     "notes": "Upper level over the north end of the Subway. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Subway",
+     "notes": "Ground level at the north end of the Subway. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Arc Street Bend",
+     "notes": "South end of Arc Street Bend. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    },
+    {
+     "item": "Weapon rack",
+     "kind": "weapon",
+     "zone": "Arc Street Hallway",
+     "notes": "Only the ranked map has this rack; the older base map had one on Plaza Stairs instead. Rack weapon not identified.",
+     "modes": [],
+     "short": "Weapon rack"
+    }
+   ],
+   "objectives": [
+    {
+     "mode": "Oddball",
+     "label": "Ball spawn",
+     "mark": "●",
+     "zone": "Main Street Alley",
+     "notes": "Single spawn at street level, just west of the Main Street power-up pad."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Station Tower 2",
+     "notes": "Station-end zone on the tower's upper floor; the ground floor below and the square are outside it. A/B/C letter not confirmed."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Old Town Bar",
+     "notes": "The only neutral zone, inside the Bar on the raised east side, roughly as far from either end zone. Letter not confirmed."
+    },
+    {
+     "mode": "Strongholds",
+     "label": "Zone",
+     "mark": "Z",
+     "zone": "Subway",
+     "notes": "Subway-end zone at ground level, on the flag-stand spot. Letter not confirmed."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Main Street",
+     "notes": "Center hill on the lowest ground; the power-up pad sits inside its area. Ranked rotation order not confirmed."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Old Town",
+     "notes": "Raised east street just outside the Bar's west wall, near the top of Plaza Stairs."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Station Square",
+     "notes": "On the Station flag-stand spot in the square."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Commercial District",
+     "notes": "West street beside the Cafe; the hill area reaches the Cafe's south side."
+    },
+    {
+     "mode": "King of the Hill",
+     "label": "Hill",
+     "mark": "H",
+     "zone": "Subway",
+     "notes": "On the Subway flag-stand spot, the same place as the Subway Strongholds zone."
+    },
+    {
+     "mode": "Capture the Flag",
+     "label": "Flag (Station end)",
+     "mark": "⚑",
+     "zone": "Station Square",
+     "notes": "Flag stand and capture point. You have no CTF games on Streets."
+    },
+    {
+     "mode": "Capture the Flag",
+     "label": "Flag (Subway end)",
+     "mark": "⚑",
+     "zone": "Subway",
+     "notes": "Flag stand and capture point."
+    },
+    {
+     "mode": "Capture the Flag",
+     "label": "Neutral flag",
+     "mark": "⚑",
+     "zone": "Plaza",
+     "notes": "Neutral-flag variants only; at the north edge of the Plaza where it meets Main Street."
+    }
+   ],
+   "tips": [
+    {
+     "text": "Two zones sit at the ends (upstairs in the Station tower, and the Subway). The only neutral one is Old Town Bar on the raised east side, roughly as far from either end zone. The opening is a race for the Bar; your two-zone setup is your end zone plus the Bar.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "The Station-end zone is on the tower's upper floor (the game's 'Station Tower 2'). Standing on the ground floor under it ('Station Tower 1') or out in the square doesn't touch it, so get upstairs to take it or to stop a capture.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "The Bar opens only onto Old Town, and Old Town is reached four ways: Plaza Stairs from the Plaza, Old Town Alley from Main Street, Old Town Stairs from the Station end, and Arc Street Hallway from Arc Street. Holding the Bar means watching those four arrivals.",
+     "modes": [
+      "Strongholds"
+     ]
+    },
+    {
+     "text": "Every round the ball appears in Main Street Alley, just west of the Main Street power-up pad, so one center fight decides both. Go to center as a team; the healthiest player takes the ball while the rest hold Main Street.",
+     "modes": [
+      "Oddball"
+     ]
+    },
+    {
+     "text": "Hill spots: Main Street (center, with the power-up pad inside the hill), Old Town (just outside the Bar), Station Square (on the Station flag stand), Commercial District (beside the Cafe) and Subway (on the Subway flag stand). The ranked order is not confirmed here, so note where the second and third hills appear in your first game and pre-rotate after that.",
+     "modes": [
+      "King of the Hill"
+     ]
+    },
+    {
+     "text": "Ranked Streets has no power weapons: in 190 of your ranked matches on it (Dec 2024 to Oct 2026) no player got a single power-weapon kill. The one power item is the power-up pad in the middle of Main Street, so note when it is taken and have your team near center before its countdown ends.",
+     "modes": []
+    },
+    {
+     "text": "Main Street, the Plaza and the streets just west of them are the lowest ground. Old Town and Old Town Alley on the east, Station Square to the north and the Subway Nest above the south edge of the Plaza all sit higher, so contest center from one of those raised edges rather than from the street.",
+     "modes": []
+    },
+    {
+     "text": "Each end has an equipment pad on its flank: Commercial Alley behind the Station tower, and Arc Street on the Subway side. Each is about the same distance from its own base and roughly three times that from the other base, so expect the enemy to have theirs and do not plan an early steal.",
+     "modes": []
+    }
+   ],
+   "sources": [
+    {
+     "url": "https://github.com/JGtm/LevelUp",
+     "title": "LevelUp: map callouts, objectives and pads read from the game's map files"
+    },
+    {
+     "url": "https://github.com/GravlLift/halo-infinite-maps",
+     "title": "halo-infinite-maps: objective and weapon-pad catalog"
+    },
+    {
+     "url": "https://github.com/nuzzles/halo_api",
+     "title": "halo_api: Halo Infinite API models"
+    },
+    {
+     "url": "https://github.com/acurtis166/SPNKr",
+     "title": "SPNKr: Halo Infinite API client (medal and asset data)"
+    },
+    {
+     "url": "",
+     "title": "Your match history in Debrief (medals, scores, timings)"
+    }
+   ],
+   "checked": "2026-11-17"
+  }
+ }
+}
