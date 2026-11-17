@@ -1,7 +1,8 @@
 {
  "signin": {
-  "ok": false,
-  "detail": "GitHub rejected SECRETS_PAT (failed to fetch public key: HTTP 401: Bad credentials).",
-  "since": 1794903475
- }
+  "ok": true,
+  "detail": "",
+  "since": 1794903725
+ },
+ "patExpires": "2027-02-15 08:06:24 UTC"
 }
