@@ -20,6 +20,7 @@ class Session:
     spartan_token: str
     clearance_token: str
     new_refresh_token: str
+    xbl_auth: str = ""  # "XBL3.0 x=<uhs>;<token>" for Xbox Live services (presence); never print it
 
 
 def app_from_env() -> AzureApp:
@@ -46,6 +47,7 @@ async def sign_in(http: ClientSession, app: AzureApp, refresh_token: str) -> Ses
         spartan_token=spartan.token,
         clearance_token=clearance.token,
         new_refresh_token=token.refresh_token,
+        xbl_auth=xsts.authorization_header_value,
     )
 
 

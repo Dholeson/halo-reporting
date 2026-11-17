@@ -1,0 +1,64 @@
+name: Live match probe
+# One-off test: can Debrief tell which map and mode you're playing, by itself? Start it right before
+# you play one matchmade game (Debrief > In-game > "Test auto-detect", or Run workflow here). It watches
+# what Xbox and Halo report about your accounts and writes a verdict on this run's summary page.
+run-name: ${{ inputs.request_id && format('Probe [{0}]', inputs.request_id) || 'Live match probe' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "How long to watch, in minutes (long enough for one match)"
+        type: string
+        default: "25"
+      request_id:
+        description: "App use"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe   # one probe at a time; it never touches the data, so it doesn't wait for ingests
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync
+
+      - name: Watch Xbox and Halo presence
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID || secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          HALO_REFRESH_TOKEN: ${{ secrets.HALO_REFRESH_TOKEN }}
+          REFRESH_TOKEN_OUT: ${{ runner.temp }}/refresh_token
+          MINUTES: ${{ inputs.minutes }}
+        run: |
+          m="${MINUTES:-25}"
+          case "$m" in ''|*[!0-9]*) m=25 ;; esac
+          [ "$m" -gt 60 ] && m=60
+          MINUTES="$m" uv run python -m halo.probe
+
+      # The sign-in rotated the Halo refresh token, as every ingest does: store the new one.
+      - name: Rotate refresh token
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.SECRETS_PAT }}
+        run: bash scripts/rotate.sh
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-timeline
+          path: probe.json
+          if-no-files-found: ignore
+          retention-days: 30

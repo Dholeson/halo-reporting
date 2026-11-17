@@ -44,6 +44,13 @@ ignore it. The gate that decides what a run does lives in `scripts/gate.sh`, so 
 it doesn't edit the workflow file (an edit re-registers the schedule, which restarts
 GitHub's wait).
 
+**Auto-detect test.** Could the In-game screen load your match by itself? The *Live match probe*
+workflow (`.github/workflows/probe.yml`, started from In-game → *Start the test*, or Actions → Run
+workflow) watches your Xbox presence and Halo's lobby presence for 25 minutes while you play one
+matchmade game, read-only, and writes a verdict on the run's summary page: whether either source names
+the map and mode, and how soon after the match starts. It logs only your own accounts' status (other
+players' IDs are replaced with "someone"); the run log is public on a public repo.
+
 From the site you can also **Sync now**, **scout anyone** (search a gamertag, or tap a
 name in a scoreboard / teammate / rival list) and **load a full history**. A scout pulls
 the player's newest 300 games first (about 3 minutes), then the rest arrives in the

@@ -198,6 +198,19 @@ export async function lastCheck() {
   }
 }
 
+/** Start another workflow in this repo (the live match probe). Returns the request id its run name carries. */
+export async function startWorkflow(file, inputs = {}) {
+  if (!connected()) throw new Error("not-connected");
+  const id = rid();
+  await api(`/actions/workflows/${file}/dispatches`, { method: "POST", body: { ref: "main", inputs: { ...inputs, request_id: id } } });
+  return id;
+}
+/** The run a startWorkflow() request became, once GitHub lists it. */
+export async function findRun(file, id) {
+  const runs = await api(`/actions/workflows/${file}/runs?per_page=10`);
+  return runs.workflow_runs.find((r) => (r.display_title || "").includes(`[${id}]`)) || null;
+}
+
 function patch(ids, changes) {
   const set = new Set([].concat(ids));
   const list = jobs();

@@ -72,6 +72,7 @@ function picker(ctx, base, map, fam) {
   ${last ? `<button class="ig-same" type="button" data-go="${esc(last.mapName)}|${esc(last.famName)}">${artLayer(mapArt(last.mapName), "fade-right")}<span class="eyebrow">Same as your last game</span><span class="ig-same-name">${esc(last.mapName)} · ${esc(last.famName)}</span><span class="note">${esc(fmt.dateTime(last.t))}</span></button>` : ""}
   <section class="mt"><div class="eyebrow" style="margin-bottom:8px">Your usual matchups <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">most played in the last ${RECENT_DAYS} days first</span></div>
     <div class="tiles ig-combos">${usual.map(tile).join("")}</div></section>
+  <section class="card mt ig-probe" id="ig-probe">${probeCard()}</section>
   <details class="card mt" ${map && !fam ? "open" : ""}><summary class="ig-more"><span><b>Something else</b> <span class="note">any map and mode</span></span><span class="btn">Choose</span></summary>
     <div class="picker mt">
       <div class="picker-row"><div class="eyebrow">Map</div><div class="chips">${maps.map((m) => `<button class="chip" type="button" data-map="${esc(m)}" aria-pressed="${m === map}">${esc(m)}</button>`).join("")}</div></div>
@@ -81,11 +82,52 @@ function picker(ctx, base, map, fam) {
   el.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { const [m, f] = b.dataset.go.split("|"); ctx.go("ingame", { bmap: m, bfam: f }); }));
   el.querySelectorAll("[data-map]").forEach((b) => b.addEventListener("click", () => ctx.go("ingame", { bmap: b.dataset.map === map ? "" : b.dataset.map, bfam: "" })));
   el.querySelectorAll("[data-fam]").forEach((b) => b.addEventListener("click", () => ctx.go("ingame", { bmap: map || all.find((c) => c.fam === b.dataset.fam)?.map || "", bfam: b.dataset.fam })));
+  wireProbe(el);
   releaseWake();
   clearTimeout(afterTimer);
   unsub?.();
   unsub = null;
   try { sessionStorage.removeItem("debrief.igPick"); } catch { /* storage blocked */ } // the next pick starts a new match clock
+}
+
+// ---------- auto-detect test (the live match probe, .github/workflows/probe.yml) ----------
+const PROBE_MIN = 25;
+function probeCard() {
+  const p = gh.pref("probe", null);
+  const until = p ? p.at + PROBE_MIN * 60e3 : 0;
+  const runLink = p?.url ? `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">See the run</a>` : "";
+  const r = gh.repo();
+  const onGitHub = r ? `<a href="https://github.com/${esc(r.owner)}/${esc(r.name)}/actions/workflows/probe.yml" target="_blank" rel="noopener">Actions → Live match probe</a>` : "Actions → Live match probe";
+  if (p && Date.now() < until) return `<div class="ig-h">${icon("spark")}Auto-detect test <span class="note">running</span></div>
+    <p>Play one matchmade game now. The test watches until <b>${esc(fmt.time(until / 1000))}</b>, then writes its verdict on the run's page: whether Xbox or Halo report your map and mode, and how soon after the match starts.</p>
+    <div class="mc-actions" style="justify-content:flex-start">${runLink}</div>`;
+  const done = p && Date.now() < until + 3 * 3600e3;
+  return `<div class="ig-h">${icon("spark")}Auto-detect test</div>
+    <p class="note">Could this screen load your match by itself? About to play? Start the test, then play one matchmade game within ${PROBE_MIN} minutes. It watches what Xbox and Halo report about your accounts (read-only) and writes a verdict on the run's page.</p>
+    ${done ? `<p class="note"><b>Your last test finished.</b> Its verdict is on the run's page.</p>` : ""}
+    <div class="mc-actions" style="justify-content:flex-start">${gh.connected() ? `<button class="btn primary" type="button" id="probe-go">${icon("spark")}Start the test</button>` : `<span class="note">Connect GitHub from the Updates button to start it here, or use ${onGitHub}.</span>`}${done ? runLink : ""}</div>`;
+}
+function wireProbe(el) {
+  const box = el.querySelector("#ig-probe");
+  el.querySelector("#probe-go")?.addEventListener("click", async (e) => {
+    e.currentTarget.disabled = true;
+    try {
+      const id = await gh.startWorkflow("probe.yml", { minutes: String(PROBE_MIN) });
+      gh.setPref("probe", { id, at: Date.now(), url: null });
+      toast("Test started. Play a match now.");
+      box.innerHTML = probeCard();
+      // GitHub lists the run a few seconds later; link to it when it does.
+      for (let i = 0; i < 6; i++) {
+        await new Promise((r) => setTimeout(r, 5000));
+        const run = await gh.findRun("probe.yml", id).catch(() => null);
+        if (run) { gh.setPref("probe", { id, at: Date.parse(run.created_at) || Date.now(), url: run.html_url }); break; }
+      }
+      if (box.isConnected) box.innerHTML = probeCard();
+    } catch (err) {
+      toast(err.message === "not-connected" ? "Connect GitHub first" : `Couldn't start the test: ${err.message}`);
+      if (box.isConnected) { box.innerHTML = probeCard(); wireProbe(el); }
+    }
+  });
 }
 
 // ---------- the screen ----------
