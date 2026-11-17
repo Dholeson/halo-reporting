@@ -113,9 +113,27 @@ export function stepper(job, { compact = false } = {}) {
 }
 
 // ---------- activity panel ----------
-export function activityButtonHtml() {
+/**
+ * Is the pipeline healthy? From data/health.json (scripts/rotate.sh): whether the renewed Halo sign-in is
+ * being saved, and when SECRETS_PAT (the token that saves it) expires. null when all is well.
+ */
+export function signinTrouble(health) {
+  const s = health?.signin;
+  if (s && s.ok === false) return { kind: "failing", since: s.since, detail: s.detail || "" };
+  const exp = Date.parse(String(health?.patExpires || "").replace(" UTC", "Z").replace(" ", "T"));
+  if (Number.isFinite(exp) && exp - Date.now() < 14 * 86400e3) return { kind: "expiring", at: exp };
+  return null;
+}
+function signinHelp(t, r) {
+  const links = `<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">make a fine-grained token</a> (only ${esc(r ? r.name : "this repo")}, Repository permissions → <b>Secrets: Read and write</b>), then paste it into the <b>SECRETS_PAT</b> secret ${r ? `(<a href="https://github.com/${esc(r.owner)}/${esc(r.name)}/settings/secrets/actions" target="_blank" rel="noopener">repo Settings → Secrets → Actions</a>)` : "in the repo's Actions secrets"}`;
+  return t.kind === "failing"
+    ? `<div class="callout bad">${icon("alert")} <div><b>Your Halo sign-in isn't being saved${t.since ? ` (since ${esc(ago(t.since))})` : ""}.</b> ${esc(t.detail)} New games still arrive for now, but the sign-in stops renewing and will expire. To fix it, ${links}.</div></div>`
+    : `<div class="callout">${icon("clock")} <div><b>SECRETS_PAT expires ${esc(fmt.date(t.at / 1000))}.</b> After that your Halo sign-in stops renewing. Before then, ${links}.</div></div>`;
+}
+
+export function activityButtonHtml(health) {
   const active = gh.runningJobs(); // this tab's, or another tab's it is following
-  const failed = gh.droppedReason() || gh.jobs().some((j) => j.state === "failed" && Date.now() - Date.parse(j.updatedAt || j.createdAt) < 3600e3);
+  const failed = signinTrouble(health) || gh.droppedReason() || gh.jobs().some((j) => j.state === "failed" && Date.now() - Date.parse(j.updatedAt || j.createdAt) < 3600e3);
   return `<button class="icon-btn activity${active.length ? " busy" : ""}" id="activity-btn" type="button" aria-label="${active.length ? `${active.length} update${active.length === 1 ? "" : "s"} running` : "Updates"}" title="Updates">
     ${active.length ? '<span class="spin" aria-hidden="true"></span>' : icon("reset")}
     ${active.length ? `<span class="count">${active.length}</span>` : failed ? '<span class="count bad">!</span>' : ""}
@@ -131,6 +149,7 @@ export function openActivity(ctx) {
     const r = gh.repo();
     return `
     <div class="mc-head"><h2>Updates</h2><button class="icon-btn" data-close aria-label="Close">${icon("close")}</button></div>
+    ${(() => { const t = signinTrouble((ctx.dbNow?.() || ctx.db).health); return t ? signinHelp(t, r) : ""; })()}
     <div class="sync-row">
       <div><b>Sync now</b><p class="note">Pulls new games for everyone you track. They also arrive on GitHub's schedule, which GitHub sometimes runs hours late.</p></div>
       <button class="btn primary" id="sync-now">${icon("reset")}Sync now</button>

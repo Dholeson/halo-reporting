@@ -269,6 +269,7 @@ def main() -> None:
     payload = {
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "aliases": load(DATA / "aliases.json", {}),
+        "health": load(DATA / "health.json", {}),  # is the Halo sign-in still being renewed? (scripts/rotate.sh)
         "players": [{"xuid": x, "gamertag": g, "me": x in me,
                      "stored": stored_by.get(i, 0), "history": (meta.get(x) or {}).get("history")}
                     for i, (x, g) in enumerate(players.items())],

@@ -11,6 +11,8 @@ import { mapArt, artLayer } from "../art.js";
 import { matchup, plan, winTargets, sessionNow, loadPlaybooks, mapBook } from "../playbook.js";
 import { mapSchematic, calloutList } from "../mapviz.js";
 import * as gh from "../gh.js";
+import { signinTrouble } from "./people.js";
+let lastDb = null;
 
 const RECENT_DAYS = 120;
 
@@ -89,6 +91,7 @@ function picker(ctx, base, map, fam) {
 // ---------- the screen ----------
 function screen(ctx, base, map, fam) {
   const { el } = ctx;
+  lastDb = ctx.dbNow || (() => ctx.db);
   const m = matchup(base, map, fam);
   const { A, verdict: v } = m;
   const targets = winTargets(m);
@@ -139,6 +142,8 @@ function screen(ctx, base, map, fam) {
 
 /** Whether results will show up here by themselves (the app's Updates button is hidden in this mode). */
 function statusLine() {
+  const db = lastDb?.();
+  if (signinTrouble(db?.health)?.kind === "failing") return `${icon("alert")} Your Halo sign-in isn't being saved, so results will stop arriving soon. The Updates panel on the main screen says how to fix it.`;
   if (!gh.connected()) return `${icon("clock")} Not connected to GitHub, so your results won't load here by themselves. Connect from the Updates button on the main screen.`;
   if (!gh.pref("autoCheck", true)) return `${icon("clock")} Automatic checks are off (Updates panel), so results only arrive on GitHub's schedule.`;
   const run = gh.runningJobs()[0];

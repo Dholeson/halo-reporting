@@ -4,7 +4,7 @@ run-name: ${{ inputs.request_id && format('{0} [{1}]', inputs.gamertags && forma
 
 on:
   schedule:
-    - cron: "*/5 * * * *"          # hot: only proceeds if one of YOUR games ended in the last 3 hours
+    - cron: "*/5 * * * *"          # hot: runs while you're playing (see scripts/gate.sh)
     - cron: "7,22,37,52 * * * *"   # cool: every 15 minutes; becomes a full refresh when the last one is 6 h old
   workflow_dispatch:
     inputs:
@@ -149,34 +149,18 @@ jobs:
           export SKILL_MAX="${SKILL_MAX:-${SKILL_MAX_INPUT:-600}}"
           uv run python -m halo.ingest
 
-      # Microsoft rotates refresh tokens. Store the new one so the chain never goes stale.
+      # Microsoft rotates refresh tokens. Store the new one so the chain never goes stale, and record
+      # in data/health.json whether that worked. A failure here never blocks saving the games.
       - name: Rotate refresh token
         if: always()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.SECRETS_PAT }}
-        run: |
-          f="$RUNNER_TEMP/refresh_token"
-          [ -s "$f" ] || exit 0
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::warning::SECRETS_PAT not set; refresh token not rotated. It will expire eventually."
-          else
-            gh secret set HALO_REFRESH_TOKEN --repo "$GITHUB_REPOSITORY" < "$f"
-          fi
-          rm -f "$f"
+        run: bash scripts/rotate.sh
 
       - name: Commit new data
         id: commit
-        run: |
-          git config user.name "halo-bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data players.txt
-          if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; echo "Nothing new."; exit 0; fi
-          # Marker files alone aren't worth a rebuild; anything the site shows is.
-          if git diff --cached --quiet -- . ':!data/last.json' ':!data/checked.json'; then visible=false; else visible=true; fi
-          git commit -m "data: ingest $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull --rebase -q origin main   # safety net for a code push that landed mid-run
-          git push
-          echo "changed=$visible" >> "$GITHUB_OUTPUT"
+        run: bash scripts/commit.sh
 
   # Quiet polls stop before this job: no build, no Pages deployment record.
   publish:

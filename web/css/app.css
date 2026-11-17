@@ -908,3 +908,6 @@ body.focus main { max-width: 1600px; padding: max(10px, env(safe-area-inset-top)
 .ig-status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; font-weight: 600; margin: -2px 2px 0; }
 .ig-status svg { width: 14px; height: 14px; }
 .ig-status .spin { width: 12px; height: 12px; border-width: 2px; }
+.callout.bad { border-color: color-mix(in srgb, var(--bad) 45%, var(--border)); background: color-mix(in srgb, var(--bad) 8%, var(--surface-2)); }
+.callout.bad > svg { color: var(--bad-text); }
+.callout > div a { font-weight: 650; }

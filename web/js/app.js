@@ -317,7 +317,7 @@ function setFilterSilently(patch) {
 function refreshChrome() {
   const slot = $("#activity-slot");
   if (!slot) return;
-  slot.innerHTML = activityButtonHtml();
+  slot.innerHTML = activityButtonHtml(db.health);
   $("#activity-btn").onclick = () => openActivity(lastCtx);
 }
 
