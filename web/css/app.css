@@ -763,3 +763,148 @@ button.who:hover { border-color: var(--border-strong); }
 .person-item .badge, .person-item .avatar { flex: none; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; color: var(--text-2); }
 .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+/* ---------- in-game screen ---------- */
+.flip { transform: rotate(90deg); }
+body.focus .topbar, body.focus .filterbar, body.focus .footer { display: none; }
+body.focus main { max-width: 1600px; padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 28px max(12px, env(safe-area-inset-left)); }
+.ig-same { position: relative; isolation: isolate; overflow: hidden; width: 100%; display: grid; gap: 2px; text-align: left; padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent-soft); color: var(--text); }
+.ig-same-name { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.ig-same:hover { border-color: var(--accent); filter: brightness(1.05); }
+.ig-combos { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.ig-combo { min-height: 92px; }
+.tile .t-mode { font-size: 12.5px; font-weight: 650; opacity: 0.9; }
+.ig-more { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ig-more::-webkit-details-marker { display: none; }
+
+.ig { display: grid; gap: 12px; }
+.ig-head { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 12px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); }
+.ig-head::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--tie); }
+.ig[data-tone="good"] .ig-head::before { background: var(--good); }
+.ig[data-tone="bad"] .ig-head::before { background: var(--bad); }
+.ig-title h1 { font-size: clamp(22px, 3.4vw, 38px); font-weight: 850; letter-spacing: -0.02em; line-height: 1.05; }
+.ig-title h1 span { color: var(--muted); font-weight: 600; }
+.ig[data-tone="good"] .ig-title .eyebrow { color: var(--good-text); }
+.ig[data-tone="bad"] .ig-title .eyebrow { color: var(--bad-text); }
+.ig-rec { display: grid; justify-items: end; gap: 2px; text-align: right; }
+.ig-rec b { font-size: clamp(26px, 3.2vw, 40px); font-weight: 850; line-height: 1; }
+.ig-rec span { color: var(--text-2); font-size: 13px; font-weight: 600; }
+.ig-tools { display: flex; gap: 6px; }
+.ig-tools .icon-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.ig-back svg { width: 15px; height: 15px; }
+
+.ig-last { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2); font-size: 14px; }
+.ig-last > span:nth-child(2) { flex: 1; min-width: 0; }
+.ig-last.good { border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+.ig-last.bad { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+
+.ig-grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+.ig-col { display: grid; gap: 12px; }
+.ig-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 10px; }
+.ig-h { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; color: var(--text-2); flex-wrap: wrap; }
+.ig-h .note { text-transform: none; letter-spacing: 0; font-weight: 500; margin-left: auto; }
+.ig-h.sub { margin-top: 6px; }
+.ig-h svg { width: 16px; height: 16px; color: var(--accent); }
+.ig-targets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ig-target { display: grid; gap: 2px; }
+.ig-target .lbl { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.ig-target b { font-size: clamp(30px, 3.4vw, 44px); font-weight: 850; letter-spacing: -0.02em; line-height: 1.05; }
+.ig-target .note { font-size: 11.5px; }
+.ig-plan { display: grid; gap: 10px; counter-reset: igp; padding: 0; }
+.ig-plan li { list-style: none; display: grid; gap: 2px; padding-left: 30px; position: relative; counter-increment: igp; }
+.ig-plan li::before { content: counter(igp); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 12px; }
+.ig-plan li b { font-size: 15.5px; line-height: 1.3; }
+.ig-plan li span { color: var(--text-2); font-size: 13.5px; }
+.ig-sess { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ig-sess b { font-size: 30px; font-weight: 850; }
+.ig-sess span { color: var(--text-2); font-weight: 600; }
+.ig-recent { display: grid; gap: 4px; }
+.ig-recent .link-btn { display: flex; align-items: center; gap: 8px; color: var(--text-2); font-weight: 600; text-align: left; }
+.ig-sum { color: var(--text-2); font-size: 14px; }
+.ig-rules { font-size: 14.5px; font-weight: 600; }
+.ig-list { display: grid; gap: 8px; padding: 0; }
+.ig-list li { list-style: none; display: grid; gap: 1px; }
+.ig-list li b { font-size: 14.5px; }
+.ig-list li span { color: var(--text-2); font-size: 13.5px; }
+.ig-tips li { padding-left: 16px; position: relative; }
+.ig-tips li::before { content: ""; position: absolute; left: 2px; top: .55em; width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
+
+.ig-timers { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.ig-timer { position: relative; overflow: hidden; display: grid; gap: 1px; text-align: left; padding: 10px 12px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface-2); color: var(--text); min-height: 76px; touch-action: manipulation; }
+.ig-timer .tl { font-weight: 750; font-size: 14px; }
+.ig-timer .tw { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ig-timer .tc { font-size: 26px; font-weight: 850; line-height: 1.1; color: var(--muted); }
+.ig-timer .tbar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+.ig-timer.on { border-color: var(--accent); }
+.ig-timer.on .tc { color: var(--text); }
+.ig-timer.soon { border-color: var(--warn); }
+.ig-timer.soon .tbar { background: var(--warn); }
+.ig-timer.up { border-color: var(--good); background: color-mix(in srgb, var(--good) 14%, var(--surface-2)); }
+.ig-timer.up .tc { color: var(--good-text); }
+@media (prefers-reduced-motion: no-preference) { .ig-timer.up { animation: igpulse 1s ease-in-out infinite; } }
+@keyframes igpulse { 50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 35%, transparent); } }
+
+/* map schematic */
+.mz { margin: 0; display: grid; gap: 8px; }
+.mz svg { width: 100%; height: auto; max-height: 62vh; display: block; background: var(--surface-2); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.mz-link { stroke: var(--axis); stroke-width: .55; stroke-linecap: round; }
+.mz-link.soft { stroke-dasharray: 1.2 1.1; }
+.mz-zone circle { fill: var(--text-2); stroke: var(--surface-2); stroke-width: .5; }
+.mz-zone.k-base circle { fill: var(--tie); }
+.mz-zone.side-red circle { fill: var(--div-neg); }
+.mz-zone.side-blue circle { fill: var(--div-pos); }
+.mz-zone.k-high-ground circle, .mz-zone.k-tower circle { fill: var(--text); }
+.mz-zone.k-hazard circle { fill: var(--bad); }
+.mz-zone text { font-size: 2.6px; font-weight: 650; fill: var(--text); paint-order: stroke; stroke: var(--surface-2); stroke-width: .7px; stroke-linejoin: round; }
+.mz-zone.k-base text { font-size: 2.9px; font-weight: 800; }
+.mz-spawn path, .mz-spawn circle, .mz-spawn rect { stroke: var(--surface-2); stroke-width: .4; }
+.mz-spawn.k-power-weapon path { fill: var(--s2); }
+.mz-spawn.k-power-up circle { fill: var(--accent); }
+.mz-spawn rect { fill: var(--s3); }
+.mz-spawn text { font-size: 2.2px; font-weight: 700; fill: var(--text-2); paint-order: stroke; stroke: var(--surface-2); stroke-width: .6px; }
+.mz-obj circle { fill: var(--text); stroke: var(--surface-2); stroke-width: .6; }
+.mz-obj.red circle { fill: var(--div-neg); }
+.mz-obj.blue circle { fill: var(--div-pos); }
+.mz-obj text { font-size: 3.4px; font-weight: 850; fill: var(--bg); }
+.mz-obj.red text, .mz-obj.blue text { fill: #fff; }
+.mz-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-2); }
+.mz-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mz-legend i { width: 10px; height: 10px; display: inline-block; border-radius: 50%; }
+.mz-legend .lg-obj { background: var(--text); }
+.mz-legend .lg-pw { background: var(--s2); border-radius: 2px; transform: rotate(45deg) scale(.85); }
+.mz-legend .lg-pu { background: var(--accent); }
+.mz-legend .lg-eq { background: var(--s3); border-radius: 2px; }
+.mz-legend .lg-red { background: var(--div-neg); }
+.mz-legend .lg-blue { background: var(--div-pos); }
+.mz-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.mz-list ul { padding: 0; display: grid; gap: 4px; margin-top: 4px; }
+.mz-list li { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 14px; }
+.badge.k-power-weapon { background: color-mix(in srgb, var(--s2) 22%, transparent); color: var(--text); }
+.badge.k-power-up { background: var(--accent-soft); color: var(--accent); }
+
+@media (max-width: 1180px) {
+  .ig-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+  .ig-mode { grid-column: 1 / -1; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+}
+@media (max-width: 760px) {
+  .ig-head { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "back tools" "title title" "rec rec"; gap: 8px; }
+  .ig-back { grid-area: back; justify-self: start; }
+  .ig-tools { grid-area: tools; }
+  .ig-title { grid-area: title; }
+  .ig-rec { grid-area: rec; justify-items: start; text-align: left; }
+  .ig-grid { grid-template-columns: minmax(0, 1fr); }
+  .ig-mode { grid-template-columns: minmax(0, 1fr); }
+  .ig-last { flex-wrap: wrap; }
+  .ig-combos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.ig-targets { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); }
+@media (max-width: 760px) {
+  /* On a phone propped next to the game: numbers, timers and the map first; reading material after. */
+  .ig-grid, .ig-col { display: contents; }
+  .ig { grid-template-columns: minmax(0, 1fr); }
+  .o-targets { order: 1; } .o-timers { order: 2; } .o-map { order: 3; } .o-obj { order: 4; } .o-plan { order: 5; }
+  .o-mode { order: 6; } .o-tips { order: 7; } .o-session { order: 8; } .o-games { order: 9; }
+}
+.ig-status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; font-weight: 600; margin: -2px 2px 0; }
+.ig-status svg { width: 14px; height: 14px; }
+.ig-status .spin { width: 12px; height: 12px; border-width: 2px; }

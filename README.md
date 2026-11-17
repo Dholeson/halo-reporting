@@ -11,6 +11,7 @@ built from your own history. Nothing runs or is stored on your own machine.
 |---|---|
 | **Overview** | Your story: form headline, KPIs vs the previous period, form trend, best days/times, activity calendar, highlight reel, signature medals |
 | **Briefing** | Loading into a match? Pick map + mode → verdict, your numbers there vs your baseline, how you win there, a game plan (aware of your current session and time of day) |
+| **In-game** | One screen to play from on a phone or second monitor: one-tap matchup, then what your wins look like there (only stats where wins beat losses), your game plan, the map's callouts, spawns and this mode's objectives, the mode's rules and coaching, and tap-to-start respawn timers. No app chrome, keeps the screen on, and checks Halo for your result right after a typical game there would end |
 | **Coach** | Ranked findings with evidence and confidence: win condition, survival, finishing, tilt, session fatigue, warm-up, time of day, map pool, objective play, squad, expected vs actual |
 | **Maps & Modes** | Map × mode matrix (win rate / K/D / damage ratio / games) and sortable tables |
 | **Ranked** | CSR journey per account with tier bands, where you farm/bleed CSR, net CSR per session, kills/deaths vs Halo's expectation, lobby difficulty |

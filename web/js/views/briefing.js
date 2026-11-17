@@ -1,12 +1,11 @@
 import { esc, fmt, icon, cssVar, scales, plural } from "../util.js";
-import { agg, goodness, shrink, METRICS, groupBy } from "../stats.js";
+import { agg } from "../stats.js";
 import { pairBars, barList, resultStrip, confHtml } from "../charts.js";
-import { winConditions, timeBlocks, hourBlock, poolStats } from "../insights.js";
-import { kpiTile, wireMatchLinks, emptyState, resultWord, badges } from "./common.js";
+import { winConditions, poolStats } from "../insights.js";
+import { kpiTile, wireMatchLinks, emptyState, resultWord } from "./common.js";
 import { applyFilters, OBJECTIVE_FAMILIES } from "../data.js";
 import { mapArt, artLayer } from "../art.js";
-
-const OBJ_WORD = { "King of the Hill": "on the hill", Strongholds: "in zones", Oddball: "holding the skull", "Total Control": "in zones", "Capture the Flag": "flag plays" };
+import { matchup, plan } from "../playbook.js";
 
 export function render(ctx) {
   const { el, params, db } = ctx;
@@ -38,7 +37,7 @@ export function render(ctx) {
   if (map && !mapList.find((m) => m.name === map)) { const m = byMap.find((x) => x.name === map); if (m) mapList.push(m); }
 
   el.innerHTML = `
-  <div class="page-head"><div><h1>Pre-game briefing</h1><p>Loading into a match? Pick the map and mode. You'll get your record there, what wins it for you, and a game plan.</p></div></div>
+  <div class="page-head"><div><h1>Pre-game briefing</h1><p>Loading into a match? Pick the map and mode. You'll get your record there, what wins it for you, and a game plan.</p></div>${map && fam ? `<a class="btn primary" href="#/ingame?bmap=${encodeURIComponent(map)}&bfam=${encodeURIComponent(fam)}">${icon("crosshair")}Open in-game screen</a>` : ""}</div>
   <details class="card picker-wrap" ${map && fam ? "" : "open"}>
     <summary><span><span class="eyebrow" style="display:block">Matchup</span><span class="sel">${map || fam ? esc([map, fam].filter(Boolean).join(" · ")) : "Pick a map and mode"}</span></span><span class="btn">${map && fam ? "Change" : "Choose"}</span></summary>
   <div class="picker">
@@ -77,32 +76,11 @@ export function render(ctx) {
 }
 
 function brief(out, ctx, base, map, fam) {
-  const here = base.filter((r) => (!map || r.mapName === map) && (!fam || r.famName === fam));
-  const famRows = fam ? base.filter((r) => r.famName === fam) : base;
-  const mapRows = map ? base.filter((r) => r.mapName === map) : base;
-  const baseline = map && fam ? famRows : base;
-  const baseLabel = map && fam ? `your ${fam} average` : "your average";
-  const title = [map, fam].filter(Boolean).join(" · ");
-  const A = agg(here), B = agg(baseline);
-
-  // ---- verdict ----
-  let v;
-  if (!A.n) {
-    v = { tone: "neutral", label: "Uncharted territory", icon: "briefing", text: `You haven't played ${title} yet. This plan is built from your ${map && fam ? `${fam} games and your games on ${map}` : "other games"}.` };
-  } else {
-    const adjWr = shrink(A.w, A.decided, B.wr ?? 0.5, 8);
-    const adjKd = (A.k + 8 * (B.kpg ?? 0)) / Math.max(A.d + 8 * (B.dpg ?? 1), 1);
-    const score = 0.6 * goodness("wr", adjWr, B.wr) + 0.4 * goodness("kd", adjKd, B.kd);
-    const rec = `You're ${A.w}–${A.decided - A.w} here (${fmt.pct(A.wr)}) vs ${fmt.pct(B.wr)} for ${baseLabel}. K/D ${fmt.n2(A.kd)} vs ${fmt.n2(B.kd)}.`;
-    const csr = A.csrN ? ` Ranked: ${fmt.signed(A.csrNet, fmt.int)} CSR over ${A.csrN} games here.` : "";
-    if (score >= 0.2) v = { tone: "good", label: "Favorable matchup", icon: "check", text: rec + csr };
-    else if (score <= -0.2) v = { tone: "bad", label: "Danger zone", icon: "alert", text: rec + csr };
-    else v = { tone: "neutral", label: "Even ground", icon: "steady", text: rec + csr };
-    if (A.decided < 6) v.label += " (early read)";
-  }
+  const m = matchup(base, map, fam);
+  const { here, famRows, mapRows, baseLabel, title, A, B, conf } = m;
+  const v = m.verdict;
   const vb = v.tone === "good" ? "var(--good)" : v.tone === "bad" ? "var(--bad)" : "var(--tie)";
   const vbt = v.tone === "good" ? "var(--good-text)" : v.tone === "bad" ? "var(--bad-text)" : "var(--text-2)";
-  const conf = A.decided >= 25 ? 3 : A.decided >= 8 ? 2 : 1;
 
   const objFam = fam && OBJECTIVE_FAMILIES.has(fam);
   const tiles = [
@@ -114,7 +92,7 @@ function brief(out, ctx, base, map, fam) {
     objFam ? { m: "objtpg", v: A.objtpg, b: B.objtpg } : { m: "k10", v: A.k10, b: B.k10 },
   ];
 
-  const items = plan(ctx, here, baseline, base, famRows, A, B, map, fam, baseLabel);
+  const items = plan(m, base, ctx.all);
   const recentHere = here.slice(-8).reverse();
   const bestHere = here.length ? here.reduce((x, y) => (y.impact > x.impact ? y : x)) : null;
 
@@ -180,86 +158,4 @@ function matchLine(r) {
     <span class="kda num">${r.k}/${r.d}/${r.a}<small>${fmt.n2(r.kd)} K/D</small></span>
     <span class="csr num">${r.csrDelta != null ? `<span class="${r.csrDelta >= 0 ? "good-text" : "bad-text"}">${fmt.signed(r.csrDelta, fmt.int)}</span><small class="muted" style="display:block;font-weight:500">CSR</small>` : `<span>${r.impact}</span><small class="muted" style="display:block;font-weight:500">impact</small>`}</span>
   </button>`;
-}
-
-const WEAK = {
-  d10: (a, b, s) => ({ title: "Slow down: you die more here", detail: `${fmt.n1(a.d10)} deaths per 10 min vs ${fmt.n1(b.d10)} for ${s}. Hold your power positions, recharge after trades, and don't chase into their side of the map.` }),
-  lifeAvg: (a, b, s) => ({ title: "Stay alive longer", detail: `Average life ${fmt.secs(a.lifeAvg)} here vs ${fmt.secs(b.lifeAvg)} for ${s}. Move between cover, and back off when you're cracked.` }),
-  acc: (a, b, s) => ({ title: "Your aim drops here", detail: `${fmt.acc(a.acc)} accuracy vs ${fmt.acc(b.acc)} for ${s}. Take fights at ranges that suit your weapon, and avoid the long cross-map duels.` }),
-  dmgRatio: (a, b, s) => ({ title: "Pick your fights", detail: `Damage ratio ${fmt.n2(a.dmgRatio)} here vs ${fmt.n2(b.dmgRatio)} for ${s}. Shoot first from cover and team-shoot; don't take even 1v1s in the open.` }),
-  k10: (a, b, s) => ({ title: "Get into the action earlier", detail: `${fmt.n1(a.k10)} kills per 10 min vs ${fmt.n1(b.k10)} for ${s}. Rotate toward the fights instead of holding quiet angles.` }),
-  objtpg: (a, b, s) => ({ title: "More time on the objective", detail: `${fmt.secs(a.objtpg)} on the objective per game here vs ${fmt.secs(b.objtpg)} for ${s}.` }),
-  a10: (a, b, s) => ({ title: "Play closer to your team", detail: `${fmt.n1(a.a10)} assists per 10 min vs ${fmt.n1(b.a10)} for ${s}. Shoot what your teammates are shooting.` }),
-};
-const STRONG = {
-  d10: "you stay alive", lifeAvg: "you live longer", acc: "your aim is sharper", dmgRatio: "you win more gunfights", k10: "you get more kills", objtpg: "you play the objective more", a10: "you get more assists",
-};
-
-function plan(ctx, here, baseline, all, famRows, A, B, map, fam, baseLabel) {
-  const items = [];
-  const metrics = ["d10", "lifeAvg", "acc", "dmgRatio", "k10", "a10"].concat(fam && OBJECTIVE_FAMILIES.has(fam) ? ["objtpg"] : []);
-  if (A.n >= 5) {
-    // With a big sample, smaller gaps are real; with a handful of games, demand bigger ones.
-    const bar = A.n >= 40 ? 0.07 : A.n >= 15 ? 0.1 : 0.15;
-    const scored = metrics.map((m) => ({ m, g: goodness(m, A[m], B[m]) })).filter((x) => Number.isFinite(x.g));
-    const weak = scored.filter((x) => x.g < -bar).sort((a, b) => a.g - b.g)[0];
-    const strong = scored.filter((x) => x.g > bar).sort((a, b) => b.g - a.g)[0];
-    if (weak) items.push(WEAK[weak.m](A, B, baseLabel));
-    if (strong) items.push({ title: `Lean on it: ${STRONG[strong.m]} here`, detail: `${METRICS[strong.m].label}: ${METRICS[strong.m].f(A[strong.m])} here vs ${METRICS[strong.m].f(B[strong.m])} for ${baseLabel}. Play to that strength.` });
-  }
-  // win condition (here if possible, else the mode)
-  let wc = A.w >= 4 && A.decided - A.w >= 4 ? winConditions(here, { minEach: 4 }) : null;
-  let scope = "here";
-  if (!wc?.length) { wc = winConditions(famRows, { minEach: 8 }); scope = fam ? `in ${fam}` : "overall"; }
-  if (wc?.length) {
-    const s = wc[0];
-    items.push({ title: `Win condition: ${s.label.toLowerCase()}`, detail: `In your wins ${scope} you average ${s.f(s.ma)}; in losses ${s.f(s.mb)}. ${s.better > 0 ? "Get above" : "Stay under"} ${s.f(s.ma)}.` });
-  }
-  // objective target
-  if (fam && OBJECTIVE_FAMILIES.has(fam)) {
-    const wins = famRows.filter((r) => r.win);
-    if (wins.length >= 5) {
-      const ctf = fam === "Capture the Flag";
-      const avg = wins.reduce((s, r) => s + (ctf ? r.obja + r.objk : r.objt), 0) / wins.length;
-      items.push({ title: `Objective target: ${ctf ? fmt.n1(avg) : fmt.secs(avg)} ${OBJ_WORD[fam]}`, detail: `That's what your ${fam} wins average. ${ctf ? "Grabs, returns and carrier kills all count." : "Be on it when your team has the numbers advantage."}` });
-    }
-  }
-  // recent form on this exact matchup
-  if (here.length >= 5) {
-    const last5 = here.slice(-5), w5 = last5.filter((r) => r.win).length;
-    if (w5 >= 4) items.push({ title: `You've won ${w5} of your last 5 here`, detail: `Last played ${fmt.date(last5[4].t)}. Whatever you did then, do it again.` });
-    else if (w5 <= 1) items.push({ title: `You've lost ${5 - w5} of your last 5 here`, detail: `Last played ${fmt.date(last5[4].t)}. Reset your approach: check "how you win here" for what separates your wins.` });
-  }
-  // context: how this map / mode ranks for you overall
-  if (map && fam) {
-    const ranked = poolStats(all, "mapName", 8).sort((a, b) => b.adj - a.adj);
-    const pos = ranked.findIndex((m) => m.name === map);
-    if (pos >= 0 && ranked.length >= 6) {
-      const m = ranked[pos];
-      if (pos < ranked.length / 3) items.push({ title: `${map} is one of your better maps`, detail: `${fmt.pct(m.wr)} across ${m.n} games in all modes, #${pos + 1} of the ${ranked.length} maps you've played 8+ times.` });
-      else if (pos >= (ranked.length * 2) / 3) items.push({ title: `${map} is one of your tougher maps`, detail: `${fmt.pct(m.wr)} across ${m.n} games in all modes, #${pos + 1} of ${ranked.length}. Respect its power positions.` });
-    }
-  }
-  // live session context: if the last game ended recently, you're mid-session
-  const last = ctx.all[ctx.all.length - 1];
-  const now = Date.now() / 1000;
-  if (last && now - (last.t + last.dur) < 50 * 60) {
-    const next = last.gameNo + 1;
-    const early = agg(all.filter((r) => r.gameNo <= 6)), late = agg(all.filter((r) => r.gameNo >= 7));
-    let trail = 0;
-    for (let i = ctx.all.length - 1; i >= 0 && ctx.all[i].session === last.session && ctx.all[i].loss; i--) trail++;
-    const after2 = agg(all.filter((r) => r.lossRunBefore >= 2));
-    if (trail >= 2 && after2.decided >= 12 && after2.wr <= (agg(all).wr ?? 0) - 0.07)
-      items.unshift({ title: `You've lost ${trail} straight. Consider a break`, detail: `After two losses in a row you win ${fmt.pct(after2.wr)} of the time. A 10-minute reset usually beats queueing tilted.` });
-    else if (next >= 7 && late.decided >= 20 && late.wr <= early.wr - 0.06)
-      items.unshift({ title: `This is game ${next} of your session`, detail: `From game 7 on, your win rate drops to ${fmt.pct(late.wr)} (vs ${fmt.pct(early.wr)} in games 1–6). Make it count, then call it.` });
-  }
-  // time of day
-  const blocks = timeBlocks(all);
-  const nowBlock = hourBlock({ date: new Date() });
-  const cur = blocks.find((b) => b.label === nowBlock?.label);
-  const overallWr = agg(all).wr ?? 0;
-  if (cur && cur.n >= 12 && cur.wr <= overallWr - 0.07) items.push({ title: `It's ${cur.label.toLowerCase()}, not your best hours`, detail: `You win ${fmt.pct(cur.wr)} at this time of day vs ${fmt.pct(overallWr)} overall.` });
-  if (!items.length) items.push({ title: "Play your game", detail: "Nothing here stands out against your averages. Trust your fundamentals." });
-  return items.slice(0, 6);
 }

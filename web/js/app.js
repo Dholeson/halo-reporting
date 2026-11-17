@@ -4,6 +4,7 @@ import { loadData, rowsFor, applyFilters, RANGES, QUEUES, latestVersion } from "
 import { hideTip } from "./charts.js";
 import * as overview from "./views/overview.js";
 import * as briefing from "./views/briefing.js";
+import * as ingame from "./views/ingame.js";
 import * as coach from "./views/coach.js";
 import * as maps from "./views/maps.js";
 import * as ranked from "./views/ranked.js";
@@ -19,6 +20,7 @@ let reloadFailed = false;
 const VIEWS = [
   { id: "overview", label: "Overview", icon: "overview", mod: overview },
   { id: "briefing", label: "Briefing", icon: "briefing", mod: briefing },
+  { id: "ingame", label: "In-game", icon: "crosshair", mod: ingame },
   { id: "coach", label: "Coach", icon: "coach", mod: coach },
   { id: "maps", label: "Maps & Modes", icon: "maps", mod: maps },
   { id: "ranked", label: "Ranked", icon: "ranked", mod: ranked },
@@ -192,7 +194,7 @@ function renderFilterBar() {
     for (const r of all) m.set(r[key], (m.get(r[key]) || 0) + 1);
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   };
-  const isBrief = view === "briefing";
+  const isBrief = view === "briefing" || view === "ingame";
   const who = f.who === "me" ? null : db.players.find((p) => p.xuid === f.who);
   const scoutJob = scouting ? gh.jobFor([f.who.slice(6)]) : null;
   const ss = scouting ? scoutState(f.who.slice(6)) : null;
@@ -211,8 +213,8 @@ function renderFilterBar() {
     </button>
     <span class="fsep"></span>
     ${isBrief ? "" : `<div class="seg" role="group" aria-label="Time range">${RANGES.map((r) => `<button type="button" data-range="${r.id}" aria-pressed="${f.range === r.id}">${esc(r.label)}</button>`).join("")}</div>`}
-    <select class="select ${f.queue !== "all" ? "active" : ""}" id="f-queue" aria-label="Queue">${QUEUES.map((q) => `<option value="${q.id}" ${f.queue === q.id ? "selected" : ""}>${esc(q.label)}</option>`).join("")}</select>
-    ${isBrief ? '<span class="note" style="white-space:nowrap">Briefings use your full history</span>' : `
+    ${view === "ingame" ? "" : `<select class="select ${f.queue !== "all" ? "active" : ""}" id="f-queue" aria-label="Queue">${QUEUES.map((q) => `<option value="${q.id}" ${f.queue === q.id ? "selected" : ""}>${esc(q.label)}</option>`).join("")}</select>`}
+    ${isBrief ? `<span class="note" style="white-space:nowrap">${view === "ingame" ? "In-game uses every game you've played" : "Briefings use your full history"}</span>` : `
     <select class="select ${f.fam ? "active" : ""}" id="f-fam" aria-label="Mode"><option value="">All modes</option>${count("famName").map(([n, c]) => `<option value="${esc(n)}" ${f.fam === n ? "selected" : ""}>${esc(n)} (${c})</option>`).join("")}</select>
     <select class="select ${f.map ? "active" : ""}" id="f-map" aria-label="Map"><option value="">All maps</option>${count("mapName").map(([n, c]) => `<option value="${esc(n)}" ${f.map === n ? "selected" : ""}>${esc(n)} (${c})</option>`).join("")}</select>`}
     <span class="fsep"></span>
@@ -221,7 +223,7 @@ function renderFilterBar() {
   </div>`;
 
   $("#who-btn").addEventListener("click", (e) => (document.querySelector("#people-pop") ? document.querySelector("#people-pop").remove() : openSearch(lastCtx, e.currentTarget)));
-  $("#f-queue").addEventListener("change", (e) => setFilter({ queue: e.target.value }));
+  $("#f-queue")?.addEventListener("change", (e) => setFilter({ queue: e.target.value }));
   $("#f-fam")?.addEventListener("change", (e) => setFilter({ fam: e.target.value }));
   $("#f-map")?.addEventListener("change", (e) => setFilter({ map: e.target.value }));
   document.querySelectorAll("[data-range]").forEach((b) => b.addEventListener("click", () => setFilter({ range: b.dataset.range })));
@@ -269,9 +271,15 @@ function render() {
   const all = scouting ? [] : rowsFor(db, f.who);
   const rows = applyFilters(all, f);
   const prev = f.range !== "all" ? applyFilters(all, f, { prev: true }) : null;
-  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), dbNow: () => db, reloading: () => reloading, reloadFailed: () => reloadFailed, reload: () => reload() };
+  const ctx = { db, f, params, all, rows, prev, el: $("#view"), go, setFilter, setParam, toast, refreshChrome, meRows: () => rowsFor(db, "me"), dbNow: () => db, checkNow: (opts) => autoCheck(opts), reloading: () => reloading, reloadFailed: () => reloadFailed, reload: () => reload() };
   ctx.openMatch = (r) => openMatch(r, ctx);
   lastCtx = ctx;
+  const v = VIEWS.find((x) => x.id === view);
+  const shown = scouting ? null : v;
+  if (lastView && lastView !== shown) lastView.mod.leave?.();
+  lastView = shown;
+  // The in-game screen, once a match is picked, takes the whole viewport: no tabs, filters or footer.
+  document.body.classList.toggle("focus", !scouting && view === "ingame" && !!params.bmap && !!params.bfam);
   renderTabs();
   renderFilterBar();
   refreshChrome();
@@ -281,12 +289,11 @@ function render() {
     renderFooter();
     return;
   }
-  const v = VIEWS.find((x) => x.id === view);
-  document.title = `${v.label} · Debrief`;
+  document.title = view === "ingame" && params.bmap ? `${params.bmap}${params.bfam ? ` · ${params.bfam}` : ""} · Debrief` : `${v.label} · Debrief`;
   document.querySelector('.tab[aria-current="page"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   try {
     v.mod.render(ctx);
-    const banner = partialBanner(ctx);
+    const banner = view === "ingame" ? "" : partialBanner(ctx);
     if (banner) { ctx.el.insertAdjacentHTML("afterbegin", banner); wirePartialBanner(ctx.el, ctx); }
   } catch (e) {
     console.error(e);
@@ -299,6 +306,7 @@ function render() {
   }
 }
 let drawerReady = null; // resolves once the open match drawer has its lobby
+let lastView = null;
 
 function setFilterSilently(patch) {
   state.f = { ...state.f, ...patch };
@@ -364,17 +372,21 @@ function lastGameEnd() {
   for (const r of db.rows) if (mine.has(r.p)) end = Math.max(end, (r.t + (r.dur || 0)) * 1000);
   return end;
 }
-async function autoCheck({ periodic = false } = {}) {
-  const gap = !periodic || Date.now() - lastGameEnd() < 3 * 3600e3 ? OPEN_GAP : IDLE_GAP;
+// `after`: a check right after a match (the in-game screen knows roughly when it ends). Only a check
+// made after that moment makes it unnecessary; one from before the match says nothing about it.
+async function autoCheck({ periodic = false, after = 0 } = {}) {
+  const playing = Date.now() - lastGameEnd() < 3 * 3600e3 || !!document.querySelector(".ig-head"); // the in-game screen is up
+  const gap = !periodic || playing ? OPEN_GAP : IDLE_GAP;
+  const fresh = (t) => (after ? t >= after : Date.now() - t < gap); // a check at t still covers now
   const idle = () => gh.connected() && gh.pref("autoCheck", true) && !gh.runningJobs().length
-    && Date.now() - (gh.pref("autoCheckAt", 0) || 0) >= gap; // another tab may have just done it
+    && !fresh(gh.pref("autoCheckAt", 0) || 0); // another tab may have just done it
   if (autoChecking || !idle() || (periodic && Date.now() - askedAt < 3 * 60e3)) return; // ask GitHub at most every 3 min
   autoChecking = true;
   askedAt = Date.now();
   const wasConnected = gh.connected();
   try {
     const last = await gh.lastCheck();
-    if ((last && Date.now() - last < gap) || !idle()) return; // re-check: things moved while we asked
+    if ((last && fresh(last)) || !idle()) return; // re-check: things moved while we asked
     gh.setPref("autoCheckAt", Date.now());
     await gh.request("sync", [], { auto: true });
     if (!periodic && document.visibilityState === "visible") toast("Checking Halo for new games…");
