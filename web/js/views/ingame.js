@@ -80,6 +80,10 @@ function picker(ctx, base, map, fam) {
   el.querySelectorAll("[data-map]").forEach((b) => b.addEventListener("click", () => ctx.go("ingame", { bmap: b.dataset.map === map ? "" : b.dataset.map, bfam: "" })));
   el.querySelectorAll("[data-fam]").forEach((b) => b.addEventListener("click", () => ctx.go("ingame", { bmap: map || all.find((c) => c.fam === b.dataset.fam)?.map || "", bfam: b.dataset.fam })));
   releaseWake();
+  clearTimeout(afterTimer);
+  unsub?.();
+  unsub = null;
+  try { sessionStorage.removeItem("debrief.igPick"); } catch { /* storage blocked */ } // the next pick starts a new match clock
 }
 
 // ---------- the screen ----------
@@ -155,13 +159,15 @@ function checkAfterMatch(ctx, m, map, fam) {
     pick = { key, at: Date.now() };
     try { sessionStorage.setItem("debrief.igPick", JSON.stringify(pick)); } catch { /* storage blocked */ }
   }
+  clearTimeout(afterTimer);
+  const latest = ctx.all[ctx.all.length - 1];
+  if (latest && latest.t * 1000 >= pick.at - 3 * 60e3) return; // the match you picked has landed: nothing left to wait for
   const durs = (m.here.length >= 5 ? m.here : m.famRows).map((r) => r.dur).filter((d) => d > 60).sort((a, b) => a - b);
   const typical = durs.length ? durs[durs.length >> 1] : 12 * 60;
   const ends = pick.at + typical * 1000;
   // A minute after a typical game ends (post-game screens), then once more 5 minutes later in case it
   // ran long. Each only counts checks made after its own estimate of the end.
   const plan = [{ at: ends + 60e3, after: ends }, { at: ends + 6 * 60e3, after: ends + 5 * 60e3 }].filter((x) => x.at > Date.now());
-  clearTimeout(afterTimer);
   const next = () => {
     const x = plan.shift();
     if (x) afterTimer = setTimeout(() => { ctx.checkNow?.({ after: x.after }); next(); }, x.at - Date.now());
@@ -174,6 +180,7 @@ const famKey = (f) => String(f || "").toLowerCase();
 const forMode = (list, fam) => (list || []).filter((x) => !x.modes?.length || x.modes.some((m) => famKey(m) === famKey(fam) || famKey(fam).includes(famKey(m)) || famKey(m) === "all"));
 
 function fillBooks(el, books, map, fam) {
+  if (timerFor !== `${map}|${fam}`) { timerState.clear(); timerFor = `${map}|${fam}`; }
   const book = mapBook(books, map);
   const mode = books.modes?.[fam] || null;
   const mapEl = el.querySelector("#ig-map"), modeEl = el.querySelector("#ig-mode");
@@ -209,7 +216,8 @@ function fillBooks(el, books, map, fam) {
 }
 
 // ---------- timers ----------
-const timerState = new Map(); // id -> {end, total, warned}
+const timerState = new Map(); // id -> {end, total, warned}; cleared when the matchup changes
+let timerFor = "";
 let tickHandle = null;
 let audio = null;
 const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.max(0, Math.floor(s % 60))).padStart(2, "0")}`;
@@ -258,14 +266,18 @@ function paint() {
 // ---------- screen tools: keep awake, full screen ----------
 let wake = null;
 let wantWake = true;
-async function requestWake() {
-  if (!("wakeLock" in navigator) || !wantWake || document.visibilityState !== "visible") return false;
-  try {
-    wake = await navigator.wakeLock.request("screen");
-    wake.addEventListener?.("release", () => { wake = null; syncWakeBtn(); });
+let asking = null;
+function requestWake() {
+  if (!("wakeLock" in navigator) || !wantWake || document.visibilityState !== "visible") return Promise.resolve(false);
+  if (wake) return Promise.resolve(true);
+  asking ||= navigator.wakeLock.request("screen").then((lock) => {
+    if (!document.querySelector(".ig-head") || !wantWake) { lock.release().catch(() => {}); return false; } // left meanwhile
+    wake = lock;
+    lock.addEventListener?.("release", () => { if (wake === lock) wake = null; syncWakeBtn(); });
     syncWakeBtn();
     return true;
-  } catch { return false; }
+  }, () => false).finally(() => { asking = null; });
+  return asking;
 }
 function releaseWake() { try { wake?.release(); } catch { /* already gone */ } wake = null; }
 function syncWakeBtn() {
