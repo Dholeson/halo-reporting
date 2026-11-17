@@ -179,7 +179,19 @@ function screen(ctx, base, map, fam) {
   checkAfterMatch(ctx, m, map, fam);
   unsub?.();
   unsub = gh.onChange(() => { const st = document.querySelector("#ig-status"); if (st) st.innerHTML = statusLine(); });
-  loadPlaybooks().then((books) => { if (el.isConnected) fillBooks(el, books, map, fam); });
+  const squad = squadHint(m);
+  loadPlaybooks().then((books) => { if (el.isConnected) fillBooks(el, books, map, fam, squad); });
+}
+
+/** Whether you play this matchup in Squad Battle (6v6) rather than Arena: by your games here, then on
+ *  this map; null when you have none (the playbook's own queue decides). */
+function squadHint(m) {
+  for (const rows of [m.here, m.mapRows]) {
+    if (!rows?.length) continue;
+    const sq = rows.filter((r) => /squad/i.test(r.plName || "")).length;
+    return sq * 2 > rows.length;
+  }
+  return null;
 }
 
 /** Whether results will show up here by themselves (the app's Updates button is hidden in this mode). */
@@ -262,10 +274,11 @@ function sandboxSecs(item, general) {
 }
 const forMode = (list, fam) => (list || []).filter((x) => !x.modes?.length || x.modes.some((m) => famKey(m) === famKey(fam) || famKey(fam).includes(famKey(m)) || famKey(m) === "all"));
 
-function fillBooks(el, books, map, fam) {
+function fillBooks(el, books, map, fam, squadGuess = null) {
   if (timerFor !== `${map}|${fam}`) { timerState.clear(); timerFor = `${map}|${fam}`; }
   const book = mapBook(books, map);
-  const mode = books.modes?.[fam] || null;
+  const squad = (squadGuess ?? /squad/i.test(book?.queue || "")) && !!books.squad?.[fam];
+  const mode = (squad && books.squad[fam]) || books.modes?.[fam] || null;
   const mapEl = el.querySelector("#ig-map"), modeEl = el.querySelector("#ig-mode");
   // map: schematic (or callout list), spawns, objectives for this mode, tips
   if (book) {
@@ -299,7 +312,7 @@ function fillBooks(el, books, map, fam) {
   // mode playbook
   modeEl.innerHTML = `
     ${timers.length ? `<div class="ig-card o-timers"><div class="ig-h">${icon("hourglass")}Timers <span class="note">tap when it's taken</span></div><div class="ig-timers" id="ig-timers">${timers.map(timerHtml).join("")}</div></div>` : ""}
-    ${mode ? `<div class="ig-card o-mode"><div class="ig-h">${icon("trophy")}${esc(fam)}</div>
+    ${mode ? `<div class="ig-card o-mode"><div class="ig-h">${icon("trophy")}${esc(fam)}${squad ? ' <span class="note">Squad Battle (6v6)</span>' : ""}</div>
       ${mode.rankedRules ? `<p class="ig-rules">${esc(mode.rankedRules)}</p>` : ""}
       ${mode.principles?.length ? `<ol class="ig-plan">${mode.principles.slice(0, 5).map((p) => `<li><b>${esc(p.title)}</b><span>${esc(p.text)}</span></li>`).join("")}</ol>` : ""}
       ${mode.soloQ?.length ? `<div class="ig-h sub">${icon("people")}Solo queue</div><ul class="ig-list ig-tips">${mode.soloQ.slice(0, 3).map((t) => `<li><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}

@@ -183,7 +183,7 @@ let books = null;
 export function loadPlaybooks() {
   if (!books) {
     const get = (p) => fetch(p, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    books = Promise.all([get("playbook/maps.json"), get("playbook/modes.json")]).then(([maps, modes]) => ({ maps: maps?.maps || {}, modes: modes?.modes || {}, general: modes?.general || null }));
+    books = Promise.all([get("playbook/maps.json"), get("playbook/modes.json")]).then(([maps, modes]) => ({ maps: maps?.maps || {}, modes: modes?.modes || {}, squad: modes?.squad || {}, general: modes?.general || null }));
   }
   return books;
 }

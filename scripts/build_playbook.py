@@ -181,7 +181,7 @@ def clean_map(m):
         tips.append({"text": t["text"], "modes": md})
     links = [{k: l.get(k) for k in ("from", "to", "kind")} for l in m.get("links", []) if zone_ok(l.get("from")) and zone_ok(l.get("to"))]
     return deep_you({"map": m["map"], "aka": m.get("aka", []), "summary": m.get("summary", ""), "symmetric": m.get("symmetric"),
-            "layoutConfidence": m.get("layoutConfidence", "low"),
+            "layoutConfidence": m.get("layoutConfidence", "low"), **({"queue": m["queue"]} if m.get("queue") else {}),
             "zones": out_z, "links": links, "spawns": spawns, "objectives": objectives, "tips": tips}) | {"sources": sources(m.get("sources"))}
 
 def main(src, out, existing=None):
@@ -200,17 +200,30 @@ def main(src, out, existing=None):
                "maps": dict(sorted(maps.items()))},
               open(f"{out}/maps.json", "w"), indent=1, ensure_ascii=False)
     md = r.get("modes")
+    squad = (r.get("squad") or {}).get("modes") or []
+    if not md and squad:  # a research pass with only Squad Battle rules: keep the published Arena notes
+        md = json.load(open(f"{out}/modes.json"))
+        md = {"modes": [dict(v, family=k) for k, v in md.get("modes", {}).items()], "general": md.get("general"), "_published": True}
     if md:
-        modes = {}
-        for x in md.get("modes", []):
-            f = fam(x.get("family"))
-            if not f or f == "all": continue
-            modes[f] = deep_you({k: x.get(k) for k in ("rankedRules", "mechanics", "timers", "principles", "soloQ", "confidence")}) | {"sources": sources(x.get("sources"))}
+        def mode_notes(lst):
+            got = {}
+            for x in lst:
+                f = fam(x.get("family"))
+                if not f or f == "all": continue
+                got[f] = deep_you({k: x.get(k) for k in ("rankedRules", "mechanics", "timers", "principles", "soloQ", "confidence")}) | {"sources": sources(x.get("sources"))}
+            return got
+        modes = mode_notes(md.get("modes", []))
         gen = md.get("general") or {}
-        gen = {"respawns": [deep_you({k: g.get(k) for k in ("item", "seconds", "notes", "confidence")}) for g in gen.get("respawns", [])],
-               "padNotes": you(gen.get("padNotes", "")), "sources": sources(gen.get("sources"))}
-        json.dump({"compiled": stamp, "modes": modes, "general": gen}, open(f"{out}/modes.json", "w"), indent=1, ensure_ascii=False)
-        print(f"modes: {len(modes)}; respawns: {len(gen['respawns'])}")
+        if not md.get("_published"):
+            gen = {"respawns": [deep_you({k: g.get(k) for k in ("item", "seconds", "notes", "confidence")}) for g in gen.get("respawns", [])],
+                   "padNotes": you(gen.get("padNotes", "")), "sources": sources(gen.get("sources"))}
+        out_modes = {"compiled": stamp, "modes": modes, "general": gen}
+        if squad: out_modes["squad"] = mode_notes(squad)  # Ranked Squad Battle (6v6) versions, used on maps you play there
+        else:
+            try: out_modes["squad"] = json.load(open(f"{out}/modes.json")).get("squad", {})
+            except FileNotFoundError: pass
+        json.dump(out_modes, open(f"{out}/modes.json", "w"), indent=1, ensure_ascii=False)
+        print(f"modes: {len(modes)}; squad: {len(out_modes.get('squad') or {})}; respawns: {len(gen['respawns'])}")
     print(f"maps: {len(maps)} ({', '.join(maps)})")
 
 def validate(root):
@@ -241,7 +254,7 @@ def validate(root):
         for s in m["sources"]:
             if s["url"] and not s["url"].startswith("https://"): bad.append(f"{name}: source {s}")
         if not m["sources"]: bad.append(f"{name}: no sources")
-    for f, x in modes["modes"].items():
+    for f, x in list(modes["modes"].items()) + list((modes.get("squad") or {}).items()):
         if f not in FAM: bad.append(f"mode {f}")
     return bad
 
