@@ -83,6 +83,7 @@ class Lobby:
         self.shape = None
         self.attempts: list[dict] = []
         self.next_try = 0.0
+        self.forbidden = False
 
     def shapes(self):
         spartan = {"x-343-authorization-spartan": self.sess.spartan_token, "Accept": "application/json"}
@@ -97,6 +98,8 @@ class Lobby:
         ]
 
     async def poll(self, http: ClientSession):
+        if self.forbidden:
+            return 403, {"note": "rejected this sign-in; not asking again"}
         if self.shape is None:
             if time.time() < self.next_try:
                 return None, {"note": "waiting to retry"}
@@ -108,6 +111,10 @@ class Lobby:
                 if status == 200:
                     self.shape = (method, headers, body)
                     return status, data
+            tried = [a["status"] for a in self.attempts[-len(self.shapes()):]]
+            if all(s in (401, 403, 405) for s in tried) and any(s in (401, 403) for s in tried):
+                self.forbidden = True  # an auth refusal, not a phase thing: don't keep knocking
+                return status, {"error": "the lobby service refuses this sign-in"}
             self.next_try = time.time() + 120  # maybe it only answers in some phases; try again later
             return status, {"error": "no request shape worked", "last": data}
         method, headers, body = self.shape
@@ -219,6 +226,8 @@ def summary(timeline: list[dict], lobby: Lobby, names: dict, gamertags: dict, ma
     else:
         out.append("- Halo Infinite never showed up in Xbox presence for your accounts (not running, or privacy hides it).")
     out += ["", "### Halo lobby presence"]
+    if lobby.forbidden:
+        out.append("- Halo's lobby service refused Debrief's sign-in for every request shape (HTTP 403): it only answers the game itself, so this route is closed.")
     ok = [a for a in lobby.attempts if a["status"] == 200]
     out.append(f"- Request: {ok[0]['shape'] if ok else 'no shape worked'}; attempts: " + ", ".join(f"{a['shape']} → {a['status']}" for a in lobby.attempts[:8]))
     out.append(f"- Changes seen: {len(lobby_events)}; answers with match details: {len(match_seen)}")
